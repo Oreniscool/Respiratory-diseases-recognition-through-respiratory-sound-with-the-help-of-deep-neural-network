@@ -2,4 +2,3 @@ dataset
 __pycache__
 features_cache
 */node_modules
-*best_model.h5
