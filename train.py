@@ -65,3 +65,42 @@ def trainModel(X, y, healthy_class_index=None, healthy_class_multiplier=1.0):
                                       class_weight=class_weights_dict,
 
                                       verbose=1)
+
+    import os
+    import matplotlib.pyplot as plt
+
+    if not os.path.exists('Images'):
+        os.makedirs('Images')
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(ModelHistory.history['accuracy'], label='Training Accuracy')
+    plt.plot(ModelHistory.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Model Accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(loc='lower right')
+    plt.savefig('Images/accuracy_plot.png')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(ModelHistory.history['loss'], label='Training Loss')
+    plt.plot(ModelHistory.history['val_loss'], label='Validation Loss')
+    plt.title('Model Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(loc='upper right')
+    plt.savefig('Images/loss_plot.png')
+    plt.close()
+
+    # Save results to a file
+    with open('Images/training_results.txt', 'w') as f:
+        f.write("Training Results per Epoch\n")
+        f.write("==========================\n")
+        keys = list(ModelHistory.history.keys())
+        epochs = len(ModelHistory.history['loss'])
+        for epoch in range(epochs):
+            f.write(f"Epoch {epoch+1}:\n")
+            for metric in keys:
+                f.write(f"  {metric}: {ModelHistory.history[metric][epoch]:.4f}\n")
+            f.write("\n")
+

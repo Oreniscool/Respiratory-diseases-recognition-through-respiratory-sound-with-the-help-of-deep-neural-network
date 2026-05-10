@@ -124,3 +124,34 @@ V. Basu and S. Rana, "Respiratory diseases recognition through respiratory sound
 
   doi={10.1109/CINE48825.2020.234388}}
 ```
+
+## How to Run the Application
+
+Follow these steps to run the application:
+
+1. **Install Dependencies**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Prepare the Dataset**
+   - Place the dataset in the `dataset/ICBHI_final_dataset/` directory.
+   - Ensure the `patient_diagnosis.csv` file is in the root directory.
+
+3. **Extract Features**
+   - The first run will automatically extract features and cache them.
+   - If you want to force re-extraction, modify the `force_recompute` parameter in `main.py`.
+
+4. **Train the Model**
+
+   ```bash
+   python main.py
+   ```
+
+5. **Evaluate the Model**
+   - Use `validate.py` or `evaluate.py` to test the trained model.
+
+6. **Frontend (Optional)**
+   - Navigate to the `frontend/` directory.
+   - Open `index.html` in a browser to view the frontend interface.

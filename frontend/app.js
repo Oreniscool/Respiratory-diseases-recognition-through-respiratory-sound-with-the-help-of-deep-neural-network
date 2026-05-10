@@ -17,10 +17,12 @@ const CLASSES = [
 ];
 
 const CLASS_COLORS = {
+  Asthma: "#ec4899",
   Bronchiectasis: "#8b5cf6",
   Bronchiolitis: "#f59e0b",
   COPD: "#ef4444",
   Healthy: "#22c55e",
+  LRTI: "#14b8a6",
   Pneumonia: "#3b82f6",
   URTI: "#06b6d4",
 };
@@ -242,6 +244,7 @@ let _handleFile = null;
 const API_BASE = "http://localhost:5000";
 let serverOnline = false; // server reachable
 let datasetOnline = false; // dataset .wav files present on server
+let serverClasses = null; // class labels returned by the server
 
 // Poll the backend health endpoint every 4 s
 (function pollHealth() {
@@ -252,6 +255,9 @@ let datasetOnline = false; // dataset .wav files present on server
         const wasOnline = serverOnline;
         serverOnline = true;
         datasetOnline = !!data.dataset;
+        if (Array.isArray(data.classes) && data.classes.length > 0) {
+          serverClasses = data.classes.slice();
+        }
         if (!wasOnline || datasetOnline !== !!data.dataset) updateServerBadge();
       })
       .catch(() => {
@@ -879,7 +885,9 @@ function buildSamplePanel(key) {
   function runRealSample(key) {
     // Map pill key (e.g. 'bronchiectasis') to the capitalised class name
     const disease =
-      CLASSES.find((c) => c.toLowerCase() === key.toLowerCase()) || key;
+      (serverClasses || CLASSES).find(
+        (c) => c.toLowerCase() === key.toLowerCase(),
+      ) || key;
     const meta = {
       fileName: `dataset sample — ${disease}`,
       duration: "computing…",

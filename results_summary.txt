@@ -1,0 +1,23 @@
+Extracted 1720 samples.
+Class distribution:
+  URTI: 146
+  Bronchiolitis: 302
+  Pneumonia: 300
+  Bronchiectasis: 188
+  LRTI: 106
+  Asthma: 358
+  Healthy: 260
+  COPD: 60
+Patient leakage check: 0 overlapping patient ids.
+Healthy class index: 4
+Model Info:
+  split_strategy: GroupShuffleSplit(patient_id)
+  patient_leakage_overlap: 0
+  use_single_gru: True
+  dataset_size: 1720
+  specaugment_enabled: True
+  specaugment_time_mask_width: 20
+  specaugment_freq_mask_width: 8
+  specaugment_num_time_masks: 2
+  specaugment_num_freq_masks: 2
+  feature_cache_dir: features_cache

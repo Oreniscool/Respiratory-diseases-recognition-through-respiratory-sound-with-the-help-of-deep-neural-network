@@ -28,8 +28,16 @@ DATASET_DIR = os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset")
 DIAGNOSIS   = os.path.join(BASE_DIR, "patient_diagnosis.csv")
 PORT        = 5000
 
-# Label order produced by sklearn LabelEncoder (alphabetical)
-CLASSES = ["Bronchiectasis", "Bronchiolitis", "COPD", "Healthy", "Pneumonia", "URTI"]
+DEFAULT_CLASSES = [
+    "Asthma",
+    "Bronchiectasis",
+    "Bronchiolitis",
+    "COPD",
+    "Healthy",
+    "LRTI",
+    "Pneumonia",
+    "URTI",
+]
 
 N_MFCC = 40
 MAX_LEN = 200
@@ -39,6 +47,33 @@ USE_DELTAS = True
 app   = Flask(__name__)
 CORS(app)           # allow the HTML file opened from disk to call us
 model = None        # loaded lazily on first request (or at startup below)
+CLASSES = None
+
+
+def load_class_labels():
+    if not os.path.exists(DIAGNOSIS):
+        print(f"[RespiNet] WARNING: {DIAGNOSIS} not found. Using default class list.")
+        return DEFAULT_CLASSES
+
+    try:
+        df = pd.read_csv(DIAGNOSIS)
+        diseases = [d for d in df["disease"].dropna().unique().tolist() if str(d).strip()]
+        if not diseases:
+            return DEFAULT_CLASSES
+        try:
+            from sklearn.preprocessing import LabelEncoder
+
+            le = LabelEncoder()
+            le.fit(diseases)
+            return list(le.classes_)
+        except Exception:
+            return sorted(diseases)
+    except Exception as e:
+        print(f"[RespiNet] WARNING: Failed to load classes from CSV: {e}")
+        return DEFAULT_CLASSES
+
+
+CLASSES = load_class_labels()
 
 
 def load_model_once():
@@ -51,6 +86,17 @@ def load_model_once():
             )
         print(f"[RespiNet] Loading model from {MODEL_PATH} …")
         model = load_model(MODEL_PATH)
+        if CLASSES is not None:
+            try:
+                output_dim = int(model.output_shape[-1])
+                if output_dim != len(CLASSES):
+                    print(
+                        "[RespiNet] WARNING: model output dim "
+                        f"({output_dim}) does not match class labels "
+                        f"({len(CLASSES)})."
+                    )
+            except Exception:
+                pass
         print("[RespiNet] Model loaded ✓")
     return model
 
@@ -107,10 +153,21 @@ def extract_mfcc(audio_bytes: bytes) -> np.ndarray:
 @app.route("/health", methods=["GET"])
 def health():
     """Simple liveness check the frontend polls to decide whether to use real or mock mode."""
+    model_output = None
+    if os.path.exists(MODEL_PATH):
+        try:
+            m = load_model_once()
+            model_output = int(m.output_shape[-1])
+        except Exception:
+            model_output = None
+
     return jsonify({
         "status":  "ok",
         "model":   os.path.exists(MODEL_PATH),
         "dataset": os.path.isdir(DATASET_DIR) and bool(glob.glob(os.path.join(DATASET_DIR, "*.wav"))),
+        "classes": CLASSES,
+        "num_classes": len(CLASSES) if CLASSES else None,
+        "model_output_dim": model_output,
     })
 
 
@@ -305,6 +362,8 @@ def predict():
 
 # ── Entry point ───────────────────────────────────────────────────
 if __name__ == "__main__":
+    CLASSES = load_class_labels()
+    print(f"[RespiNet] Class labels: {', '.join(CLASSES)}")
     # Pre-load model at startup so the first request isn't slow
     try:
         load_model_once()

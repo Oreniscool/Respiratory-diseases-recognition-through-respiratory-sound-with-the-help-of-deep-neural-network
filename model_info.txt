@@ -1,0 +1,73 @@
+Model summary
+============
+Model: "functional"
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Layer (type)                         ┃ Output Shape                ┃         Param # ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ input_layer (InputLayer)             │ (None, 200, 120)            │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ batch_normalization                  │ (None, 200, 120)            │             480 │
+│ (BatchNormalization)                 │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv1d (Conv1D)                      │ (None, 200, 64)             │          38,464 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ leaky_re_lu (LeakyReLU)              │ (None, 200, 64)             │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout (Dropout)                    │ (None, 200, 64)             │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ conv1d_1 (Conv1D)                    │ (None, 200, 64)             │          12,352 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ leaky_re_lu_1 (LeakyReLU)            │ (None, 200, 64)             │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout_1 (Dropout)                  │ (None, 200, 64)             │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ bidirectional (Bidirectional)        │ (None, 200, 64)             │          18,816 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout_2 (Dropout)                  │ (None, 200, 64)             │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ bidirectional_1 (Bidirectional)      │ (None, 200, 32)             │           7,872 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ global_average_pooling1d             │ (None, 32)                  │               0 │
+│ (GlobalAveragePooling1D)             │                             │                 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout_3 (Dropout)                  │ (None, 32)                  │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense (Dense)                        │ (None, 32)                  │           1,056 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ leaky_re_lu_2 (LeakyReLU)            │ (None, 32)                  │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dropout_4 (Dropout)                  │ (None, 32)                  │               0 │
+├──────────────────────────────────────┼─────────────────────────────┼─────────────────┤
+│ dense_1 (Dense)                      │ (None, 8)                   │             264 │
+└──────────────────────────────────────┴─────────────────────────────┴─────────────────┘
+ Total params: 79,304 (309.78 KB)
+ Trainable params: 79,064 (308.84 KB)
+ Non-trainable params: 240 (960.00 B)
+
+
+Training configuration
+======================
+x_train shape: (3714, 200, 120)
+y_train shape: (3714, 8)
+x_test shape: (1446, 200, 120)
+y_test shape: (1446, 8)
+batch_size: 32
+epochs: 30
+optimizer: Adamax(lr=5e-4)
+loss: categorical_crossentropy
+callbacks: EarlyStopping(val_loss, patience=6), ModelCheckpoint(val_loss), ReduceLROnPlateau(val_loss, factor=0.3)
+healthy_class_index: 4
+healthy_class_multiplier: 1.5
+use_single_gru: False
+gru_units: (32, 16)
+extra_info:
+  split_strategy: GroupShuffleSplit(patient_id)
+  patient_leakage_overlap: 0
+  use_single_gru: False
+  dataset_size: 5160
+  specaugment_enabled: True
+  specaugment_time_mask_width: 20
+  specaugment_freq_mask_width: 8
+  specaugment_num_time_masks: 2
+  specaugment_num_freq_masks: 2
+  feature_cache_dir: features_cache
