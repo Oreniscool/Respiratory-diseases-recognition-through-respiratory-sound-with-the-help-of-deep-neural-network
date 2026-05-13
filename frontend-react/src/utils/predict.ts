@@ -8,6 +8,7 @@ export interface PredictResult {
   filename?: string;
   patient_id?: string;
   requested_disease?: string;
+  noise_cancellation?: boolean;
 }
 
 export interface SummaryResponse {
@@ -29,9 +30,13 @@ export interface ExplainabilityResponse {
 
 const API_BASE = "http://localhost:5000";
 
-export async function predictFile(file: File): Promise<PredictResult> {
+export async function predictFile(
+  file: File,
+  options?: { denoise?: boolean },
+): Promise<PredictResult> {
   const form = new FormData();
   form.append("file", file);
+  form.append("denoise", options?.denoise ? "1" : "0");
   const res = await fetch(`${API_BASE}/predict`, {
     method: "POST",
     body: form,
@@ -43,9 +48,15 @@ export async function predictFile(file: File): Promise<PredictResult> {
   return res.json();
 }
 
-export async function predictSample(disease: string): Promise<PredictResult> {
+export async function predictSample(
+  disease: string,
+  options?: { denoise?: boolean },
+): Promise<PredictResult> {
+  const params = new URLSearchParams();
+  if (options?.denoise) params.set("denoise", "1");
+  const suffix = params.toString();
   const res = await fetch(
-    `${API_BASE}/predict-sample/${encodeURIComponent(disease)}`,
+    `${API_BASE}/predict-sample/${encodeURIComponent(disease)}${suffix ? `?${suffix}` : ""}`,
     {
       signal: AbortSignal.timeout(20000),
     },
@@ -78,6 +89,7 @@ export async function requestExplainability(payload: {
   model_result?: PredictResult;
   patient_info?: Record<string, unknown>;
   include_reason?: boolean;
+  denoise?: boolean;
 }): Promise<ExplainabilityResponse> {
   const form = new FormData();
   const file =
@@ -85,6 +97,7 @@ export async function requestExplainability(payload: {
       ? payload.file
       : new File([payload.file], "audio.wav", { type: "audio/wav" });
   form.append("file", file);
+  form.append("denoise", payload.denoise ? "1" : "0");
   form.append(
     "payload",
     JSON.stringify({

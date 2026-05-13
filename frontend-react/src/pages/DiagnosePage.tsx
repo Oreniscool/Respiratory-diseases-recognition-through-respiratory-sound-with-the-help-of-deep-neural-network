@@ -164,6 +164,44 @@ function ensureHealthyTopTwo(
   return result;
 }
 
+function buildPipelineSteps(
+  filename: string,
+  denoise: boolean,
+  activeFirst = false,
+): Step[] {
+  return [
+    {
+      id: 1,
+      icon: "📂",
+      label: "Audio Loaded",
+      detail: filename,
+      status: activeFirst ? "active" : "idle",
+    },
+    {
+      id: 2,
+      icon: "🧹",
+      label: "Noise Cancellation",
+      detail: denoise ? "Spectral gate enabled" : "Skipped",
+      status: "idle",
+    },
+    {
+      id: 3,
+      icon: "📊",
+      label: "MFCC Extraction",
+      detail: "40 Mel-frequency cepstral coefficients",
+      status: "idle",
+    },
+    {
+      id: 4,
+      icon: "🧠",
+      label: "GRU Network",
+      detail: "Bidirectional GRU with residual connections",
+      status: "idle",
+    },
+    { id: 5, icon: "🩺", label: "Classification", detail: "—", status: "idle" },
+  ];
+}
+
 function ServerBadge({
   status,
 }: {
@@ -198,24 +236,10 @@ export default function DiagnosePage() {
   const [phase, setPhase] = useState<"idle" | "pipeline" | "result">("idle");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictResult | null>(null);
-  const [steps, setSteps] = useState<Step[]>([
-    { id: 1, icon: "📂", label: "Audio Loaded", detail: "—", status: "idle" },
-    {
-      id: 2,
-      icon: "📊",
-      label: "MFCC Extraction",
-      detail: "40 Mel-frequency cepstral coefficients",
-      status: "idle",
-    },
-    {
-      id: 3,
-      icon: "🧠",
-      label: "GRU Network",
-      detail: "Bidirectional GRU with residual connections",
-      status: "idle",
-    },
-    { id: 4, icon: "🩺", label: "Classification", detail: "—", status: "idle" },
-  ]);
+  const [noiseCancellation, setNoiseCancellation] = useState(true);
+  const [steps, setSteps] = useState<Step[]>(
+    buildPipelineSteps("—", noiseCancellation),
+  );
 
   const [patientInfo, setPatientInfo] =
     useState<PatientInfo>(DEFAULT_PATIENT_INFO);
@@ -370,36 +394,7 @@ export default function DiagnosePage() {
       setLlmError(null);
       setLlmModel("");
       setPhase("pipeline");
-      const reset = (): Step[] => [
-        {
-          id: 1,
-          icon: "📂",
-          label: "Audio Loaded",
-          detail: filename,
-          status: "active",
-        },
-        {
-          id: 2,
-          icon: "📊",
-          label: "MFCC Extraction",
-          detail: "40 Mel-frequency cepstral coefficients",
-          status: "idle",
-        },
-        {
-          id: 3,
-          icon: "🧠",
-          label: "GRU Network",
-          detail: "Bidirectional GRU with residual connections",
-          status: "idle",
-        },
-        {
-          id: 4,
-          icon: "🩺",
-          label: "Classification",
-          detail: "—",
-          status: "idle",
-        },
-      ];
+      const reset = () => buildPipelineSteps(filename, noiseCancellation, true);
       setSteps(reset());
 
       const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -415,12 +410,23 @@ export default function DiagnosePage() {
                 : st,
           ),
         );
-        await delay(500);
+        await delay(noiseCancellation ? 500 : 150);
         setSteps((s) =>
           s.map((st) =>
             st.id === 2
               ? { ...st, status: "done" }
               : st.id === 3
+                ? { ...st, status: "active" }
+                : st,
+          ),
+        );
+
+        await delay(500);
+        setSteps((s) =>
+          s.map((st) =>
+            st.id === 3
+              ? { ...st, status: "done" }
+              : st.id === 4
                 ? { ...st, status: "active" }
                 : st,
           ),
@@ -432,7 +438,7 @@ export default function DiagnosePage() {
             ? file
             : new File([file], filename, { type: "audio/wav" });
         if (serverStatus.online) {
-          res = await predictFile(asFile);
+          res = await predictFile(asFile, { denoise: noiseCancellation });
         } else {
           await delay(800);
           const key = filename.toLowerCase().split(".")[0];
@@ -440,6 +446,7 @@ export default function DiagnosePage() {
           res = { ...mock, mfcc_preview: [] };
         }
 
+        res = { ...res, noise_cancellation: noiseCancellation };
         if (fromRecording) {
           res = {
             ...res,
@@ -449,9 +456,9 @@ export default function DiagnosePage() {
 
         setSteps((s) =>
           s.map((st) =>
-            st.id === 3
+            st.id === 4
               ? { ...st, status: "done" }
-              : st.id === 4
+              : st.id === 5
                 ? {
                     ...st,
                     status: "active",
@@ -463,7 +470,7 @@ export default function DiagnosePage() {
         await delay(350);
         setSteps((s) =>
           s.map((st) =>
-            st.id === 4
+            st.id === 5
               ? {
                   ...st,
                   status: "done",
@@ -487,7 +494,12 @@ export default function DiagnosePage() {
         setSteps((s) => s.map((st) => ({ ...st, status: "idle" })));
       }
     },
-    [serverStatus.online, buildPatientInfoPayload, setAnalysis],
+    [
+      serverStatus.online,
+      buildPatientInfoPayload,
+      setAnalysis,
+      noiseCancellation,
+    ],
   );
 
   // ── File upload / drag-drop ──────────────────────────────────────
@@ -512,36 +524,9 @@ export default function DiagnosePage() {
     setLlmModel("");
     if (serverStatus.online && serverStatus.datasetOnline) {
       setPhase("pipeline");
-      setSteps([
-        {
-          id: 1,
-          icon: "📂",
-          label: "Audio Loaded",
-          detail: `Sample: ${sample}`,
-          status: "active",
-        },
-        {
-          id: 2,
-          icon: "📊",
-          label: "MFCC Extraction",
-          detail: "40 Mel-frequency cepstral coefficients",
-          status: "idle",
-        },
-        {
-          id: 3,
-          icon: "🧠",
-          label: "GRU Network",
-          detail: "Bidirectional GRU with residual connections",
-          status: "idle",
-        },
-        {
-          id: 4,
-          icon: "🩺",
-          label: "Classification",
-          detail: "—",
-          status: "idle",
-        },
-      ]);
+      setSteps(
+        buildPipelineSteps(`Sample: ${sample}`, noiseCancellation, true),
+      );
       const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
       await delay(400);
       setSteps((s) =>
@@ -554,8 +539,9 @@ export default function DiagnosePage() {
         ),
       );
       try {
-        const res = await predictSample(sample);
-        await delay(300);
+        let res = await predictSample(sample, { denoise: noiseCancellation });
+        res = { ...res, noise_cancellation: noiseCancellation };
+        await delay(noiseCancellation ? 300 : 150);
         setSteps((s) =>
           s.map((st) =>
             st.id === 2
@@ -582,12 +568,28 @@ export default function DiagnosePage() {
               ? {
                   ...st,
                   status: "done",
+                }
+              : st.id === 5
+                ? {
+                    ...st,
+                    status: "active",
+                    detail: "Computing softmax probabilities...",
+                  }
+                : st,
+          ),
+        );
+        await delay(200);
+        setSteps((s) =>
+          s.map((st) =>
+            st.id === 5
+              ? {
+                  ...st,
+                  status: "done",
                   detail: `${res.prediction} (${res.confidence.toFixed(1)}%)`,
                 }
               : st,
           ),
         );
-        await delay(200);
         setResult(res);
         setAnalysis({
           audioFile: null,
@@ -603,10 +605,18 @@ export default function DiagnosePage() {
     } else {
       const mock = MOCK_RESULTS[sample] ?? MOCK_RESULTS.healthy;
       await runPipeline(new Blob([], { type: "audio/wav" }), sample + ".wav");
-      setResult({ ...mock, mfcc_preview: [] });
+      setResult({
+        ...mock,
+        mfcc_preview: [],
+        noise_cancellation: noiseCancellation,
+      });
       setAnalysis({
         audioFile: null,
-        modelResult: { ...mock, mfcc_preview: [] },
+        modelResult: {
+          ...mock,
+          mfcc_preview: [],
+          noise_cancellation: noiseCancellation,
+        },
         patientInfo: buildPatientInfoPayload(),
         capturedAt: new Date().toISOString(),
       });
@@ -711,7 +721,7 @@ export default function DiagnosePage() {
     setLlmError(null);
     setLlmModel("");
     setInfoTab("overview");
-    setSteps((s) => s.map((st) => ({ ...st, status: "idle", detail: "—" })));
+    setSteps(buildPipelineSteps("—", noiseCancellation));
   };
 
   const predColor = result
@@ -1119,6 +1129,25 @@ export default function DiagnosePage() {
                   Upload a WAV file or record up to 30 seconds. The model will
                   classify and score probabilities.
                 </p>
+              </div>
+
+              <div className="toggle-row">
+                <div>
+                  <div className="diag-label">Noise Cancellation</div>
+                  <div className="toggle-caption">
+                    Spectral gating to reduce background noise before MFCC
+                    extraction.
+                  </div>
+                </div>
+                <label className="toggle">
+                  <input
+                    type="checkbox"
+                    checked={noiseCancellation}
+                    onChange={(e) => setNoiseCancellation(e.target.checked)}
+                    aria-label="Noise cancellation"
+                  />
+                  <span className="toggle-track" />
+                </label>
               </div>
 
               <div

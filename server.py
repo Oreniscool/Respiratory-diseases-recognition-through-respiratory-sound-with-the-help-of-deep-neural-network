@@ -141,10 +141,11 @@ def _extract_features(data_x, sampling_rate, n_mfcc=N_MFCC, max_len=MAX_LEN, use
     return features.T
 
 
-def extract_mfcc(audio_bytes: bytes) -> np.ndarray:
+def extract_mfcc(audio_bytes: bytes, denoise: bool = False) -> np.ndarray:
     """
         Replicate the exact feature extraction used in featureExtraction.py:
             - librosa.load (kaiser_fast resampler)
+            - optional noise cancellation (spectral gating)
             - MFCC + delta + delta-delta
             - pad/truncate to MAX_LEN
         Returns shape (1, 200, 120) for the sequence model.
@@ -159,6 +160,9 @@ def extract_mfcc(audio_bytes: bytes) -> np.ndarray:
     finally:
         os.unlink(tmp_path)
 
+    if denoise:
+        data_x = _apply_noise_reduction(data_x, sampling_rate)
+
     features = _extract_features(data_x, sampling_rate)
 
     # Reshape to (samples=1, time_steps=MAX_LEN, features=120)
@@ -172,6 +176,39 @@ def _normalize_array(arr: np.ndarray) -> np.ndarray:
     if max_v - min_v < 1e-8:
         return np.zeros_like(arr)
     return (arr - min_v) / (max_v - min_v)
+
+
+def _parse_bool(value) -> bool:
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _apply_noise_reduction(
+    data_x: np.ndarray,
+    sampling_rate: int,
+    noise_window_s: float = 0.5,
+    n_fft: int = 2048,
+    hop_length: int = 512,
+    reduction: float = 1.2,
+) -> np.ndarray:
+    if data_x.size == 0:
+        return data_x
+
+    noise_samples = int(max(noise_window_s, 0.1) * sampling_rate)
+    noise_clip = data_x[:noise_samples] if data_x.size > noise_samples else data_x
+
+    stft = librosa.stft(data_x, n_fft=n_fft, hop_length=hop_length)
+    mag = np.abs(stft)
+    phase = np.angle(stft)
+
+    noise_stft = librosa.stft(noise_clip, n_fft=n_fft, hop_length=hop_length)
+    noise_mag = np.abs(noise_stft)
+    noise_profile = np.median(noise_mag, axis=1, keepdims=True)
+
+    mag_denoised = np.maximum(mag - (noise_profile * reduction), 0.0)
+    stft_denoised = mag_denoised * np.exp(1j * phase)
+    return librosa.istft(stft_denoised, hop_length=hop_length, length=data_x.shape[0])
 
 
 def _render_image(array2d: np.ndarray, cmap: str = "magma") -> str:
@@ -305,7 +342,10 @@ def predict_sample(disease):
     runs the model on it, and returns the same JSON shape as /predict.
 
     disease must be one of: Bronchiectasis, Bronchiolitis, COPD, Healthy, Pneumonia, URTI
+    Optional query param: denoise=1 to enable noise cancellation.
     """
+    denoise = _parse_bool(request.args.get("denoise"))
+
     # Validate disease name
     valid = [c.lower() for c in CLASSES]
     if disease.lower() not in valid:
@@ -359,7 +399,7 @@ def predict_sample(disease):
     try:
         with open(chosen_file, "rb") as f:
             audio_bytes = f.read()
-        X, data_x, sr = extract_mfcc(audio_bytes)
+        X, data_x, sr = extract_mfcc(audio_bytes, denoise=denoise)
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422
@@ -394,6 +434,7 @@ def predict_sample(disease):
             "mfcc_preview":  [round(v, 2) for v in mfcc_preview],
             "duration_s":    round(duration_s, 2),
             "sample_rate":   int(sr),
+            "noise_cancellation": denoise,
             "filename":      filename,
             "patient_id":    chosen_patient,
             "requested_disease": canonical,
@@ -409,6 +450,7 @@ def predict():
     """
     Accepts a multipart/form-data POST with a single field 'file'
     containing an audio file (.wav recommended).
+    Optional form field: denoise=1 to enable noise cancellation.
 
     Returns JSON:
     {
@@ -438,13 +480,15 @@ def predict():
     if not audio_bytes:
         return jsonify({"error": "Empty file"}), 400
 
+    denoise = _parse_bool(request.form.get("denoise"))
+
     try:
         m = load_model_once()
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr = extract_mfcc(audio_bytes)
+        X, data_x, sr = extract_mfcc(audio_bytes, denoise=denoise)
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422
@@ -480,6 +524,7 @@ def predict():
             "mfcc_preview":  [round(v, 2) for v in mfcc_preview],
             "duration_s":    round(duration_s, 2),
             "sample_rate":   int(sr),
+            "noise_cancellation": denoise,
         })
 
     except Exception as e:
@@ -489,6 +534,7 @@ def predict():
 
 @app.route("/explain", methods=["POST"])
 def explain():
+    """Explainability endpoint. Optional form field: denoise=1 to match inference noise cancellation."""
     if "file" not in request.files:
         return jsonify({"error": "No file field in request"}), 400
 
@@ -499,6 +545,8 @@ def explain():
     audio_bytes = audio_file.read()
     if not audio_bytes:
         return jsonify({"error": "Empty file"}), 400
+
+    denoise = _parse_bool(request.form.get("denoise"))
 
     payload_raw = request.form.get("payload") or "{}"
     try:
@@ -516,7 +564,7 @@ def explain():
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr = extract_mfcc(audio_bytes)
+        X, data_x, sr = extract_mfcc(audio_bytes, denoise=denoise)
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422

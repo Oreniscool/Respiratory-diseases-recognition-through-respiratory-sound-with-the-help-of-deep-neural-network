@@ -123,3 +123,37 @@ Follow these steps to run the application:
 
 5. **Evaluate the Model**
    - Use `validate.py` or `evaluate.py` to test the trained model.
+
+## Web UI (Patient Diagnostics)
+
+The React frontend (in `frontend-react/`) provides a full diagnostic workflow:
+
+- Patient intake form (demographics, vitals, symptoms, exposures).
+- Audio capture with upload or 30s recording.
+- Real-time pipeline view (noise cancellation, MFCC extraction, GRU inference).
+- Probability charts and LLM-generated report.
+- Explainability view with spectrogram, saliency heatmap, and overlay.
+
+### Run the frontend
+
+```bash
+cd frontend-react
+npm install
+npm run dev
+```
+
+Make sure the backend server is running:
+
+```bash
+python server.py
+```
+
+## Noise Cancellation (Optional)
+
+Noise cancellation is implemented with a lightweight spectral gate on the backend.
+It is optional and can be toggled in the diagnostics UI.
+
+API usage:
+
+- `/predict` and `/explain` accept a `denoise=1` form field to enable it.
+- `/predict-sample/<disease>` accepts `?denoise=1` as a query parameter.

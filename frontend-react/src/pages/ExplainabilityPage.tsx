@@ -126,6 +126,7 @@ export default function ExplainabilityPage() {
         model_result: analysis.modelResult,
         patient_info: analysis.patientInfo,
         include_reason: includeReason,
+        denoise: analysis.modelResult?.noise_cancellation,
       });
       setResponse(res);
     } catch (e) {
