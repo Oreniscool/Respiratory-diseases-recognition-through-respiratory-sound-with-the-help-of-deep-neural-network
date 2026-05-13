@@ -1,140 +1,197 @@
-## Respiratory diseases recognition through respiratory sound with the help of deep neural network
+# RespiNet: Respiratory Disease Recognition from Lung Sounds
 
-> 📋 Abstract:
-> Prediction of respiratory diseases such as COPD(Chronic obstructive pulmonary disease), URTI(upper respiratory tract infection), Bronchiectasis, Pneumonia, Bronchiolitis with the help of deep neural networks or deep learning. We have constructed a deep neural network model that takes in respiratory sound as input and classifies the condition of its respiratory system. It not only classifies among the above-mentioned disease but also classifies if a person’s respiratory system is healthy or not with higher accuracy and precision.
+RespiNet is a deep learning pipeline that classifies respiratory conditions from lung sound recordings. It includes:
 
-## INTRODUCTION
+- A full data pipeline to extract MFCC features and augment audio data.
+- A Conv1D + BiGRU sequence model trained with class weighting.
+- A Flask inference server with optional explainability and LLM summaries.
+- Two frontends: a static HTML demo and a full React diagnostic UI.
 
-In this project, we are going to discuss how deep learning could be used in the recognition of respiratory disease just from the respiratory sound. Respiratory audios are important indicators of respiratory health and respiratory disorder. For example, a wheezing sound is a common sign that a patient has an obstructive airway disease like asthma or chronic obstructive pulmonary disease (COPD). We have approached the problem with different neural network model architecture, and choose the model with would give us the best possible results, we also performed data augmentation over the data-set. The data-set we have used consists of respiratory sounds taken from different patients from different locations around the chest. We have used **Accuracy score**, **Precision score**, **Recall score**, **f1-score**, **Cohen’s kappa score**, **Matthews correlation coefficien** as metrics to evaluate and compare the performance of different models against the same data-set. With this model we have achieved an accuracy of 95.67% ± 0.77%,precision of 95.89% ± 0.8%, Sensitivity of 95.65% ± 0.753%,f1-score of 95.66% ± 0.79%, Cohen’s kappa score of 94.74% ± 0.96% and Matthews correlation coefficient of 94.79% ± 0.96%.
+This README explains how the project is wired end to end, what each module does, and how to run each part.
 
-## About the Dataset
+## Project flow at a glance
 
-Details about the collector and maintainer of the database is explained in reference [1] and [11]. These recordings were taken from 126 patients. It includes 920 annotated recordings of varying length from 10s to 90s.There are a total of 5.5 hours of recordings containing 6898 respiratory cycles - 886 contain wheezes, 1864 contain crackles and 506 contain both crackles and wheezes. The patients span all age groups - children, adults and the elderly. The respiratory sounds in the dataset are of different category such as Healthy, COPD(Chronic
-obstructive pulmonary disease), URTI(upper respiratory tract infection), Bronchiectasis, Pneumonia, Bronchiolitis, Asthma, LRTI(Lower respiratory tract infection) which would be classified or predicted by out neural network model. Here healthy category means respiratory sound taken from a healthy person and other categories represents the sound taken from the patient suffering from their respective conditions. The dataset could be found at ICBHI 2017 Challenge[12].
+1. **Raw audio + labels**: Download the ICBHI 2017 respiratory sound dataset into [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/) and place [patient_diagnosis.csv](patient_diagnosis.csv) in the project root.
+2. **Feature extraction**: [featureExtraction.py](featureExtraction.py) loads audio, performs augmentation, and extracts MFCC features into a fixed-length tensor.
+3. **Model training**: [main.py](main.py) prepares the train/test split and calls [train.py](train.py) to train the model defined in [model.py](model.py). The best weights are saved to [best_model.h5](best_model.h5).
+4. **Evaluation**: Use [validate.py](validate.py) and [evaluate.py](evaluate.py) to get predictions and metrics.
+5. **Inference server**: [server.py](server.py) loads [best_model.h5](best_model.h5), exposes REST endpoints, and optionally provides explainability overlays and LLM summaries.
+6. **Frontends**: [frontend/](frontend/) is a static demo UI. [frontend-react/](frontend-react/) is a multi-page diagnostic UI that calls the API.
 
-## Data Pre-processing
+## Data and labels
 
-The first problem we faced with the data-set was data imbalance. In the data-set, we got only one case for Asthma and only two cases for LRTI. Therefore we removed the rows corresponding to the respective classes for better performance of our model. Now, we are left with six classes.The data-set was still imbalanced. COPD had a much higher number of cases than other classes in the data-set, therefore we performed
-data augmentation with other classes in the data-set. In data augmentation we added random noise to the audio
-data, shifted the audio data both by using numpy library and also applied time-stretch using librosa to the audio data. In this data-set, the audio was recorded from different locations around the chest for every single patient so in case of COPD, we considered a maximum three locations for every single patient to balance the data-set.
-<br>
-<img align="center" alt="count" src="./Images/count.png" />
-We extracted Mel-frequency cepstral coefficients( spectral features ), from the audio data. 40 features are extracted from each audio data and used to train the model. Visualizations of the waveplot of the sound file we have used in our research.
-<img align="center" alt="healthy" src="./Images/healthy.png" />
-<img align="center" alt="Bronchiectasis" src="./Images/Bronchiectasis.png" />
-<img align="center" alt="Bronchiolitis" src="./Images/Bronchiolitis.png" />
-<img align="center" alt="copd" src="./Images/copd.png" />
-<img align="center" alt="pneumonia" src="./Images/pneumonia.png" />
+- **Dataset**: ICBHI 2017 Respiratory Sound Database. Place the `.wav` files in [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/).
+- **Labels**: [patient_diagnosis.csv](patient_diagnosis.csv) must map `patient_id` to `disease`.
+- **Class list**: The class list is derived from the CSV by both training and the server. If the CSV is missing, the server falls back to a default list and [main.py](main.py) creates a dummy CSV for testing.
+- **Known filters**: [featureExtraction.py](featureExtraction.py) ignores patients 103, 108, and 115 to match prior experiments.
 
-## Model Architecture
+## Feature extraction and augmentation
 
-<img align="center" alt="model" src="./Images/model_4_2.png" />
+All feature work happens in [featureExtraction.py](featureExtraction.py) and [Augmentation.py](Augmentation.py):
 
-## Model Performance
+- **Audio loading**: `librosa.load(..., res_type="kaiser_fast")`.
+- **Features**: 40 MFCC coefficients plus delta and delta-delta, stacked into 120 features per time step.
+- **Fixed length**: Features are padded or truncated to 200 time steps.
+- **Augmentations for non-COPD**:
+  - Additive noise
+  - Time shift
+  - Time stretch (rate 1.2 and 0.8)
+- **COPD handling**: Limits samples per patient to reduce dominance from repeated recording locations.
 
-While compiling the model Categorical Cross-entropy is
-used as the loss function. We have also used Adamax as our
-Optimizer or optimizing algorithm.
+This yields an input tensor with shape $N \times 200 \times 120$.
 
-<img align="center" alt="performance" src="./Images/acc2.png" />
-<img align="center" alt="performance" src="./Images/loss2.png" /><br>
+## Model architecture
 
-We have performed our experiment twenty times, and selected unique readings from them for this research paper as shown in TABLE-1. We validated our model performance with the best model weight concerning
-the validation score during training the model. The model was trained for 1000 iterations.
+Defined in [model.py](model.py):
 
-Table - 1
-Model Evaluation
+- BatchNorm
+- Conv1D (kernel 5) + LeakyReLU + Dropout
+- Conv1D (kernel 3) + LeakyReLU + Dropout
+- Bidirectional GRU (64 units) + LeakyReLU + Dropout
+- Bidirectional GRU (32 units) + LeakyReLU
+- GlobalAveragePooling1D
+- Dense (64) + LeakyReLU + Dropout
+- Dense softmax output
 
-|     | accuracy | precision | recall | f1-score | CK     | MCC    |
-| --- | -------- | --------- | ------ | -------- | ------ | ------ |
-| 1   | 0.9525   | 0.9548    | 0.9526 | 0.9522   | 0.9426 | 0.9432 |
-| 2   | 0.9567   | 0.9589    | 0.9565 | 0.9566   | 0.9474 | 0.9479 |
-| 3   | 0.9605   | 0.9621    | 0.9605 | 0.9604   | 0.9521 | 0.9525 |
-| 4   | 0.9490   | 0.9507    | 0.9486 | 0.9485   | 0.9378 | 0.9383 |
-| 5   | 0.9486   | 0.9509    | 0.9486 | 0.9487   | 0.9378 | 0.9382 |
-| 6   | 0.9604   | 0.9623    | 0.9605 | 0.9603   | 0.9522 | 0.9526 |
-| 7   | 0.9565   | 0.9589    | 0.9565 | 0.9566   | 0.9474 | 0.9479 |
-| 8   | 0.9604   | 0.9618    | 0.9605 | 0.9604   | 0.9521 | 0.9525 |
-| 9   | 0.9565   | 0.9599    | 0.9565 | 0.9566   | 0.9474 | 0.9480 |
-| 10  | 0.9604   | 0.9625    | 0.9605 | 0.9601   | 0.9520 | 0.9534 |
+For a full layer listing and a specific training run configuration, see [model_info.txt](model_info.txt).
 
-The overall performance of our model over unknown data or validation data are:
+## Training and evaluation
 
-1. Accuracy: 95.67% ± 0.77%
-2. Precision: 95.89% ± 0.8%
-3. Recall/Sensitivity: 95.65% ± 0.753%
-4. f1-score: 95.66% ± 0.79%
-5. Cohens kappa score: 94.74% ± 0.96%
-6. Matthews correlation coefficient: 94.79% ± 0.96%
+Training is coordinated in [main.py](main.py):
 
-## Classification report
+- Loads [patient_diagnosis.csv](patient_diagnosis.csv)
+- Extracts features from [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/)
+- One-hot encodes labels and performs a stratified train/test split
+- Sets `num_epochs` and `num_batch_size`
+- Calls `trainModel(...)` in [train.py](train.py)
 
-|                | precision | recall | f1-score | Support |
-| -------------- | --------- | ------ | -------- | ------- |
-| Bronchiectasis | 0.98      | 1.00   | 0.99     | 44      |
-| Bronchiolitis  | 1.00      | 1.00   | 1.00     | 30      |
-| COPD           | 1.00      | 0.91   | 0.95     | 57      |
-| Healthy        | 0.94      | 0.92   | 0.93     | 36      |
-| Pneumonia      | 0.92      | 1.00   | 0.96     | 36      |
-| URTI           | 0.94      | 0.96   | 0.94     | 53      |
-| macro avg      | 0.96      | 0.97   | 0.96     | 253     |
-| weighted avg   | 0.96      | 0.96   | 0.96     | 253     |
+[train.py](train.py) uses:
 
-## Comparison of our model performance with previous research papers
+- `categorical_crossentropy` loss
+- `Adamax` optimizer
+- Early stopping and checkpointing to [best_model.h5](best_model.h5)
+- Class weights derived from `y_train`, with an optional multiplier to upweight the Healthy class
 
-First of all the model that we have created is a multi-class classifier that classifies six different classes and also we have used six different metrics to evaluate the performance of our model. We are proud to declare that our model is the very class six class classifier model compared to the previous research papers, which itself is an improvement in the field of medical science and A.I.<br>
+Evaluation utilities:
 
-The research papers shown below might not be a multi-label classifier or might not use the same parameters for evaluating their respective models.
+- [validate.py](validate.py) loads [best_model.h5](best_model.h5) and returns predicted class indices.
+- [evaluate.py](evaluate.py) computes accuracy, precision, recall, F1, Cohen kappa, and MCC.
 
-1. Detection of explosive cough events in audio recordings by internal sound analysis. [1]. sensitivity - 92.3% ± 2.3%; specificity - 84.7% ± 3.3% .
-2. Detection of crackle events using a multi-feature approach .[2]. sensitivity - 76%; precision - 77%.
-3. Integrated approach for automatic crackle detection based on fractal dimension and box filtering .[11]. Sensitivity - 89% ± 10%; positive predictive value - 95% ± 11%; F-score - 92% ± 10%
-4. Detection of Lungs Status Using Morphological Complexities of Respiratory Sounds.[5]. Accuracy - 92.86%; sensitivity - 86.30%; specificity - 86.90%.
-5. An Expert Diagnostic System to Automatically Identify Asthma and Chronic Obstructive Pulmonary Disease in Clinical Settings. [9]. Sensitivity - 96.45%;
-   sensitivity - 96%; specificity - 98.71%.
-6. Lung disease detection using feature extraction and
-   extreme learning machine.[10]. Accuracy - 96%
+## Results and run summary
 
-````
+The following reflects a captured training run summary (data stats and configuration) to make the results visible without opening any extra files.
 
-## How to Run the Application
+**Dataset and split checks**
 
-Follow these steps to run the application:
+- Extracted samples: 1,720
+- Patient leakage overlap: 0 (no shared patient IDs between train and test)
 
-1. **Install Dependencies**
+**Class distribution (sample run)**
 
-   ```bash
-   pip install -r requirements.txt
-````
+| Class          | Count |
+| -------------- | ----: |
+| Asthma         |   358 |
+| Bronchiolitis  |   302 |
+| Pneumonia      |   300 |
+| Healthy        |   260 |
+| Bronchiectasis |   188 |
+| URTI           |   146 |
+| LRTI           |   106 |
+| COPD           |    60 |
 
-2. **Prepare the Dataset**
-   - Place the dataset in the `dataset/ICBHI_final_dataset/` directory.
-   - Ensure the `patient_diagnosis.csv` file is in the root directory.
+**Training configuration highlights**
 
-3. **Extract Features**
-   - The first run will automatically extract features and cache them.
-   - If you want to force re-extraction, modify the `force_recompute` parameter in `main.py`.
+- Split strategy: GroupShuffleSplit by patient ID
+- SpecAugment: enabled (time mask width 20, freq mask width 8, two masks each)
+- Healthy class multiplier: 1.5
+- Feature cache: features_cache/
 
-4. **Train the Model**
+**Performance metrics (observed training run)**
 
-   ```bash
-   python main.py
-   ```
+These numbers reflect the training log in [Images/training_results.txt](Images/training_results.txt).
 
-5. **Evaluate the Model**
-   - Use `validate.py` or `evaluate.py` to test the trained model.
+- Best validation accuracy: 75.36% (epoch 48)
+- Final validation accuracy: 73.44% (epoch 50)
+- Final training accuracy: 82.12% (epoch 50)
+- Best validation loss: 0.7183 (epoch 48)
 
-## Web UI (Patient Diagnostics)
+If you want precision/recall/F1 and per-class metrics for this same run, run evaluation with [evaluate.py](evaluate.py) and I can add those numbers too.
 
-The React frontend (in `frontend-react/`) provides a full diagnostic workflow:
+## Inference server (Flask)
 
-- Patient intake form (demographics, vitals, symptoms, exposures).
-- Audio capture with upload or 30s recording.
-- Real-time pipeline view (noise cancellation, MFCC extraction, GRU inference).
-- Probability charts and LLM-generated report.
-- Explainability view with spectrogram, saliency heatmap, and overlay.
+The inference service in [server.py](server.py) exposes:
 
-### Run the frontend
+- `GET /health` - server, model, and dataset status
+- `POST /predict` - upload a `.wav` file, get class probabilities
+- `GET /predict-sample/<disease>` - pick a real dataset sample and run inference
+- `POST /explain` - returns spectrogram, saliency heatmap, and overlay images
+- `POST /summarize` - optional LLM-generated narrative summary
+
+Feature extraction on the server mirrors [featureExtraction.py](featureExtraction.py), with an optional spectral-gate noise reduction step.
+
+### Optional LLM summaries
+
+Set these environment variables (for example in a local environment file at the project root):
+
+- `GROQ_API_KEY` (required for LLM features)
+- `GROQ_API_URL` (defaults to the Groq chat completions endpoint)
+- `GROQ_MODEL` (defaults to `llama-3.1-8b-instant`)
+- `GROQ_DEBUG` (set to `1` for extra diagnostics)
+- `GROQ_USER_AGENT` (optional)
+
+## Frontends
+
+### Static demo UI
+
+- Location: [frontend/](frontend/)
+- Entry file: [frontend/index.html](frontend/index.html)
+- Script: [frontend/app.js](frontend/app.js)
+
+This UI polls `GET /health`, shows demo data when the server is offline, and calls `/predict` or `/predict-sample` when the server is online.
+
+### React diagnostic UI
+
+- Location: [frontend-react/](frontend-react/)
+- Framework: Vite + React + Tailwind
+- Routes include diagnostics, metrics, explainability, and report generation.
+- Calls `/predict`, `/predict-sample`, `/explain`, and `/summarize` through helper utilities.
+
+## How to run
+
+### 1) Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2) Prepare the dataset
+
+- Put `.wav` files under [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/)
+- Place [patient_diagnosis.csv](patient_diagnosis.csv) in the project root
+
+### 3) Train the model
+
+```bash
+python main.py
+```
+
+This writes [best_model.h5](best_model.h5) and training plots under [Images/](Images/).
+
+### 4) Run the backend
+
+```bash
+python server.py
+```
+
+The server runs at `http://localhost:5000` and enables CORS for local frontends.
+
+### 5) Run a frontend
+
+Static demo:
+
+- Open [frontend/index.html](frontend/index.html) directly in a browser.
+
+React UI:
 
 ```bash
 cd frontend-react
@@ -142,18 +199,29 @@ npm install
 npm run dev
 ```
 
-Make sure the backend server is running:
+## Outputs and artifacts
 
-```bash
-python server.py
-```
+- [best_model.h5](best_model.h5) - trained model weights used by the server.
+- [Images/](Images/) - training plots and sample visualizations.
+- [results_summary.txt](results_summary.txt) - sample run metadata.
+- [model_info.txt](model_info.txt) - model summary and training config dump.
+- [features_cache/](features_cache/) - cached feature arrays from prior experiments.
 
-## Noise Cancellation (Optional)
+## Notes and limitations
 
-Noise cancellation is implemented with a lightweight spectral gate on the backend.
-It is optional and can be toggled in the diagnostics UI.
+- This project is for research and educational use only; it is not a medical diagnostic device.
+- The class list depends on [patient_diagnosis.csv](patient_diagnosis.csv). Ensure the model and server agree on the same labels.
+- The React UI shows demo metrics and sample predictions when the server is offline or the dataset is missing.
 
-API usage:
+## Key modules (quick reference)
 
-- `/predict` and `/explain` accept a `denoise=1` form field to enable it.
-- `/predict-sample/<disease>` accepts `?denoise=1` as a query parameter.
+- [main.py](main.py) - orchestration of feature extraction, split, and training
+- [featureExtraction.py](featureExtraction.py) - MFCC extraction and augmentation
+- [Augmentation.py](Augmentation.py) - noise, shift, and stretch utilities
+- [model.py](model.py) - model architecture
+- [train.py](train.py) - training loop and callbacks
+- [validate.py](validate.py) - model inference on feature arrays
+- [evaluate.py](evaluate.py) - evaluation metrics
+- [server.py](server.py) - Flask API with explainability and LLM summary
+- [frontend/](frontend/) - static demo UI
+- [frontend-react/](frontend-react/) - React diagnostic UI
