@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap");
 
 /* ═══════════════════════════════════════════════════════════════
    RespiNet Design System — Medical Dark Theme
@@ -7,50 +8,54 @@
 @layer base {
   :root {
     /* Core palette */
-    --bg-primary:     #050d1a;
-    --bg-secondary:   #0a1628;
-    --bg-tertiary:    #0f1f38;
-    --bg-card:        #0d1b30;
-    --bg-card-hover:  #122040;
+    --bg-primary: #050d1a;
+    --bg-secondary: #0a1628;
+    --bg-tertiary: #0f1f38;
+    --bg-card: #0d1b30;
+    --bg-card-hover: #122040;
 
     /* Accent colours */
-    --cyan-400:       #22d3ee;
-    --cyan-500:       #06b6d4;
-    --cyan-600:       #0891b2;
-    --indigo-400:     #818cf8;
-    --indigo-500:     #6366f1;
-    --indigo-600:     #4f46e5;
-    --blue-400:       #60a5fa;
-    --blue-500:       #3b82f6;
+    --cyan-400: #22d3ee;
+    --cyan-500: #06b6d4;
+    --cyan-600: #0891b2;
+    --indigo-400: #818cf8;
+    --indigo-500: #6366f1;
+    --indigo-600: #4f46e5;
+    --blue-400: #60a5fa;
+    --blue-500: #3b82f6;
 
     /* Status */
-    --success:        #10b981;
-    --warning:        #f59e0b;
-    --danger:         #ef4444;
-    --danger-light:   #fca5a5;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --danger-light: #fca5a5;
 
     /* Disease colours */
     --c-bronchiectasis: #8b5cf6;
-    --c-bronchiolitis:  #f59e0b;
-    --c-copd:           #ef4444;
-    --c-healthy:        #10b981;
-    --c-lrti:           #14b8a6;
-    --c-pneumonia:      #3b82f6;
-    --c-urti:           #06b6d4;
-    --c-asthma:         #ec4899;
+    --c-bronchiolitis: #f59e0b;
+    --c-copd: #ef4444;
+    --c-healthy: #10b981;
+    --c-lrti: #14b8a6;
+    --c-pneumonia: #3b82f6;
+    --c-urti: #06b6d4;
+    --c-asthma: #ec4899;
 
     /* Text */
-    --text-primary:   #f1f5f9;
+    --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
-    --text-muted:     #475569;
+    --text-muted: #475569;
+
+    /* Typography */
+    --font-body: "Space Grotesk", system-ui, sans-serif;
+    --font-display: "Fraunces", ui-serif, serif;
 
     /* Borders */
-    --border:         rgba(148, 163, 184, 0.1);
-    --border-bright:  rgba(148, 163, 184, 0.2);
+    --border: rgba(148, 163, 184, 0.1);
+    --border-bright: rgba(148, 163, 184, 0.2);
 
     /* Glass */
-    --glass-bg:       rgba(13, 27, 48, 0.7);
-    --glass-border:   rgba(34, 211, 238, 0.15);
+    --glass-bg: rgba(13, 27, 48, 0.7);
+    --glass-border: rgba(34, 211, 238, 0.15);
   }
 
   * {
@@ -66,7 +71,7 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-body);
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -77,9 +82,16 @@
     width: 6px;
     height: 6px;
   }
-  ::-webkit-scrollbar-track { background: var(--bg-primary); }
-  ::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--indigo-600); }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--indigo-600);
+  }
 }
 
 /* ─── Glassmorphism card ────────────────────────────────────────── */
@@ -92,7 +104,10 @@
   }
 
   .glass-card-hover {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      transform 0.25s ease;
   }
   .glass-card-hover:hover {
     border-color: rgba(34, 211, 238, 0.35);
@@ -142,7 +157,14 @@
     transform: translateY(-1px);
     box-shadow: 0 8px 24px rgba(6, 182, 212, 0.35);
   }
-  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
   .btn-ghost {
     display: inline-flex;
@@ -163,6 +185,10 @@
     color: var(--cyan-400);
     background: rgba(34, 211, 238, 0.05);
   }
+  .btn-ghost:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 
   /* Status badge */
   .status-badge {
@@ -174,15 +200,27 @@
     padding: 0.3rem 0.9rem;
     border-radius: 999px;
   }
-  .status-online  { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-  .status-partial { background: rgba(245,158,11,0.15);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-  .status-offline { background: rgba(239,68,68,0.12);   color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .status-online {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .status-partial {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+  .status-offline {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
 
   /* Mini bar */
   .mini-bar-track {
     flex: 1;
     height: 6px;
-    background: rgba(255,255,255,0.07);
+    background: rgba(255, 255, 255, 0.07);
     border-radius: 3px;
     overflow: hidden;
   }
@@ -199,53 +237,257 @@
     gap: 0.75rem;
     margin-bottom: 0.45rem;
   }
-  .prob-label { font-size: 0.8rem; color: var(--text-secondary); min-width: 6.5rem; }
-  .prob-pct   { font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); min-width: 3.5rem; text-align: right; }
+  .prob-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    min-width: 6.5rem;
+  }
+  .prob-pct {
+    font-size: 0.78rem;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--text-primary);
+    min-width: 3.5rem;
+    text-align: right;
+  }
+
+  /* Diagnostic dashboard styles */
+  .diagnostic-shell {
+    position: relative;
+    min-height: 100vh;
+    background:
+      radial-gradient(
+        800px 500px at 10% 10%,
+        rgba(20, 184, 166, 0.12),
+        transparent 55%
+      ),
+      radial-gradient(
+        900px 600px at 90% 20%,
+        rgba(59, 130, 246, 0.12),
+        transparent 55%
+      ),
+      linear-gradient(180deg, #050d1a 0%, #0a1224 45%, #080f1d 100%);
+  }
+
+  .diagnostic-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(15, 23, 42, 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15, 23, 42, 0.4) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.15;
+  }
+
+  .diagnostic-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .diag-card {
+    background: rgba(7, 13, 24, 0.82);
+    border: 1px solid rgba(45, 212, 191, 0.18);
+    border-radius: 1rem;
+    box-shadow: 0 22px 60px rgba(2, 6, 23, 0.5);
+  }
+
+  .diag-title {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .diag-label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .diag-input,
+  .diag-select,
+  .diag-textarea {
+    width: 100%;
+    background: rgba(9, 16, 30, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    color: var(--text-primary);
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.6rem;
+    font-size: 0.85rem;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .diag-input:focus,
+  .diag-select:focus,
+  .diag-textarea:focus {
+    outline: none;
+    border-color: rgba(45, 212, 191, 0.7);
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+  }
+
+  .diag-textarea {
+    min-height: 90px;
+    resize: vertical;
+  }
+
+  .diag-chip {
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: rgba(8, 15, 28, 0.7);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .diag-chip.is-active {
+    border-color: rgba(45, 212, 191, 0.8);
+    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.1);
+  }
+
+  .diag-tab {
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.7rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(8, 15, 28, 0.7);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .diag-tab.is-active {
+    border-color: rgba(45, 212, 191, 0.8);
+    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.12);
+  }
+
+  .report-content ul {
+    list-style: disc;
+    color: var(--text-secondary);
+  }
+
+  .report-content strong {
+    color: var(--text-primary);
+  }
+
+  .explain-image {
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(7, 13, 24, 0.6);
+  }
+
+  .explain-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px dashed rgba(148, 163, 184, 0.2);
+    color: var(--text-muted);
+    background: rgba(7, 13, 24, 0.4);
+    font-size: 0.85rem;
+  }
 }
 
 /* ─── Keyframe animations ───────────────────────────────────────── */
 @keyframes pulse-ring {
-  0%   { transform: scale(0.95); opacity: 0.7; }
-  70%  { transform: scale(1.05); opacity: 0.2; }
-  100% { transform: scale(0.95); opacity: 0; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.05);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33%       { transform: translateY(-12px) rotate(1deg); }
-  66%       { transform: translateY(-6px) rotate(-1deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-6px) rotate(-1deg);
+  }
 }
 
 @keyframes scan-line {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
 }
 
 @keyframes wave-bar {
-  0%, 100% { transform: scaleY(1);    opacity: 0.7; }
-  50%       { transform: scaleY(0.3); opacity: 0.3; }
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(0.3);
+    opacity: 0.3;
+  }
 }
 
 @keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
-.animate-float  { animation: float 6s ease-in-out infinite; }
-.animate-blink  { animation: blink 1s step-end infinite; }
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
 
 /* Scan line overlay for medical aesthetic */
 .scan-overlay::before {
-  content: '';
+  content: "";
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(34,211,238,0.4), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(34, 211, 238, 0.4),
+    transparent
+  );
   animation: scan-line 6s linear infinite;
   pointer-events: none;
   z-index: 9999;
@@ -253,10 +495,15 @@
 
 /* Typing indicator */
 .typing-dot {
-  width: 7px; height: 7px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--cyan-400);
   animation: wave-bar 1.2s ease-in-out infinite;
 }
-.typing-dot:nth-child(2) { animation-delay: 0.15s; }
-.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}

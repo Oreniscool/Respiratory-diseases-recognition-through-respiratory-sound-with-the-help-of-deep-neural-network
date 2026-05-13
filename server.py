@@ -11,15 +11,24 @@ Then open frontend/index.html in your browser (or serve it from the same origin)
 import os
 import io
 import glob
+import json
+import base64
 import tempfile
 import traceback
+import urllib.request
+import urllib.error
 
 import numpy as np
 import pandas as pd
 import librosa
+import tensorflow as tf
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from keras.models import load_model
+from dotenv import load_dotenv
 
 # ── Config ────────────────────────────────────────────────────────
 BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +36,14 @@ MODEL_PATH  = os.path.join(BASE_DIR, "best_model.h5")
 DATASET_DIR = os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset")
 DIAGNOSIS   = os.path.join(BASE_DIR, "patient_diagnosis.csv")
 PORT        = 5000
+
+load_dotenv()
+
+GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+GROQ_DEBUG   = os.getenv("GROQ_DEBUG", "0").strip().lower() in {"1", "true", "yes"}
+GROQ_USER_AGENT = os.getenv("GROQ_USER_AGENT", "RespiNet/1.0 (+https://example.invalid)")
 
 DEFAULT_CLASSES = [
     "Asthma",
@@ -146,6 +163,116 @@ def extract_mfcc(audio_bytes: bytes) -> np.ndarray:
 
     # Reshape to (samples=1, time_steps=MAX_LEN, features=120)
     return features.reshape(1, features.shape[0], features.shape[1]), data_x, sampling_rate
+
+
+def _normalize_array(arr: np.ndarray) -> np.ndarray:
+    arr = np.nan_to_num(arr)
+    min_v = float(np.min(arr))
+    max_v = float(np.max(arr))
+    if max_v - min_v < 1e-8:
+        return np.zeros_like(arr)
+    return (arr - min_v) / (max_v - min_v)
+
+
+def _render_image(array2d: np.ndarray, cmap: str = "magma") -> str:
+    fig = plt.figure(figsize=(6, 3), dpi=140)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis("off")
+    ax.imshow(array2d, aspect="auto", origin="lower", cmap=cmap)
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+def _render_overlay(base2d: np.ndarray, overlay2d: np.ndarray) -> str:
+    fig = plt.figure(figsize=(6, 3), dpi=140)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis("off")
+    ax.imshow(base2d, aspect="auto", origin="lower", cmap="magma")
+    ax.imshow(overlay2d, aspect="auto", origin="lower", cmap="cool", alpha=0.45)
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", pad_inches=0)
+    plt.close(fig)
+    return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
+
+
+class GroqError(RuntimeError):
+    def __init__(self, message: str, diagnostics: dict | None = None):
+        super().__init__(message)
+        self.diagnostics = diagnostics or {}
+
+
+def _extract_error_diagnostics(e: urllib.error.HTTPError, details: str) -> dict:
+    headers = {k.lower(): v for k, v in (e.headers or {}).items()} if hasattr(e, "headers") else {}
+    diagnostics = {
+        "status": e.code,
+        "reason": getattr(e, "reason", None),
+        "url": GROQ_API_URL,
+        "model": GROQ_MODEL,
+        "cf_ray": headers.get("cf-ray"),
+        "server": headers.get("server"),
+        "request_id": headers.get("x-request-id") or headers.get("x-groq-id"),
+        "content_type": headers.get("content-type"),
+    }
+    if details:
+        diagnostics["body_snippet"] = details[:1200]
+        if "1010" in details:
+            diagnostics["hint"] = "Cloudflare Access Denied (error 1010). IP/region/network may be blocked."
+    return {k: v for k, v in diagnostics.items() if v is not None}
+
+
+def call_groq(messages, temperature=0.2, max_tokens=500) -> str:
+    if not GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY is not set. Add it to your .env file.")
+
+    payload = {
+        "model": GROQ_MODEL,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        GROQ_API_URL,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "User-Agent": GROQ_USER_AGENT,
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            return data["choices"][0]["message"]["content"].strip()
+    except urllib.error.HTTPError as e:
+        details = e.read().decode("utf-8", errors="ignore")
+        diagnostics = _extract_error_diagnostics(e, details)
+        print(f"[RespiNet] Groq HTTP error: {diagnostics}")
+        raise GroqError("Groq API error", diagnostics)
+    except urllib.error.URLError as e:
+        diagnostics = {"url": GROQ_API_URL, "reason": str(e)}
+        print(f"[RespiNet] Groq connection error: {diagnostics}")
+        raise GroqError("Groq API connection error", diagnostics)
+
+
+def _compute_saliency(m, X: np.ndarray) -> tuple[np.ndarray, int]:
+    x_tensor = tf.convert_to_tensor(X, dtype=tf.float32)
+    with tf.GradientTape() as tape:
+        tape.watch(x_tensor)
+        preds = m(x_tensor, training=False)
+        if len(preds.shape) == 3:
+            preds = preds[:, 0, :]
+        class_idx = int(tf.argmax(preds[0]).numpy())
+        target = preds[:, class_idx]
+    grads = tape.gradient(target, x_tensor)
+    if grads is None:
+        raise RuntimeError("Failed to compute saliency gradients")
+    saliency = tf.reduce_mean(tf.abs(grads), axis=-1)[0].numpy()
+    return _normalize_array(saliency), class_idx
 
 
 # ── Routes ────────────────────────────────────────────────────────
@@ -358,6 +485,191 @@ def predict():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Inference failed: {e}"}), 500
+
+
+@app.route("/explain", methods=["POST"])
+def explain():
+    if "file" not in request.files:
+        return jsonify({"error": "No file field in request"}), 400
+
+    audio_file = request.files["file"]
+    if audio_file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+
+    audio_bytes = audio_file.read()
+    if not audio_bytes:
+        return jsonify({"error": "Empty file"}), 400
+
+    payload_raw = request.form.get("payload") or "{}"
+    try:
+        payload = json.loads(payload_raw)
+    except Exception:
+        payload = {}
+
+    include_reason = bool(payload.get("include_reason"))
+    model_result = payload.get("model_result") or {}
+    patient_info = payload.get("patient_info") or {}
+
+    try:
+        m = load_model_once()
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 503
+
+    try:
+        X, data_x, sr = extract_mfcc(audio_bytes)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Feature extraction failed: {e}"}), 422
+
+    try:
+        raw = m.predict(X, verbose=0)
+        if raw.ndim == 3:
+            probs = raw[0, 0, :]
+        elif raw.ndim == 2:
+            probs = raw[0, :]
+        else:
+            probs = raw.flatten()
+
+        pred_idx = int(np.argmax(probs))
+        pred_label = CLASSES[pred_idx]
+        confidence = float(probs[pred_idx]) * 100
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Inference failed: {e}"}), 500
+
+    try:
+        saliency, saliency_idx = _compute_saliency(m, X)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Saliency failed: {e}"}), 500
+
+    try:
+        spec = librosa.feature.melspectrogram(y=data_x, sr=sr, n_mels=128)
+        spec_db = librosa.power_to_db(spec, ref=np.max)
+        spec_db = _normalize_array(spec_db)
+
+        time_bins = spec_db.shape[1]
+        if time_bins != saliency.size:
+            saliency_resampled = np.interp(
+                np.linspace(0, 1, time_bins),
+                np.linspace(0, 1, saliency.size),
+                saliency,
+            )
+        else:
+            saliency_resampled = saliency
+
+        saliency_2d = np.tile(saliency_resampled, (spec_db.shape[0], 1))
+
+        spectrogram_img = _render_image(spec_db, cmap="magma")
+        saliency_img = _render_image(saliency_2d, cmap="cool")
+        overlay_img = _render_overlay(spec_db, saliency_2d)
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Explainability render failed: {e}"}), 500
+
+    top_indices = np.argsort(probs)[::-1][:3].tolist()
+    top_classes = [
+        {"label": CLASSES[i], "pct": round(float(probs[i]) * 100, 2)}
+        for i in top_indices
+    ]
+
+    response = {
+        "prediction": pred_label,
+        "confidence": round(confidence, 2),
+        "top_classes": top_classes,
+        "spectrogram": spectrogram_img,
+        "saliency": saliency_img,
+        "overlay": overlay_img,
+        "saliency_class": CLASSES[saliency_idx] if saliency_idx < len(CLASSES) else pred_label,
+    }
+
+    if include_reason:
+        if not GROQ_API_KEY:
+            response["reasoning_error"] = "GROQ_API_KEY not set on server"
+        else:
+            system_msg = (
+                "You are a clinical explainability assistant. Using model results, patient context, "
+                "and the fact that the saliency overlay highlights time regions of interest, write a short "
+                "non-diagnostic explanation of why the model may have predicted the top class. "
+                "Use 3-5 bullet points under the headings: Evidence, Context, Next Steps. "
+                "Avoid definitive diagnoses and include a brief disclaimer."
+            )
+            user_msg = "Input data (JSON):\n" + json.dumps(
+                {
+                    "model_result": model_result or {
+                        "prediction": pred_label,
+                        "confidence": round(confidence, 2),
+                        "top_classes": top_classes,
+                    },
+                    "patient_info": patient_info,
+                    "saliency_class": response["saliency_class"],
+                },
+                ensure_ascii=True,
+            )
+            try:
+                response["reasoning"] = call_groq(
+                    [
+                        {"role": "system", "content": system_msg},
+                        {"role": "user", "content": user_msg},
+                    ],
+                    temperature=0.2,
+                    max_tokens=300,
+                )
+            except GroqError as e:
+                response["reasoning_error"] = str(e)
+                if GROQ_DEBUG:
+                    response["reasoning_diagnostics"] = e.diagnostics
+
+    return jsonify(response)
+
+
+@app.route("/summarize", methods=["POST"])
+def summarize():
+    if not request.is_json:
+        return jsonify({"error": "Expected JSON body"}), 400
+
+    payload = request.get_json(silent=True) or {}
+    model_result = payload.get("model_result")
+    patient_info = payload.get("patient_info")
+
+    if not model_result:
+        return jsonify({"error": "Missing model_result"}), 400
+    if not GROQ_API_KEY:
+        return jsonify({"error": "GROQ_API_KEY not set on server"}), 503
+
+    input_blob = {
+        "model_result": model_result,
+        "patient_info": patient_info or {},
+    }
+
+    system_msg = (
+        "You are a clinical documentation assistant. Summarize the ML model output and "
+        "patient intake into a concise, readable, non-diagnostic report. Avoid definitive "
+        "diagnoses. Use neutral language and acknowledge uncertainty. If data suggests "
+        "urgent red flags (very low SpO2, very high fever, severe shortness of breath), "
+        "advise immediate medical care. End with a clear statement that this is not a medical "
+        "diagnosis. Keep it under 200 words. Use simple bullet points under headings: "
+        "Overview, Key Findings, What This May Suggest, Next Steps, Data Gaps."
+    )
+    user_msg = "Input data (JSON):\n" + json.dumps(input_blob, ensure_ascii=True)
+
+    try:
+        summary = call_groq(
+            [
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_msg},
+            ],
+            temperature=0.2,
+            max_tokens=500,
+        )
+        return jsonify({"summary": summary, "model": GROQ_MODEL})
+    except GroqError as e:
+        payload = {"error": str(e)}
+        if GROQ_DEBUG:
+            payload["diagnostics"] = e.diagnostics
+        return jsonify(payload), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 502
 
 
 # ── Entry point ───────────────────────────────────────────────────

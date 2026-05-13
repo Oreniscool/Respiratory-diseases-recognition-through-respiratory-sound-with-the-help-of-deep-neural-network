@@ -2,3 +2,4 @@ dataset
 __pycache__
 features_cache
 */node_modules
+.env

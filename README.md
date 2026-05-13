@@ -5,7 +5,7 @@
 
 ## INTRODUCTION
 
-In this research paper, we are going to discuss how deep learning could be used in the recognition of respiratory disease just from the respiratory sound. Respiratory audios are important indicators of respiratory health and respiratory disorder. For example, a wheezing sound is a common sign that a patient has an obstructive airway disease like asthma or chronic obstructive pulmonary disease (COPD). We have approached the problem with different neural network model architecture, and choose the model with would give us the best possible results, we also performed data augmentation over the data-set. The data-set we have used consists of respiratory sounds taken from different patients from different locations around the chest. We have used **Accuracy score**, **Precision score**, **Recall score**, **f1-score**, **Cohen’s kappa score**, **Matthews correlation coefficien** as metrics to evaluate and compare the performance of different models against the same data-set. With this model we have achieved an accuracy of 95.67% ± 0.77%,precision of 95.89% ± 0.8%, Sensitivity of 95.65% ± 0.753%,f1-score of 95.66% ± 0.79%, Cohen’s kappa score of 94.74% ± 0.96% and Matthews correlation coefficient of 94.79% ± 0.96%.
+In this project, we are going to discuss how deep learning could be used in the recognition of respiratory disease just from the respiratory sound. Respiratory audios are important indicators of respiratory health and respiratory disorder. For example, a wheezing sound is a common sign that a patient has an obstructive airway disease like asthma or chronic obstructive pulmonary disease (COPD). We have approached the problem with different neural network model architecture, and choose the model with would give us the best possible results, we also performed data augmentation over the data-set. The data-set we have used consists of respiratory sounds taken from different patients from different locations around the chest. We have used **Accuracy score**, **Precision score**, **Recall score**, **f1-score**, **Cohen’s kappa score**, **Matthews correlation coefficien** as metrics to evaluate and compare the performance of different models against the same data-set. With this model we have achieved an accuracy of 95.67% ± 0.77%,precision of 95.89% ± 0.8%, Sensitivity of 95.65% ± 0.753%,f1-score of 95.66% ± 0.79%, Cohen’s kappa score of 94.74% ± 0.96% and Matthews correlation coefficient of 94.79% ± 0.96%.
 
 ## About the Dataset
 
@@ -46,10 +46,10 @@ Table - 1
 Model Evaluation
 
 |     | accuracy | precision | recall | f1-score | CK     | MCC    |
-| --- | -------- | --------- | ------ | -------- | ------ | ------ | --- |
+| --- | -------- | --------- | ------ | -------- | ------ | ------ |
 | 1   | 0.9525   | 0.9548    | 0.9526 | 0.9522   | 0.9426 | 0.9432 |
 | 2   | 0.9567   | 0.9589    | 0.9565 | 0.9566   | 0.9474 | 0.9479 |
-| 3   | 0.9605   | 0.9621    | 0.9605 | 0.9604   | 0.9521 | 0.9525 | s   |
+| 3   | 0.9605   | 0.9621    | 0.9605 | 0.9604   | 0.9521 | 0.9525 |
 | 4   | 0.9490   | 0.9507    | 0.9486 | 0.9485   | 0.9378 | 0.9383 |
 | 5   | 0.9486   | 0.9509    | 0.9486 | 0.9487   | 0.9378 | 0.9382 |
 | 6   | 0.9604   | 0.9623    | 0.9605 | 0.9603   | 0.9522 | 0.9526 |
@@ -77,8 +77,6 @@ The overall performance of our model over unknown data or validation data are:
 | Healthy        | 0.94      | 0.92   | 0.93     | 36      |
 | Pneumonia      | 0.92      | 1.00   | 0.96     | 36      |
 | URTI           | 0.94      | 0.96   | 0.94     | 53      |
-| ---            | --------- | ------ | -------- | ------- |
-| ---            | --------- | ------ | -------- | ------- |
 | macro avg      | 0.96      | 0.97   | 0.96     | 253     |
 | weighted avg   | 0.96      | 0.96   | 0.96     | 253     |
 
@@ -97,33 +95,7 @@ The research papers shown below might not be a multi-label classifier or might n
 6. Lung disease detection using feature extraction and
    extreme learning machine.[10]. Accuracy - 96%
 
-## Citation
-
-If you use the code in your research, we would appreciate a citation to the original paper:
-
-```
-V. Basu and S. Rana, "Respiratory diseases recognition through respiratory sound with the help of deep neural network," 2020 4th International Conference on Computational Intelligence and Networks (CINE), Kolkata, India, 2020, pp. 1-6, doi: 10.1109/CINE48825.2020.234388.
-```
-
-```
-@INPROCEEDINGS{9080747,
-
-  author={V. {Basu} and S. {Rana}},
-
-  booktitle={2020 4th International Conference on Computational Intelligence and Networks (CINE)},
-
-  title={Respiratory diseases recognition through respiratory sound with the help of deep neural network},
-
-  year={2020},
-
-  volume={},
-
-  number={},
-
-  pages={1-6},
-
-  doi={10.1109/CINE48825.2020.234388}}
-```
+````
 
 ## How to Run the Application
 
@@ -133,7 +105,7 @@ Follow these steps to run the application:
 
    ```bash
    pip install -r requirements.txt
-   ```
+````
 
 2. **Prepare the Dataset**
    - Place the dataset in the `dataset/ICBHI_final_dataset/` directory.
@@ -151,7 +123,3 @@ Follow these steps to run the application:
 
 5. **Evaluate the Model**
    - Use `validate.py` or `evaluate.py` to test the trained model.
-
-6. **Frontend (Optional)**
-   - Navigate to the `frontend/` directory.
-   - Open `index.html` in a browser to view the frontend interface.
