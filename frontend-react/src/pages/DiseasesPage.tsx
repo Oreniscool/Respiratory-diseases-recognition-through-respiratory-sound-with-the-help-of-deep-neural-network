@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, ChevronUp, Volume2, AlertTriangle, CheckCircle } from 'lucide-react'
+import { ChevronDown, Volume2, AlertTriangle, CheckCircle } from 'lucide-react'
 import { DISEASES, type DiseaseInfo } from '../data/diseases'
 
 const SEVERITY_LABEL: Record<string, string> = { mild: 'Mild', moderate: 'Moderate', severe: 'Severe' }
@@ -15,12 +15,21 @@ function DiseaseCard({ disease }: { disease: DiseaseInfo }) {
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="glass-card"
+      whileHover={{ y: -4, scale: 1.006 }}
+      animate={{
+        boxShadow: expanded
+          ? `0 24px 68px rgba(2,6,23,0.55), 0 0 30px ${disease.color}16`
+          : '0 0 0 rgba(2,6,23,0)',
+      }}
+      className={`glass-card disease-card ${expanded ? 'is-expanded' : ''}`}
       style={{ overflow: 'hidden', borderColor: `${disease.color}30` }}
     >
       {/* Header */}
       <button
+        className="disease-card-trigger"
         onClick={() => setExpanded(e => !e)}
+        aria-expanded={expanded}
+        aria-controls={`disease-${disease.id}-details`}
         style={{
           width: '100%', padding: '1.25rem 1.5rem',
           display: 'flex', alignItems: 'center', gap: '1rem',
@@ -28,13 +37,17 @@ function DiseaseCard({ disease }: { disease: DiseaseInfo }) {
         }}
       >
         {/* Icon */}
-        <div style={{
+        <motion.div
+          className="disease-icon"
+          animate={{ rotate: expanded ? -4 : 0, scale: expanded ? 1.08 : 1 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 18 }}
+          style={{
           width: 48, height: 48, borderRadius: '0.75rem', flexShrink: 0,
           background: `${disease.color}20`, fontSize: '1.4rem',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           {disease.icon}
-        </div>
+        </motion.div>
 
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
@@ -63,13 +76,20 @@ function DiseaseCard({ disease }: { disease: DiseaseInfo }) {
           )}
         </div>
 
-        {expanded ? <ChevronUp size={18} color="var(--text-muted)" /> : <ChevronDown size={18} color="var(--text-muted)" />}
+        <motion.span
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+          style={{ display: 'grid', placeItems: 'center' }}
+        >
+          <ChevronDown size={18} color="var(--text-muted)" />
+        </motion.span>
       </button>
 
       {/* Expanded content */}
       <AnimatePresence>
         {expanded && (
           <motion.div
+            id={`disease-${disease.id}-details`}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -178,7 +198,13 @@ export default function DiseasesPage() {
     <div style={{ paddingTop: 64, minHeight: '100vh' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', padding: '3rem 1.5rem' }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <motion.div
+          className="page-intro"
+          initial={{ opacity: 0, y: 24, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ textAlign: 'center', marginBottom: '2.5rem' }}
+        >
           <div className="section-tag">Library</div>
           <h1 style={{ fontSize: '2.25rem', fontWeight: 900, letterSpacing: '-0.03em', marginTop: '0.5rem' }}>
             Disease <span className="gradient-text">Encyclopedia</span>
@@ -186,14 +212,15 @@ export default function DiseasesPage() {
           <p style={{ color: 'var(--text-secondary)', marginTop: '0.75rem', maxWidth: 500, margin: '0.75rem auto 0' }}>
             Detailed profiles of all 8 respiratory conditions detected by RespiNet — symptoms, acoustic signatures, and treatment options.
           </p>
-        </div>
+        </motion.div>
 
         {/* Filter tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <div className="filter-dock" style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
           {(['all','mild','moderate','severe'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
+              className="filter-pill"
               style={{
                 padding: '0.4rem 1rem', borderRadius: 999, cursor: 'pointer',
                 border: '1px solid', fontSize: '0.8rem', fontWeight: 600,
@@ -203,7 +230,16 @@ export default function DiseasesPage() {
                 transition: 'all 0.2s', textTransform: 'capitalize',
               }}
             >
-              {f === 'all' ? 'All Conditions' : f}
+              {filter === f && (
+                <motion.span
+                  layoutId="disease-filter-active"
+                  className="filter-pill-active"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              <span style={{ position: 'relative', zIndex: 1 }}>
+                {f === 'all' ? 'All Conditions' : f}
+              </span>
             </button>
           ))}
         </div>

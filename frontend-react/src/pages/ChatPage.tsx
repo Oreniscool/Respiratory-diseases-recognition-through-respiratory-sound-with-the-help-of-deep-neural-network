@@ -31,7 +31,7 @@ function buildResponse(input: string): string {
 
   // Accuracy / model performance
   if (/accurac|how good|performance|f1|precision|recall|reliable/.test(q)) {
-    return "🎯 **RespiNet Performance (Epoch 50/50)**\n\n• **Train Accuracy:** 84.66%\n• **Validation Accuracy:** 76.79%\n• **Train Loss:** 0.3745\n• **Validation Loss:** 0.7075\n\nThese results are from the final training epoch on the ICBHI 2017 dataset (920 recordings, 126 patients).";
+    return "🎯 **Historical RespiNet Run (Epoch 50/50)**\n\n• **Final train accuracy:** 82.12%\n• **Final validation accuracy:** 73.44%\n• **Best validation accuracy:** 75.36% at epoch 48\n• **Final train loss:** 0.4229\n• **Final validation loss:** 0.8203\n\n⚠️ These are archived development metrics from the previous leakage-prone sample split. They must be replaced after patient-level evaluation and are not evidence of clinical performance.";
   }
 
   // MFCC explanation
@@ -45,7 +45,7 @@ function buildResponse(input: string): string {
       q,
     )
   ) {
-    return "🧠 **RespiNet Architecture — Bidirectional GRU**\n\nRespiNet uses a **multi-branch Bidirectional GRU** network:\n\n**Branch 1:** GRU(32) → LeakyReLU → GRU(128) → LeakyReLU\n**Branch 2:** GRU(64) → LeakyReLU → GRU(128) → LeakyReLU\n**Merge:** Concatenate → Dense(128) → Dropout(0.3)\n**Output:** Dense(N) → Softmax\n\n**Optimizer:** Adamax | **Loss:** Categorical Cross-entropy\n**Parameters:** ~1.7 million (stored in best_model.h5)\n\nGRUs are ideal for sequential audio data because they capture long-range temporal dependencies without the vanishing gradient problem.";
+    return "🧠 **RespiNet Architecture — Conv1D + Bidirectional GRU**\n\n**Input:** 200 frames × 120 MFCC/delta features\n**Temporal layers:** Conv1D(64, kernel 5) → Conv1D(64, kernel 3)\n**Recurrent layers:** Bidirectional GRU(64) → Bidirectional GRU(32)\n**Head:** Global average pooling → Dense(64) → Dropout → Softmax\n\n**Optimizer:** Adamax | **Loss:** Categorical cross-entropy\n**Parameters:** approximately 137k from the current source; verify from the next trained artifact.";
   }
 
   // Crackles
@@ -65,7 +65,7 @@ function buildResponse(input: string): string {
 
   // Is this real / disclaimer
   if (/real|legit|trust|accurate enough|safe/.test(q)) {
-    return '⚠️ **About RespiNet\'s Reliability**\n\nRespiNet reaches about 76.79% validation accuracy at epoch 50/50 on the ICBHI benchmark. However:\n\n• It was trained on a limited dataset (920 recordings)\n• It may not generalise to all stethoscopes and recording environments\n• Background noise can reduce accuracy\n• It classifies sounds — it does not "listen" to your lungs clinically\n\n**Bottom line:** Use RespiNet as a learning tool or for rapid screening in a research context. Always seek professional medical evaluation for real health concerns.';
+    return '⚠️ **About RespiNet\'s Reliability**\n\nRespiNet does not currently have a trustworthy clinical-performance estimate. The archived run used a leakage-prone sample split and must be repeated with patient-level train/validation/test partitions.\n\n• The dataset is limited\n• Device and recording-environment changes may reduce performance\n• Background noise and unsupported audio can produce unreliable outputs\n• The model always selects a class unless an abstention layer is added\n\n**Bottom line:** Treat it as a research and learning tool, not a screening or diagnostic system.';
   }
 
   // Disease-specific queries
@@ -178,6 +178,7 @@ export default function ChatPage() {
 
   return (
     <div
+      className="chat-shell"
       style={{
         paddingTop: 64,
         height: "100vh",
@@ -197,7 +198,11 @@ export default function ChatPage() {
         }}
       >
         {/* Header */}
-        <div
+        <motion.div
+          className="page-intro chat-hero"
+          initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.6 }}
           style={{
             display: "flex",
             alignItems: "center",
@@ -219,7 +224,7 @@ export default function ChatPage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              <span className="gradient-text">Health Advisor</span>
+              <span className="gradient-text">Research Info Guide</span>
             </h1>
           </div>
           <div
@@ -243,7 +248,7 @@ export default function ChatPage() {
                   display: "inline-block",
                 }}
               />
-              Online
+              Local rule-based content
             </div>
             <button
               onClick={clearChat}
@@ -264,10 +269,14 @@ export default function ChatPage() {
               <Trash2 size={13} /> Clear
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Disclaimer banner */}
-        <div
+        <motion.div
+          className="chat-disclaimer"
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.12 }}
           style={{
             padding: "0.65rem 1rem",
             borderRadius: "0.6rem",
@@ -286,7 +295,7 @@ export default function ChatPage() {
           This chatbot provides educational information only. It does not
           constitute medical advice or diagnosis. Always consult a qualified
           healthcare professional.
-        </div>
+        </motion.div>
 
         {/* Messages area */}
         <div
@@ -311,6 +320,7 @@ export default function ChatPage() {
                   }}
                 >
                   <div
+                    className="chat-avatar"
                     style={{
                       width: 32,
                       height: 32,
@@ -325,6 +335,7 @@ export default function ChatPage() {
                     <MessageCircle size={15} color="white" />
                   </div>
                   <div
+                    className="chat-bubble chat-bubble-assistant"
                     style={{
                       maxWidth: "82%",
                       padding: "0.85rem 1rem",
@@ -340,6 +351,7 @@ export default function ChatPage() {
                     {renderContent(msg.content)}
                   </div>
                   <div
+                    className="chat-avatar is-thinking"
                     style={{
                       fontSize: "0.65rem",
                       color: "var(--text-muted)",
@@ -364,6 +376,7 @@ export default function ChatPage() {
                   }}
                 >
                   <div
+                    className="chat-bubble chat-bubble-assistant"
                     style={{
                       width: 32,
                       height: 32,
@@ -413,9 +426,12 @@ export default function ChatPage() {
             }}
           >
             {SUGGESTIONS.map((s) => (
-              <button
+              <motion.button
                 key={s}
                 onClick={() => sendMessage(s)}
+                className="suggestion-pill"
+                whileHover={{ y: -3, scale: 1.025 }}
+                whileTap={{ scale: 0.97 }}
                 style={{
                   padding: "0.35rem 0.85rem",
                   borderRadius: 999,
@@ -438,13 +454,17 @@ export default function ChatPage() {
                 }}
               >
                 {s}
-              </button>
+              </motion.button>
             ))}
           </div>
         )}
 
         {/* Input bar */}
-        <div
+        <motion.div
+          className="chat-composer"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
           style={{
             display: "flex",
             gap: "0.75rem",
@@ -479,6 +499,7 @@ export default function ChatPage() {
           <button
             onClick={() => sendMessage()}
             disabled={!input.trim() || isTyping}
+            aria-label="Send message"
             className="btn-primary"
             style={{
               padding: "0.75rem 1.25rem",
@@ -488,7 +509,7 @@ export default function ChatPage() {
           >
             <Send size={16} />
           </button>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

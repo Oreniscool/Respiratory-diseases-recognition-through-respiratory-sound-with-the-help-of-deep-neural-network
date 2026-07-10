@@ -235,13 +235,10 @@ const SAMPLES = {
   },
 };
 
-// Demo simulated data (same as SAMPLES) — used as fallback when server is offline
-const DEMO_RESULTS = SAMPLES;
-
 // Shared reference set by initDemo, used by initRecorder
 let _handleFile = null;
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = window.RESPINET_API_BASE || "http://localhost:5000";
 let serverOnline = false; // server reachable
 let datasetOnline = false; // dataset .wav files present on server
 let serverClasses = null; // class labels returned by the server
@@ -276,11 +273,11 @@ function updateServerBadge() {
   const badge = document.getElementById("serverBadge");
   if (!badge) return;
   if (!serverOnline) {
-    badge.textContent = "🟡 Server offline — showing demo data";
+    badge.textContent = "🔴 Server offline — inference unavailable";
     badge.className = "server-badge offline";
   } else if (!datasetOnline) {
     badge.textContent =
-      "🟠 Server online — dataset not found, pills use demo data";
+      "🟠 Server online — dataset samples unavailable";
     badge.className = "server-badge offline";
   } else {
     badge.textContent = "🟢 Server online — using real model & dataset";
@@ -686,8 +683,7 @@ function buildSamplePanel(key) {
     <div class="sp-input">
       <div class="sp-label in">📂 Input — Audio Recording</div>
       ${waveHtml}
-      <div class="sp-row"><span>Patient ID</span><span>${s.patientId}</span></div>
-      <div class="sp-row"><span>Recording ID</span><span style="font-size:.78rem;font-family:monospace">${s.recordingId}</span></div>
+      <div class="sp-row"><span>Source</span><span>Legacy benchmark illustration</span></div>
       <div class="sp-row"><span>Duration</span><span>${s.duration}</span></div>
       <div class="sp-row"><span>Sample Rate</span><span>${s.sampleRate}</span></div>
       <div class="sp-row"><span>Location</span><span>${s.location}</span></div>
@@ -728,7 +724,7 @@ function buildSamplePanel(key) {
 })();
 
 /* ════════════════════════════════════════════════════════════════
-   DEMO — Upload / Sample Pills  (real API + mock fallback)
+   LEGACY UI — Upload / Sample Pills (real API only)
    ════════════════════════════════════════════════════════════════ */
 (function initDemo() {
   const uploadZone = document.getElementById("uploadZone");
@@ -777,14 +773,14 @@ function buildSamplePanel(key) {
       if (serverOnline && datasetOnline) {
         runRealSample(pill.dataset.sample);
       } else {
-        runMockSample(pill.dataset.sample);
+        alert("Sample inference requires a ready server and local dataset.");
       }
     });
   });
 
   resetBtn.addEventListener("click", resetDemo);
 
-  // ── File handler: real API or mock ─────────────────────────────
+  // ── File handler: real API only ────────────────────────────────
   // Exposed at module scope so initRecorder can also call it
   function handleFile(file) {
     _handleFile = handleFile; // keep reference fresh
@@ -797,14 +793,7 @@ function buildSamplePanel(key) {
     if (serverOnline) {
       runRealInference(file);
     } else {
-      // Fallback: pick a mock result deterministically from the filename
-      const keys = Object.keys(DEMO_RESULTS);
-      const idx =
-        file.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) %
-        keys.length;
-      const key = keys[idx];
-      const meta = { fileName: file.name, duration: "—", sr: "—" };
-      runMockPipeline(key, meta);
+      alert("Inference is unavailable because the backend model is offline.");
     }
   }
 
@@ -835,7 +824,7 @@ function buildSamplePanel(key) {
       .then((data) => {
         // Step 4 — classification done
         document.getElementById("step4Detail").textContent =
-          `Classified as "${data.prediction}" (${data.confidence.toFixed(1)}% confidence)`;
+          `Classified as "${data.prediction}" (${data.confidence.toFixed(1)}% model probability)`;
         markStep(3, 0);
 
         // Build result object in the same shape as SAMPLES entries
@@ -845,7 +834,7 @@ function buildSamplePanel(key) {
           isHealthy,
           desc:
             SAMPLES[data.prediction.toLowerCase()]?.desc ||
-            `The model classified this audio as ${data.prediction} with ${data.confidence.toFixed(1)}% confidence.`,
+            `The model classified this audio as ${data.prediction} with ${data.confidence.toFixed(1)}% uncalibrated probability.`,
           probs: data.probabilities,
           mfcc: data.mfcc_preview,
         };
@@ -857,27 +846,13 @@ function buildSamplePanel(key) {
             : "—",
         };
 
-        setTimeout(() => showResult(resultObj, metaFinal, true), 600);
+        setTimeout(() => showResult(resultObj, metaFinal), 600);
       })
       .catch((err) => {
         console.error("[RespiNet] API error:", err);
-        // Gracefully fall back to mock
         document.getElementById("step4Detail").textContent =
-          "API error — showing demo result";
+          `Inference failed: ${err}`;
         markStep(3, 0);
-        const keys = Object.keys(DEMO_RESULTS);
-        const idx =
-          file.name.split("").reduce((a, c) => a + c.charCodeAt(0), 0) %
-          keys.length;
-        setTimeout(
-          () =>
-            showResult(
-              DEMO_RESULTS[keys[idx]],
-              { fileName: file.name, duration: "—", sr: "—" },
-              false,
-            ),
-          600,
-        );
       });
   }
 
@@ -909,7 +884,7 @@ function buildSamplePanel(key) {
       })
       .then((data) => {
         document.getElementById("step4Detail").textContent =
-          `Classified as “${data.prediction}” (${data.confidence.toFixed(1)}% confidence) — ${data.filename}`;
+          `Classified as “${data.prediction}” (${data.confidence.toFixed(1)}% model probability) — ${data.filename}`;
         markStep(3, 0);
 
         const isHealthy = data.prediction === "Healthy";
@@ -919,7 +894,7 @@ function buildSamplePanel(key) {
           isHealthy,
           desc:
             fallback?.desc ||
-            `The model classified this audio as ${data.prediction} with ${data.confidence.toFixed(1)}% confidence.`,
+            `The model classified this audio as ${data.prediction} with ${data.confidence.toFixed(1)}% uncalibrated probability.`,
           probs: data.probabilities,
           mfcc: data.mfcc_preview,
         };
@@ -931,55 +906,14 @@ function buildSamplePanel(key) {
             : "—",
         };
 
-        setTimeout(() => showResult(resultObj, metaFinal, true), 600);
+        setTimeout(() => showResult(resultObj, metaFinal), 600);
       })
       .catch((err) => {
         console.error("[RespiNet] predict-sample error:", err);
         document.getElementById("step4Detail").textContent =
-          `Error: ${err} — falling back to demo`;
+          `Sample inference failed: ${err}`;
         markStep(3, 0);
-        setTimeout(() => {
-          const fallback = SAMPLES[key] || SAMPLES["healthy"];
-          showResult(
-            fallback,
-            {
-              fileName: `${disease} (demo fallback)`,
-              duration: fallback.duration,
-              sr: fallback.sampleRate,
-            },
-            false,
-          );
-        }, 600);
       });
-  }
-
-  // ── MOCK pipeline (sample pills or offline fallback) ────────────
-  function runMockSample(key) {
-    const s = SAMPLES[key];
-    const meta = {
-      fileName: s.recordingId + ".wav",
-      duration: s.duration,
-      sr: s.sampleRate,
-    };
-    runMockPipeline(key, meta);
-  }
-
-  function runMockPipeline(key, meta) {
-    const s = DEMO_RESULTS[key];
-    showPipelineUI(meta.fileName);
-
-    markStep(0, 0);
-    markStep(1, 700);
-    markStep(2, 1500);
-
-    setTimeout(() => {
-      const topProb = Object.entries(s.probs).sort((a, b) => b[1] - a[1])[0];
-      document.getElementById("step4Detail").textContent =
-        `Classified as "${s.prediction}" (${topProb[1].toFixed(1)}% confidence) [demo]`;
-      markStep(3, 0);
-    }, 2400);
-
-    setTimeout(() => showResult(s, meta, false), 3200);
   }
 
   // ── Shared helpers ─────────────────────────────────────────────
@@ -1002,7 +936,7 @@ function buildSamplePanel(key) {
     }, delay);
   }
 
-  function showResult(s, meta, isReal) {
+  function showResult(s, meta) {
     const rcDisease = document.getElementById("rcDisease");
     const rcDesc = document.getElementById("rcDesc");
     const rcBadge = document.getElementById("rcBadge");
@@ -1011,12 +945,12 @@ function buildSamplePanel(key) {
     const rcSr = document.getElementById("rcSr");
     const color = CLASS_COLORS[s.prediction] || "#3b82f6";
 
-    rcDisease.textContent = s.prediction + (isReal ? "" : " (demo)");
+    rcDisease.textContent = s.prediction;
     rcDisease.style.color = color;
     rcDesc.textContent = s.desc;
 
     const topConf = Object.entries(s.probs).sort((a, b) => b[1] - a[1])[0][1];
-    rcConf.textContent = topConf.toFixed(1) + "%" + (isReal ? "" : " (demo)");
+    rcConf.textContent = topConf.toFixed(1) + "%";
     rcDur.textContent = meta.duration;
     rcSr.textContent = meta.sr;
 

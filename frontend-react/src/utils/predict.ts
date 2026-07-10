@@ -24,11 +24,14 @@ export interface ExplainabilityResponse {
   saliency: string;
   overlay: string;
   saliency_class: string;
+  attribution_scope?: string;
+  attribution_warning?: string;
   reasoning?: string;
   reasoning_error?: string;
 }
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export async function predictFile(
   file: File,
@@ -40,6 +43,7 @@ export async function predictFile(
   const res = await fetch(`${API_BASE}/predict`, {
     method: "POST",
     body: form,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
@@ -58,7 +62,7 @@ export async function predictSample(
   const res = await fetch(
     `${API_BASE}/predict-sample/${encodeURIComponent(disease)}${suffix ? `?${suffix}` : ""}`,
     {
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     },
   );
   if (!res.ok) {
@@ -71,11 +75,13 @@ export async function predictSample(
 export async function summarizeReport(payload: {
   model_result: PredictResult;
   patient_info: Record<string, unknown>;
+  external_llm_consent: boolean;
 }): Promise<SummaryResponse> {
   const res = await fetch(`${API_BASE}/summarize`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
@@ -86,30 +92,35 @@ export async function summarizeReport(payload: {
 
 export async function requestExplainability(payload: {
   file: File | Blob;
-  model_result?: PredictResult;
   patient_info?: Record<string, unknown>;
   include_reason?: boolean;
   denoise?: boolean;
+  external_llm_consent?: boolean;
 }): Promise<ExplainabilityResponse> {
   const form = new FormData();
   const file =
     payload.file instanceof File
       ? payload.file
-      : new File([payload.file], "audio.wav", { type: "audio/wav" });
+      : new File(
+          [payload.file],
+          payload.file.type.includes("webm") ? "audio.webm" : "audio.wav",
+          { type: payload.file.type || "audio/wav" },
+        );
   form.append("file", file);
   form.append("denoise", payload.denoise ? "1" : "0");
   form.append(
     "payload",
     JSON.stringify({
-      model_result: payload.model_result ?? null,
       patient_info: payload.patient_info ?? null,
       include_reason: !!payload.include_reason,
+      external_llm_consent: !!payload.external_llm_consent,
     }),
   );
 
   const res = await fetch(`${API_BASE}/explain`, {
     method: "POST",
     body: form,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));

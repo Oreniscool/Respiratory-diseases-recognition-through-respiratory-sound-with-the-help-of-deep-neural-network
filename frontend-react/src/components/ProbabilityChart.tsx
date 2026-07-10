@@ -15,7 +15,15 @@ export default function ProbabilityChart({ probabilities, prediction }: Props) {
         const color = CLASS_COLORS[cls] ?? '#6366f1'
         const isTop = cls === prediction
         return (
-          <div key={cls} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <motion.div
+            key={cls}
+            className={`probability-row ${isTop ? 'is-top' : ''}`}
+            initial={{ opacity: 0, x: -14 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ x: 4 }}
+            transition={{ delay: i * 0.055, duration: 0.35 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+          >
             <span style={{
               fontSize: '0.78rem', minWidth: '7rem',
               color: isTop ? color : 'var(--text-secondary)',
@@ -40,7 +48,7 @@ export default function ProbabilityChart({ probabilities, prediction }: Props) {
             }}>
               {pct.toFixed(1)}%
             </span>
-          </div>
+          </motion.div>
         )
       })}
     </div>

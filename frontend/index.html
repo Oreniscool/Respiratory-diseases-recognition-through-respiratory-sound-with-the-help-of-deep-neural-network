@@ -49,16 +49,15 @@
                     <span class="gradient-text">Recognition System</span>
                 </h1>
                 <p class="hero-subtitle">
-                    A deep neural network that classifies respiratory diseases
-                    from lung sound recordings with
-                    <strong>95.67% accuracy</strong>. Detects six conditions
-                    including COPD, Pneumonia, Bronchiectasis, Bronchiolitis,
-                    and URTI — or confirms a healthy respiratory system.
+                    Legacy visualization for the RespiNet research prototype.
+                    Historical metrics on this page are not clinically valid;
+                    use the React application and rerun patient-level evaluation
+                    before publishing performance claims.
                 </p>
                 <div class="hero-stats">
                     <div class="hero-stat">
-                        <span class="stat-num">95.67%</span
-                        ><span class="stat-label">Accuracy</span>
+                        <span class="stat-num">Research</span
+                        ><span class="stat-label">Prototype</span>
                     </div>
                     <div class="hero-stat">
                         <span class="stat-num">6</span
@@ -84,7 +83,7 @@
                     <div class="hc-label">Live Prediction</div>
                     <div class="hc-disease">COPD</div>
                     <div class="hc-confidence">
-                        Confidence: <strong>91.3%</strong>
+                        Illustrative probability: <strong>91.3%</strong>
                     </div>
                     <div class="hc-bars">
                         <div class="hc-bar-row">
@@ -153,7 +152,7 @@
                     <div class="demo-input-area">
                         <!-- Server status badge (static, updated by JS) -->
                         <span id="serverBadge" class="server-badge offline"
-                            >🟡 Server offline — showing demo data</span
+                            >🔴 Server offline — inference unavailable</span
                         >
 
                         <!-- Tab switcher -->
@@ -364,7 +363,7 @@
                         <div class="rc-description" id="rcDesc"></div>
                         <div class="rc-metrics">
                             <div class="rc-metric">
-                                <span>Confidence</span
+                                <span>Uncalibrated model probability</span
                                 ><strong id="rcConf"></strong>
                             </div>
                             <div class="rc-metric">
@@ -399,8 +398,9 @@
                     <span class="section-tag">Performance</span>
                     <h2 class="section-title">Accuracy Metrics</h2>
                     <p class="section-sub">
-                        Averaged over 20 independent training runs on the ICBHI
-                        2017 Challenge dataset.
+                        Archived legacy metrics from an earlier six-class experiment on the ICBHI
+                        2017 Challenge dataset. They are not current, patient-level,
+                        or clinically valid and must not be cited as RespiNet performance.
                     </p>
                 </div>
 
@@ -737,9 +737,9 @@
                     <span class="section-tag">Dataset</span>
                     <h2 class="section-title">Data Distribution</h2>
                     <p class="section-sub">
-                        Class distribution after preprocessing and augmentation.
-                        COPD was intentionally capped at 3 recordings per
-                        patient to balance the dataset.
+                        Legacy six-class distribution retained for historical
+                        reference. The corrected pipeline no longer performs
+                        class-specific COPD capping.
                     </p>
                 </div>
                 <div class="dataset-layout">
@@ -767,9 +767,9 @@
                     <span class="section-tag">Model</span>
                     <h2 class="section-title">Neural Network Architecture</h2>
                     <p class="section-sub">
-                        A multi-branch Bidirectional GRU network with residual
-                        connections, compiled with Adamax optimizer and
-                        Categorical Cross-entropy loss.
+                        Legacy architecture figure retained for historical
+                        reference. It does not describe the current Conv1D plus
+                        stacked bidirectional GRU source model.
                     </p>
                 </div>
 

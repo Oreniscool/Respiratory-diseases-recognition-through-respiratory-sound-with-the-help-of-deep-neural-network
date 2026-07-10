@@ -19,12 +19,13 @@ const PIPELINE_STEPS = [
     icon: "🔉",
     color: "#8b5cf6",
     title: "Preprocessing",
-    desc: "Raw audio is resampled to a consistent rate using librosa's kaiser_fast resampler. Silence and noise are handled before feature extraction.",
+    desc: "Raw audio is converted to mono and resampled to 22.05 kHz. Optional inference-time denoising is experimental and may change the input distribution.",
     details: [
       "Resampling via librosa (kaiser_fast)",
-      "Duration normalisation to 20 s per clip",
-      "Augmentation: time stretch, pitch shift, noise",
-      "Data balancing: COPD capped at 3/patient",
+      "Explicit target rate: 22.05 kHz",
+      "Fixed 200-frame feature window",
+      "Training-only augmentation: stretch, zero-fill shift, SNR noise",
+      "Patient split occurs before augmentation",
     ],
   },
   {
@@ -44,12 +45,12 @@ const PIPELINE_STEPS = [
     step: "04",
     icon: "🧠",
     color: "#f59e0b",
-    title: "GRU Neural Network",
-    desc: "A multi-branch Bidirectional GRU (Gated Recurrent Unit) network processes the temporal sequence of MFCC features. Two parallel branches capture features at different granularities before merging.",
+    title: "Conv1D + BiGRU Network",
+    desc: "Two temporal convolution layers feed two stacked bidirectional GRU layers, followed by global average pooling and a dense classifier.",
     details: [
-      "Branch 1: GRU(32) → LeakyReLU → GRU(128)",
-      "Branch 2: GRU(64) → LeakyReLU → GRU(128)",
-      "Merge: Concatenate + Dense(128) + Dropout(0.3)",
+      "Conv1D(64, kernel 5) → Conv1D(64, kernel 3)",
+      "Bidirectional GRU(64) → Bidirectional GRU(32)",
+      "Global average pooling → Dense(64) → Dropout",
       "Optimizer: Adamax | Loss: Categorical Cross-entropy",
     ],
   },
@@ -61,9 +62,9 @@ const PIPELINE_STEPS = [
     desc: "The final Dense layer produces a probability distribution over all disease classes using softmax activation. The class with the highest probability is returned as the prediction.",
     details: [
       "Dense(num_classes) + Softmax",
-      "Returns confidence % per class",
+      "Returns an uncalibrated model probability per class",
       "Threshold-free — purely probabilistic",
-      "Epoch 50/50: 84.66% train / 76.79% val",
+      "Probabilities require calibration before clinical interpretation",
     ],
   },
 ];
@@ -71,30 +72,30 @@ const PIPELINE_STEPS = [
 const ARCH_DETAILS = [
   {
     label: "Input shape",
-    value: "(1, 200, 120)",
-    desc: "1 sample × 200 time steps × 120 features",
+    value: "(200, 120)",
+    desc: "200 time steps × 120 features per sample",
   },
   {
-    label: "Branch 1",
-    value: "GRU 32→128",
-    desc: "Fine-grained temporal patterns",
+    label: "Convolutions",
+    value: "64@5 → 64@3",
+    desc: "Local temporal patterns",
   },
   {
-    label: "Branch 2",
-    value: "GRU 64→128",
-    desc: "Coarser multi-scale patterns",
+    label: "Recurrent stack",
+    value: "BiGRU 64→32",
+    desc: "Bidirectional temporal context",
   },
   {
-    label: "Merge",
-    value: "Concat + Dense",
-    desc: "256 merged → 128 dense + Dropout 0.3",
+    label: "Pooling",
+    value: "Global average",
+    desc: "Sequence to fixed-size representation",
   },
   {
     label: "Output",
     value: "Softmax",
     desc: "N-class probability distribution",
   },
-  { label: "Parameters", value: "~1.7 M", desc: "Stored in best_model.h5" },
+  { label: "Parameters", value: "≈137k", desc: "Verify from the next saved model summary" },
   { label: "Optimizer", value: "Adamax", desc: "Learning rate 0.001" },
   {
     label: "Loss",
@@ -108,7 +109,13 @@ export default function HowItWorksPage() {
     <div style={{ paddingTop: 64, minHeight: "100vh" }}>
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem" }}>
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <motion.div
+          className="page-intro"
+          initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ textAlign: "center", marginBottom: "3rem" }}
+        >
           <div className="section-tag">Technical Deep Dive</div>
           <h1
             style={{
@@ -128,15 +135,20 @@ export default function HowItWorksPage() {
               margin: "0.75rem auto 0",
             }}
           >
-            From raw lung sounds to a diagnosis — a step-by-step walkthrough of
+            From raw lung sounds to a research classification — a step-by-step walkthrough of
             the AI pipeline.
           </p>
-        </div>
+        </motion.div>
 
         {/* Pipeline steps */}
         <div style={{ position: "relative", marginBottom: "4rem" }}>
           {/* Vertical line */}
-          <div
+          <motion.div
+            className="pipeline-rail"
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true, margin: "-120px" }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
             style={{
               position: "absolute",
               left: 28,
@@ -145,6 +157,7 @@ export default function HowItWorksPage() {
               width: 2,
               background: "var(--border)",
               zIndex: 0,
+              transformOrigin: "top",
             }}
           />
 
@@ -157,7 +170,9 @@ export default function HowItWorksPage() {
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.1, type: "spring", stiffness: 190, damping: 22 }}
+                whileHover={{ x: 8 }}
+                className="process-step"
                 style={{
                   display: "flex",
                   gap: "1.5rem",
@@ -166,7 +181,9 @@ export default function HowItWorksPage() {
                 }}
               >
                 {/* Circle */}
-                <div
+                <motion.div
+                  className="process-node"
+                  whileHover={{ scale: 1.12, rotate: -6 }}
                   style={{
                     width: 56,
                     height: 56,
@@ -181,10 +198,10 @@ export default function HowItWorksPage() {
                   }}
                 >
                   {s.icon}
-                </div>
+                </motion.div>
                 {/* Content */}
                 <div
-                  className="glass-card"
+                  className="glass-card process-card"
                   style={{
                     flex: 1,
                     padding: "1.5rem",
@@ -235,6 +252,7 @@ export default function HowItWorksPage() {
                     {s.details.map((d) => (
                       <span
                         key={d}
+                        className="tech-chip"
                         style={{
                           fontSize: "0.72rem",
                           padding: "0.25rem 0.65rem",
@@ -260,7 +278,7 @@ export default function HowItWorksPage() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass-card"
+          className="glass-card data-glow-card"
           style={{ padding: "1.75rem", marginBottom: "3rem" }}
         >
           <h2
@@ -279,9 +297,15 @@ export default function HowItWorksPage() {
               gap: "0.75rem",
             }}
           >
-            {ARCH_DETAILS.map((item) => (
-              <div
+            {ARCH_DETAILS.map((item, i) => (
+              <motion.div
                 key={item.label}
+                className="tech-spec-tile"
+                initial={{ opacity: 0, scale: 0.94 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ delay: i * 0.045 }}
                 style={{
                   padding: "0.85rem",
                   borderRadius: "0.6rem",
@@ -319,7 +343,7 @@ export default function HowItWorksPage() {
                 >
                   {item.desc}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
@@ -329,7 +353,7 @@ export default function HowItWorksPage() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass-card"
+          className="glass-card data-glow-card"
           style={{ padding: "1.75rem" }}
         >
           <h2
@@ -368,9 +392,15 @@ export default function HowItWorksPage() {
               ["8", "Disease classes"],
               ["4–44.1 kHz", "Sample rates"],
               ["5–120 s", "Recording lengths"],
-            ].map(([val, label]) => (
-              <div
+            ].map(([val, label], i) => (
+              <motion.div
                 key={label}
+                className="dataset-stat"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, scale: 1.03 }}
+                transition={{ delay: i * 0.055 }}
                 style={{
                   padding: "0.85rem",
                   borderRadius: "0.6rem",
@@ -397,7 +427,7 @@ export default function HowItWorksPage() {
                 >
                   {label}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

@@ -1,19 +1,24 @@
-from keras.models import load_model
+"""Standalone inference helper for already-extracted feature arrays."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
 import numpy as np
+from tensorflow.keras.models import load_model
 
-def validateModel(X_val):
-	'''
-	   Validate the performance of the Model by loading the trained model weights.
-	   Args:
-	       X_val : Array for features.
 
-	   Returns: Model prediction against the input features.
-	'''
-	Model_Loaded = load_model('best_model.h5')
+def validate_model(
+    features: np.ndarray,
+    model_path: str | Path = "artifacts/latest/best_model.keras",
+    *,
+    return_probabilities: bool = False,
+) -> np.ndarray:
+    model = load_model(model_path)
+    probabilities = np.asarray(model.predict(features, verbose=0))
+    if probabilities.ndim != 2:
+        raise ValueError(f"Expected 2D model output, got {probabilities.shape}")
+    return probabilities if return_probabilities else np.argmax(probabilities, axis=1)
 
-	yhat_probs = Model_Loaded.predict(X_val, verbose=1)
-	if yhat_probs.ndim == 3:
-		yhat_probs = yhat_probs.reshape(yhat_probs.shape[0], yhat_probs.shape[2])
-	yhat_classes =np.argmax(yhat_probs,axis=1)
 
-	return yhat_classes
+validateModel = validate_model

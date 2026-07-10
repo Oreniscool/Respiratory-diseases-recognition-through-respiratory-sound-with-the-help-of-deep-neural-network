@@ -19,9 +19,19 @@ export default function PipelineSteps({ steps }: Props) {
       {steps.map((step, i) => (
         <div key={step.id}>
           <motion.div
+            layout
+            className={`pipeline-step pipeline-step-${step.status}`}
             initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.12 }}
+            animate={{
+              opacity: 1,
+              x: 0,
+              scale: step.status === 'active' ? 1.018 : 1,
+              boxShadow:
+                step.status === 'active'
+                  ? '0 12px 34px rgba(34,211,238,0.11)'
+                  : '0 0 0 rgba(34,211,238,0)',
+            }}
+            transition={{ delay: i * 0.08, type: 'spring', stiffness: 260, damping: 24 }}
             style={{
               display: 'flex', alignItems: 'center', gap: '1rem',
               padding: '0.75rem 1rem',
@@ -40,7 +50,10 @@ export default function PipelineSteps({ steps }: Props) {
             }}
           >
             {/* Icon */}
-            <div style={{
+            <motion.div
+              animate={step.status === 'active' ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+              transition={{ duration: 1.5, repeat: step.status === 'active' ? Infinity : 0 }}
+              style={{
               width: 40, height: 40, borderRadius: '0.5rem',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1.2rem',
@@ -52,7 +65,7 @@ export default function PipelineSteps({ steps }: Props) {
               {step.status === 'active'
                 ? <Loader2 size={20} color="var(--cyan-400)" style={{ animation: 'spin 1s linear infinite' }} />
                 : step.icon}
-            </div>
+            </motion.div>
 
             {/* Text */}
             <div style={{ flex: 1 }}>
@@ -74,9 +87,13 @@ export default function PipelineSteps({ steps }: Props) {
 
           {/* Connector */}
           {i < steps.length - 1 && (
-            <div style={{
+            <motion.div
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: step.status === 'done' ? 1 : 0.25 }}
+              style={{
               width: 2, height: 10, marginLeft: '1.5rem',
               background: step.status === 'done' ? 'rgba(16,185,129,0.4)' : 'var(--border)',
+              transformOrigin: 'top',
               transition: 'background 0.4s ease',
             }} />
           )}

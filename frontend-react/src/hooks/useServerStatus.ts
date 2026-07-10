@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from 'react'
 
-const API_BASE = 'http://localhost:5000'
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
 
 export interface ServerStatus {
   online: boolean
   datasetOnline: boolean
   classes: string[]
   modelLoaded: boolean
+  modelContract: string
 }
 
 export function useServerStatus() {
@@ -15,6 +16,7 @@ export function useServerStatus() {
     datasetOnline: false,
     classes: [],
     modelLoaded: false,
+    modelContract: 'unknown',
   })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -30,9 +32,10 @@ export function useServerStatus() {
         datasetOnline: !!data.dataset,
         classes: Array.isArray(data.classes) ? data.classes : [],
         modelLoaded: !!data.model,
+        modelContract: typeof data.model_contract === 'string' ? data.model_contract : 'unknown',
       })
     } catch {
-      setStatus(prev => ({ ...prev, online: false, datasetOnline: false }))
+      setStatus(prev => ({ ...prev, online: false, datasetOnline: false, modelLoaded: false }))
     }
   }
 

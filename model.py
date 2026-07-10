@@ -1,7 +1,15 @@
-from keras.layers import Input, BatchNormalization, GRU, Dense, Dropout, LeakyReLU, Bidirectional, Conv1D, GlobalAveragePooling1D
-from keras.models import Model, load_model
+from tensorflow.keras.layers import (
+    BatchNormalization,
+    Bidirectional,
+    Conv1D,
+    Dense,
+    Dropout,
+    GlobalAveragePooling1D,
+    GRU,
+    LeakyReLU,
+)
 
-def InstantiateModel(in_, num_classes):
+def instantiate_model(in_, num_classes):
 
     """
 
@@ -40,3 +48,7 @@ def InstantiateModel(in_, num_classes):
     output = Dense(num_classes, activation="softmax")(x)
 
     return output
+
+
+# Backwards-compatible name for older notebooks/scripts.
+InstantiateModel = instantiate_model

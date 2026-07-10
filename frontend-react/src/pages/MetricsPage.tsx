@@ -16,12 +16,13 @@ import { REPORT_DATA, RUNS_DATA, CLASS_COLORS } from "../data/diseases";
 
 const OVERALL_METRICS = [
   {
-    label: "Train Accuracy",
-    value: 84.66,
+    label: "Final Train Accuracy",
+    value: 82.12,
     err: "Epoch 50/50",
     color: "#3b82f6",
   },
-  { label: "Val Accuracy", value: 76.79, err: "Epoch 50/50", color: "#10b981" },
+  { label: "Final Val Accuracy", value: 73.44, err: "Epoch 50/50", color: "#10b981" },
+  { label: "Best Val Accuracy", value: 75.36, err: "Epoch 48/50", color: "#f59e0b" },
 ];
 
 const CIRC = 2 * Math.PI * 38;
@@ -29,7 +30,12 @@ const CIRC = 2 * Math.PI * 38;
 function MetricRing({ value, color }: { value: number; color: string }) {
   const offset = CIRC * (1 - value / 100);
   return (
-    <svg viewBox="0 0 100 100" style={{ width: 80, height: 80 }}>
+    <svg
+      viewBox="0 0 100 100"
+      style={{ width: 80, height: 80 }}
+      role="img"
+      aria-label={`${value.toFixed(2)} percent`}
+    >
       <circle
         cx="50"
         cy="50"
@@ -92,7 +98,13 @@ export default function MetricsPage() {
     <div style={{ paddingTop: 64, minHeight: "100vh" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "3rem 1.5rem" }}>
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+        <motion.div
+          className="page-intro"
+          initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ textAlign: "center", marginBottom: "3rem" }}
+        >
           <div className="section-tag">Performance</div>
           <h1
             style={{
@@ -112,10 +124,30 @@ export default function MetricsPage() {
               margin: "0.75rem auto 0",
             }}
           >
-            Snapshot from epoch 50/50 on the ICBHI 2017 dataset. Train loss:
-            0.3745, val loss: 0.7075.
+            Captured historical run: final train loss 0.4229 and validation
+            loss 0.8203. Best validation loss was 0.7183 at epoch 48.
           </p>
-        </div>
+          <motion.div
+            className="historical-data-notice"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.45 }}
+            style={{
+              margin: "1rem auto 0",
+              maxWidth: 720,
+              padding: "0.8rem 1rem",
+              border: "1px solid rgba(245,158,11,0.35)",
+              borderRadius: "0.75rem",
+              color: "#fbbf24",
+              background: "rgba(245,158,11,0.08)",
+              fontSize: "0.8rem",
+            }}
+          >
+            Historical and not clinically valid: this run used the previous
+            sample-level split after augmentation. Replace these values with
+            artifacts/latest/test_metrics.json after a patient-level rerun.
+          </motion.div>
+        </motion.div>
 
         {/* Overall metric cards */}
         <div
@@ -132,8 +164,9 @@ export default function MetricsPage() {
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.07 }}
-              className="glass-card"
+              transition={{ delay: i * 0.07, type: "spring", stiffness: 230, damping: 22 }}
+              whileHover={{ y: -8, scale: 1.025 }}
+              className="glass-card metric-orbit-card"
               style={{
                 padding: "1.25rem",
                 textAlign: "center",
@@ -176,10 +209,11 @@ export default function MetricsPage() {
 
         {/* Training runs chart */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true }}
-          className="glass-card"
+          whileHover={{ y: -4 }}
+          className="glass-card data-glow-card"
           style={{ padding: "1.75rem", marginBottom: "2rem" }}
         >
           <h2
@@ -234,10 +268,11 @@ export default function MetricsPage() {
 
         {/* Per-class grouped bar */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true }}
-          className="glass-card"
+          whileHover={{ y: -4 }}
+          className="glass-card data-glow-card"
           style={{ padding: "1.75rem", marginBottom: "2rem" }}
         >
           <h2
@@ -301,10 +336,11 @@ export default function MetricsPage() {
 
         {/* Classification report table */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true }}
-          className="glass-card"
+          whileHover={{ y: -4 }}
+          className="glass-card data-glow-card"
           style={{ padding: "1.75rem", overflowX: "auto" }}
         >
           <h2

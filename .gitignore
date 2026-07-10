@@ -1,5 +1,14 @@
 dataset
 __pycache__
+*.py[cod]
 features_cache
 */node_modules
 .env
+artifacts/*
+!artifacts/.gitkeep
+frontend-react/dist
+frontend-react/*.tsbuildinfo
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov

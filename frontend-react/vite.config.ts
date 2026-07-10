@@ -10,6 +10,8 @@ export default defineConfig({
       '/predict': 'http://localhost:5000',
       '/predict-sample': 'http://localhost:5000',
       '/health': 'http://localhost:5000',
+      '/explain': 'http://localhost:5000',
+      '/summarize': 'http://localhost:5000',
     },
   },
 })

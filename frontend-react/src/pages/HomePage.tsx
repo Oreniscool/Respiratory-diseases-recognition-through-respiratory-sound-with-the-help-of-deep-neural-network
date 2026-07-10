@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Activity,
@@ -9,9 +9,10 @@ import {
   BarChart2,
 } from "lucide-react";
 import AnimatedCounter from "../components/AnimatedCounter";
+import TiltCard from "../components/TiltCard";
 
 const STATS = [
-  { value: 84.66, decimals: 2, suffix: "%", label: "Train Accuracy" },
+  { value: 75.36, decimals: 2, suffix: "%", label: "Historical Best Val*" },
   { value: 8, decimals: 0, suffix: "", label: "Disease Classes" },
   { value: 920, decimals: 0, suffix: "", label: "Audio Recordings" },
   { value: 126, decimals: 0, suffix: "", label: "Patients" },
@@ -42,14 +43,14 @@ const FEATURES = [
   {
     icon: <BarChart2 size={24} />,
     title: "Model Metrics",
-    desc: "View accuracy curves, classification reports, and 10-run performance data.",
+    desc: "View the captured historical run and its evaluation limitations.",
     to: "/metrics",
     color: "#f59e0b",
   },
   {
     icon: <MessageCircle size={24} />,
-    title: "Health Advisor",
-    desc: "Chat with our AI advisor for evidence-based respiratory health information.",
+    title: "Research Info Guide",
+    desc: "Browse general respiratory information with clear non-clinical limitations.",
     to: "/chat",
     color: "#10b981",
   },
@@ -57,24 +58,39 @@ const FEATURES = [
 
 // Animated waveform bars for the hero
 function WaveformHero() {
+  const reduceMotion = useReducedMotion();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 3, height: 80 }}>
+    <div
+      className="hero-waveform"
+      aria-hidden="true"
+      style={{ display: "flex", alignItems: "center", gap: 3, height: 80 }}
+    >
       {Array.from({ length: 52 }, (_, i) => {
-        const h = 20 + Math.sin(i * 0.6) * 25 + Math.random() * 30;
+        const h = 35 + Math.sin(i * 0.6) * 20 + ((i * 17) % 23);
         const delay = (i / 52) * 1.4;
         const dur = 0.8 + (i % 5) * 0.15;
         return (
-          <div
+          <motion.div
             key={i}
+            animate={
+              reduceMotion
+                ? { scaleY: 1 }
+                : { scaleY: [0.42, 1, 0.58, 0.86, 0.42], opacity: [0.45, 1, 0.62, 0.8, 0.45] }
+            }
+            transition={{
+              duration: dur * 2.1,
+              delay: -delay,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
             style={{
               width: 4,
               height: `${h}%`,
               borderRadius: 2,
               flexShrink: 0,
               background: `linear-gradient(to top, #06b6d4, #6366f1)`,
-              animation: `wave-bar ${dur}s ease-in-out infinite`,
-              animationDelay: `-${delay}s`,
               opacity: 0.7,
+              transformOrigin: "center",
             }}
           />
         );
@@ -87,9 +103,10 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ paddingTop: 64 }}>
+    <div className="home-page" style={{ paddingTop: 64 }}>
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section
+        className="home-hero"
         style={{
           minHeight: "calc(100vh - 64px)",
           display: "flex",
@@ -102,6 +119,7 @@ export default function HomePage() {
       >
         {/* Background gradient blobs */}
         <div
+          className="home-hero-panel"
           style={{
             position: "absolute",
             inset: 0,
@@ -154,6 +172,7 @@ export default function HomePage() {
           }}
         >
           <div
+            className="responsive-two-column home-hero-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
@@ -163,6 +182,7 @@ export default function HomePage() {
           >
             {/* Left: text */}
             <motion.div
+              className="home-copy"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7 }}
@@ -184,6 +204,7 @@ export default function HomePage() {
                 <span className="gradient-text">Recognition System</span>
               </h1>
               <p
+                className="hero-lead"
                 style={{
                   fontSize: "1.05rem",
                   color: "var(--text-secondary)",
@@ -192,21 +213,15 @@ export default function HomePage() {
                   maxWidth: 480,
                 }}
               >
-                A bidirectional GRU deep neural network that classifies
-                respiratory diseases from lung sound recordings with{" "}
-                <strong style={{ color: "var(--text-primary)" }}>
-                  84.66% training accuracy
-                </strong>{" "}
-                and{" "}
-                <strong style={{ color: "var(--text-primary)" }}>
-                  76.79% validation accuracy
-                </strong>{" "}
-                (epoch 50/50). Detects 8 conditions including COPD, Pneumonia,
-                Bronchiectasis, and more.
+                A Conv1D and bidirectional GRU research prototype that assigns
+                lung-sound recordings to 8 respiratory classes. The displayed
+                historical metrics have not yet been reproduced with the new
+                patient-level train/validation/test split.
               </p>
 
               {/* Stats */}
               <div
+                className="responsive-stat-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(4, 1fr)",
@@ -215,8 +230,11 @@ export default function HomePage() {
                 }}
               >
                 {STATS.map((s) => (
-                  <div
+                  <motion.div
                     key={s.label}
+                    className="stat-tile"
+                    whileHover={{ y: -5, scale: 1.035 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 20 }}
                     style={{
                       padding: "0.9rem",
                       borderRadius: "0.75rem",
@@ -247,14 +265,14 @@ export default function HomePage() {
                     >
                       {s.label}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
 
               {/* CTAs */}
               <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                 <button
-                  className="btn-primary"
+                  className="btn-primary kinetic-button"
                   onClick={() => navigate("/diagnose")}
                   style={{ fontSize: "0.95rem", padding: "0.75rem 1.75rem" }}
                 >
@@ -275,11 +293,11 @@ export default function HomePage() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="animate-float"
+              className="animate-float home-visual"
               style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
             >
               {/* Waveform card */}
-              <div className="glass-card" style={{ padding: "1.5rem" }}>
+              <div className="glass-card spectral-card" style={{ padding: "1.5rem" }}>
                 <div
                   style={{
                     fontSize: "0.7rem",
@@ -295,7 +313,7 @@ export default function HomePage() {
               </div>
 
               {/* Prediction card */}
-              <div className="glass-card" style={{ padding: "1.5rem" }}>
+              <div className="glass-card holographic-card" style={{ padding: "1.5rem" }}>
                 <div
                   style={{
                     display: "flex",
@@ -324,7 +342,7 @@ export default function HomePage() {
                       border: "1px solid rgba(16,185,129,0.3)",
                     }}
                   >
-                    ● Live
+                    Illustrative demo
                   </span>
                 </div>
                 <div
@@ -344,7 +362,7 @@ export default function HomePage() {
                     marginBottom: "1rem",
                   }}
                 >
-                  Confidence:{" "}
+                  Illustrative probability:{" "}
                   <strong style={{ color: "var(--text-primary)" }}>
                     91.3%
                   </strong>
@@ -403,10 +421,11 @@ export default function HomePage() {
 
       {/* ── Feature cards ───────────────────────────────────────────── */}
       <section
+        className="platform-section"
         style={{ padding: "5rem 1.5rem", background: "var(--bg-secondary)" }}
       >
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <div className="section-heading" style={{ textAlign: "center", marginBottom: "3rem" }}>
             <div className="section-tag">Platform</div>
             <h2
               style={{
@@ -426,8 +445,8 @@ export default function HomePage() {
                 margin: "0.75rem auto 0",
               }}
             >
-              From live diagnosis to deep technical insights, RespiNet covers
-              the full spectrum.
+              From local research inference to technical inspection, RespiNet
+              exposes the complete prototype workflow.
             </p>
           </div>
           <div
@@ -438,14 +457,19 @@ export default function HomePage() {
             }}
           >
             {FEATURES.map((f, i) => (
-              <motion.div
+              <TiltCard
                 key={f.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
+                delay={i * 0.08}
                 onClick={() => navigate(f.to)}
-                className="glass-card glass-card-hover"
+                role="link"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(f.to);
+                  }
+                }}
+                className="glass-card glass-card-hover feature-tilt-card"
                 style={{ padding: "1.5rem", cursor: "pointer" }}
               >
                 <div
@@ -494,20 +518,20 @@ export default function HomePage() {
                 >
                   Explore <ArrowRight size={14} />
                 </div>
-              </motion.div>
+              </TiltCard>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── CTA Banner ──────────────────────────────────────────────── */}
-      <section style={{ padding: "5rem 1.5rem" }}>
+      <section className="final-cta-section" style={{ padding: "5rem 1.5rem" }}>
         <div style={{ maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass-card"
+              className="glass-card cta-orbit-card"
             style={{ padding: "3rem 2rem" }}
           >
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🫁</div>
@@ -528,11 +552,11 @@ export default function HomePage() {
                 lineHeight: 1.7,
               }}
             >
-              Upload a WAV recording or use your microphone. Our model
-              classifies respiratory diseases in under a second.
+              Upload a supported recording or use your microphone to exercise
+              the research classifier. Results are not a medical diagnosis.
             </p>
             <button
-              className="btn-primary"
+              className="btn-primary kinetic-button"
               onClick={() => navigate("/diagnose")}
               style={{ fontSize: "1rem", padding: "0.85rem 2rem" }}
             >
@@ -547,6 +571,8 @@ export default function HomePage() {
             >
               ⚕️ For research and educational purposes only — not a substitute
               for professional medical advice.
+              <br />* Historical metric from the previous leakage-prone split;
+              replace it after a patient-level rerun.
             </p>
           </motion.div>
         </div>

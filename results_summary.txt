@@ -1,3 +1,7 @@
+LEGACY / UNVERIFIED RESULTS
+The split and SpecAugment claims below are not implemented by the historical
+source that produced the captured training log. Do not cite these values.
+
 Extracted 1720 samples.
 Class distribution:
   URTI: 146

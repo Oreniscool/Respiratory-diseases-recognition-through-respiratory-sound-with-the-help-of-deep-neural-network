@@ -101,6 +101,7 @@ export default function ExplainabilityPage() {
   const analysis = useReportStore((state) => state.analysis);
   const report = useReportStore((state) => state.report);
   const [includeReason, setIncludeReason] = useState(false);
+  const [externalLlmConsent, setExternalLlmConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<ExplainabilityResponse | null>(null);
@@ -123,9 +124,9 @@ export default function ExplainabilityPage() {
     try {
       const res = await requestExplainability({
         file: analysis.audioFile,
-        model_result: analysis.modelResult,
         patient_info: analysis.patientInfo,
         include_reason: includeReason,
+        external_llm_consent: includeReason && externalLlmConsent,
         denoise: analysis.modelResult?.noise_cancellation,
       });
       setResponse(res);
@@ -144,7 +145,7 @@ export default function ExplainabilityPage() {
           style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem" }}
         >
           <div
-            className="diag-card"
+            className="diag-card empty-state-card"
             style={{ padding: "2rem", textAlign: "center" }}
           >
             <div className="diag-label">No Analysis</div>
@@ -179,6 +180,7 @@ export default function ExplainabilityPage() {
         }}
       >
         <div
+          className="page-intro explain-hero"
           style={{
             display: "flex",
             flexWrap: "wrap",
@@ -197,11 +199,11 @@ export default function ExplainabilityPage() {
                 marginTop: "0.5rem",
               }}
             >
-              Reasoning & Visual Evidence
+              Experimental Attribution
             </h1>
             <p style={{ color: "var(--text-secondary)", marginTop: "0.6rem" }}>
-              Visual overlays highlight time regions that influenced the model.
-              This is not a clinical diagnosis.
+              The overlay shows time-only gradient sensitivity repeated across
+              frequencies. It is not causal evidence or a clinical diagnosis.
             </p>
           </div>
           <div
@@ -217,16 +219,32 @@ export default function ExplainabilityPage() {
         </div>
 
         <div
+          className="responsive-two-column"
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 0.8fr)",
             gap: "1.5rem",
           }}
         >
-          <div className="diag-card" style={{ padding: "1.5rem" }}>
-            <div className="diag-label">Visual Evidence</div>
+          <div className="diag-card explain-visual-card" style={{ padding: "1.5rem" }}>
+            <div className="diag-label">Experimental visualization</div>
+            {response?.attribution_warning && (
+              <div
+                style={{
+                  marginTop: "0.7rem",
+                  padding: "0.7rem",
+                  borderRadius: "0.6rem",
+                  background: "rgba(245,158,11,0.08)",
+                  border: "1px solid rgba(245,158,11,0.3)",
+                  color: "#fbbf24",
+                  fontSize: "0.78rem",
+                }}
+              >
+                {response.attribution_warning}
+              </div>
+            )}
             <div style={{ display: "grid", gap: "1rem", marginTop: "0.8rem" }}>
-              <div>
+              <div className="explain-frame">
                 <div
                   style={{
                     fontSize: "0.85rem",
@@ -248,7 +266,7 @@ export default function ExplainabilityPage() {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="explain-frame">
                 <div
                   style={{
                     fontSize: "0.85rem",
@@ -270,7 +288,7 @@ export default function ExplainabilityPage() {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="explain-frame">
                 <div
                   style={{
                     fontSize: "0.85rem",
@@ -296,9 +314,10 @@ export default function ExplainabilityPage() {
           </div>
 
           <div
+            className="explain-side-stack"
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">Analysis Snapshot</div>
               {summaryMeta && (
                 <div
@@ -318,7 +337,7 @@ export default function ExplainabilityPage() {
                     {summaryMeta.prediction}
                   </div>
                   <div style={{ color: "var(--text-secondary)" }}>
-                    Confidence: {summaryMeta.confidence}%
+                    Uncalibrated model probability: {summaryMeta.confidence}%
                   </div>
                   <div style={{ color: "var(--text-secondary)" }}>
                     Duration: {summaryMeta.duration} s
@@ -327,7 +346,7 @@ export default function ExplainabilityPage() {
               )}
             </div>
 
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">Explainability Controls</div>
               <div
                 style={{ display: "grid", gap: "0.6rem", marginTop: "0.6rem" }}
@@ -348,10 +367,35 @@ export default function ExplainabilityPage() {
                   />
                   Include LLM reasoning
                 </label>
+                {includeReason && (
+                  <label
+                    style={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      alignItems: "flex-start",
+                      fontSize: "0.78rem",
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={externalLlmConsent}
+                      onChange={(event) =>
+                        setExternalLlmConsent(event.target.checked)
+                      }
+                    />
+                    I consent to sending de-identified structured context to
+                    the configured external LLM provider.
+                  </label>
+                )}
                 <button
                   className="btn-primary"
                   onClick={generateExplainability}
-                  disabled={!canExplain || loading}
+                  disabled={
+                    !canExplain ||
+                    loading ||
+                    (includeReason && !externalLlmConsent)
+                  }
                 >
                   {loading ? "Generating..." : "Generate Explainability"}
                 </button>
@@ -370,7 +414,7 @@ export default function ExplainabilityPage() {
               </div>
             </div>
 
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">LLM Reasoning</div>
               {!includeReason && (
                 <div

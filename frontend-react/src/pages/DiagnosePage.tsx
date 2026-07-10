@@ -8,6 +8,7 @@ import {
   Send,
   RotateCcw,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import { useServerStatus } from "../hooks/useServerStatus";
 import {
@@ -16,7 +17,7 @@ import {
   summarizeReport,
   type PredictResult,
 } from "../utils/predict";
-import { MOCK_RESULTS, CLASS_COLORS } from "../data/diseases";
+import { CLASS_COLORS } from "../data/diseases";
 import ProbabilityChart from "../components/ProbabilityChart";
 import PipelineSteps, { type Step } from "../components/PipelineSteps";
 import { useReportStore } from "../store/reportStore";
@@ -148,22 +149,6 @@ const numOrNull = (value: string) => {
   return Number.isFinite(n) ? n : null;
 };
 
-// Ensure Healthy is always rank 1 or rank 2 in the probabilities map.
-function ensureHealthyTopTwo(
-  probs: Record<string, number>,
-): Record<string, number> {
-  const sorted = Object.entries(probs).sort((a, b) => b[1] - a[1]);
-  const healthyIdx = sorted.findIndex(([k]) => k === "Healthy");
-  if (healthyIdx <= 1) return probs;
-  const result = { ...probs };
-  const secondKey = sorted[1][0];
-  const secondVal = sorted[1][1];
-  const healthyVal = sorted[healthyIdx][1];
-  result["Healthy"] = secondVal;
-  result[secondKey] = healthyVal;
-  return result;
-}
-
 function buildPipelineSteps(
   filename: string,
   denoise: boolean,
@@ -207,21 +192,38 @@ function ServerBadge({
 }: {
   status: ReturnType<typeof useServerStatus>;
 }) {
-  if (status.online && status.datasetOnline)
+  if (
+    status.online &&
+    status.modelLoaded &&
+    status.datasetOnline &&
+    status.modelContract === "verified-metadata"
+  )
     return (
       <span className="status-badge status-online">
-        Server online, real model active
+        Server online, model ready
+      </span>
+    );
+  if (status.online && status.modelLoaded && status.modelContract !== "verified-metadata")
+    return (
+      <span className="status-badge status-partial">
+        Model ready, legacy contract unverified
+      </span>
+    );
+  if (status.online && !status.modelLoaded)
+    return (
+      <span className="status-badge status-offline">
+        Server online, model unavailable
       </span>
     );
   if (status.online)
     return (
       <span className="status-badge status-partial">
-        Server online, dataset missing, demo pills only
+        Server online, sample dataset unavailable
       </span>
     );
   return (
     <span className="status-badge status-offline">
-      Server offline, showing demo data
+      Server offline, inference unavailable
     </span>
   );
 }
@@ -236,7 +238,7 @@ export default function DiagnosePage() {
   const [phase, setPhase] = useState<"idle" | "pipeline" | "result">("idle");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PredictResult | null>(null);
-  const [noiseCancellation, setNoiseCancellation] = useState(true);
+  const [noiseCancellation, setNoiseCancellation] = useState(false);
   const [steps, setSteps] = useState<Step[]>(
     buildPipelineSteps("—", noiseCancellation),
   );
@@ -251,6 +253,7 @@ export default function DiagnosePage() {
   >("idle");
   const [llmError, setLlmError] = useState<string | null>(null);
   const [llmModel, setLlmModel] = useState("");
+  const [externalLlmConsent, setExternalLlmConsent] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
@@ -266,6 +269,9 @@ export default function DiagnosePage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
 
   const bmiValue = useMemo(() => {
     const heightCm = numOrNull(patientInfo.heightCm);
@@ -344,11 +350,17 @@ export default function DiagnosePage() {
     return {
       model_result: result,
       patient_info: buildPatientInfoPayload(),
+      external_llm_consent: externalLlmConsent,
     };
-  }, [buildPatientInfoPayload, result]);
+  }, [buildPatientInfoPayload, externalLlmConsent, result]);
 
   const requestSummary = useCallback(async () => {
     if (!result) return;
+    if (!externalLlmConsent) {
+      setLlmError("Consent is required before using the external LLM provider.");
+      setLlmStatus("error");
+      return;
+    }
     if (!serverStatus.online) {
       setLlmError(
         "Server offline. Start the backend to use LLM summarization.",
@@ -378,14 +390,20 @@ export default function DiagnosePage() {
       setLlmError(e instanceof Error ? e.message : "Failed to generate report");
       setLlmStatus("error");
     }
-  }, [result, serverStatus.online, buildSummaryPayload, navigate, setReport]);
+  }, [
+    result,
+    externalLlmConsent,
+    serverStatus.online,
+    buildSummaryPayload,
+    navigate,
+    setReport,
+  ]);
 
   // ── Pipeline runner ─────────────────────────────────────────────
   const runPipeline = useCallback(
     async (
       file: File | Blob,
       filename = "recording.wav",
-      fromRecording = false,
     ) => {
       setError(null);
       setResult(null);
@@ -436,23 +454,18 @@ export default function DiagnosePage() {
         const asFile =
           file instanceof File
             ? file
-            : new File([file], filename, { type: "audio/wav" });
-        if (serverStatus.online) {
+            : new File([file], filename, {
+                type: file.type || (filename.endsWith(".webm") ? "audio/webm" : "audio/wav"),
+              });
+        if (serverStatus.online && serverStatus.modelLoaded) {
           res = await predictFile(asFile, { denoise: noiseCancellation });
         } else {
-          await delay(800);
-          const key = filename.toLowerCase().split(".")[0];
-          const mock = MOCK_RESULTS[key] ?? MOCK_RESULTS.healthy;
-          res = { ...mock, mfcc_preview: [] };
+          throw new Error(
+            "Inference is unavailable because the backend model is not ready.",
+          );
         }
 
         res = { ...res, noise_cancellation: noiseCancellation };
-        if (fromRecording) {
-          res = {
-            ...res,
-            probabilities: ensureHealthyTopTwo(res.probabilities),
-          };
-        }
 
         setSteps((s) =>
           s.map((st) =>
@@ -496,6 +509,7 @@ export default function DiagnosePage() {
     },
     [
       serverStatus.online,
+      serverStatus.modelLoaded,
       buildPatientInfoPayload,
       setAnalysis,
       noiseCancellation,
@@ -603,24 +617,8 @@ export default function DiagnosePage() {
         setPhase("idle");
       }
     } else {
-      const mock = MOCK_RESULTS[sample] ?? MOCK_RESULTS.healthy;
-      await runPipeline(new Blob([], { type: "audio/wav" }), sample + ".wav");
-      setResult({
-        ...mock,
-        mfcc_preview: [],
-        noise_cancellation: noiseCancellation,
-      });
-      setAnalysis({
-        audioFile: null,
-        modelResult: {
-          ...mock,
-          mfcc_preview: [],
-          noise_cancellation: noiseCancellation,
-        },
-        patientInfo: buildPatientInfoPayload(),
-        capturedAt: new Date().toISOString(),
-      });
-      setPhase("result");
+      setError("Sample inference requires a ready server and local dataset.");
+      setPhase("idle");
     }
   };
 
@@ -651,8 +649,15 @@ export default function DiagnosePage() {
 
   const startRecording = async () => {
     try {
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+        setAudioUrl(null);
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const ctx = new AudioContext();
+      audioContextRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 2048;
@@ -665,17 +670,22 @@ export default function DiagnosePage() {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const mimeType = mr.mimeType || "audio/webm";
+        const blob = new Blob(chunksRef.current, { type: mimeType });
         setAudioBlob(blob);
-        setAudioUrl(URL.createObjectURL(blob));
+        const nextUrl = URL.createObjectURL(blob);
+        audioUrlRef.current = nextUrl;
+        setAudioUrl(nextUrl);
         stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        void ctx.close();
+        audioContextRef.current = null;
         cancelAnimationFrame(animRef.current);
       };
       mr.start(100);
       mediaRef.current = mr;
       setRecording(true);
       setAudioBlob(null);
-      setAudioUrl(null);
       setRecTime(MAX_RECORD_SECS);
       drawWave();
 
@@ -689,6 +699,10 @@ export default function DiagnosePage() {
         });
       }, 1000);
     } catch {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      void audioContextRef.current?.close();
+      audioContextRef.current = null;
       setError(
         "Microphone access denied. Please allow microphone permissions.",
       );
@@ -696,7 +710,9 @@ export default function DiagnosePage() {
   };
 
   const stopRecording = () => {
-    mediaRef.current?.stop();
+    if (mediaRef.current && mediaRef.current.state !== "inactive") {
+      mediaRef.current.stop();
+    }
     if (timerRef.current) clearInterval(timerRef.current);
     setRecording(false);
   };
@@ -706,6 +722,14 @@ export default function DiagnosePage() {
     () => () => {
       if (timerRef.current) clearInterval(timerRef.current);
       cancelAnimationFrame(animRef.current);
+      if (mediaRef.current && mediaRef.current.state !== "inactive") {
+        mediaRef.current.onstop = null;
+        mediaRef.current.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      void audioContextRef.current?.close();
+      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
     },
     [],
   );
@@ -715,11 +739,14 @@ export default function DiagnosePage() {
     setResult(null);
     setError(null);
     setAudioBlob(null);
+    if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+    audioUrlRef.current = null;
     setAudioUrl(null);
     setLlmSummary("");
     setLlmStatus("idle");
     setLlmError(null);
     setLlmModel("");
+    setExternalLlmConsent(false);
     setInfoTab("overview");
     setSteps(buildPipelineSteps("—", noiseCancellation));
   };
@@ -765,7 +792,7 @@ export default function DiagnosePage() {
   ];
 
   return (
-    <div className="diagnostic-shell" style={{ paddingTop: 64 }}>
+    <div className={`diagnostic-shell diagnostic-phase-${phase}`} style={{ paddingTop: 64 }}>
       <div
         className="diagnostic-container"
         style={{
@@ -774,7 +801,10 @@ export default function DiagnosePage() {
           padding: "2.5rem 1.5rem 4rem",
         }}
       >
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 26 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           style={{
             display: "flex",
             flexWrap: "wrap",
@@ -784,16 +814,16 @@ export default function DiagnosePage() {
           }}
         >
           <div style={{ maxWidth: 640 }}>
-            <div className="section-tag">Diagnostic Console</div>
+            <div className="section-tag">Research Console</div>
             <h1
-              className="diag-title"
+              className="diag-title animated-headline"
               style={{
                 fontSize: "2.4rem",
                 fontWeight: 700,
                 marginTop: "0.6rem",
               }}
             >
-              Respiratory Diagnostics Dashboard
+              Respiratory Classification Dashboard
             </h1>
             <p style={{ color: "var(--text-secondary)", marginTop: "0.75rem" }}>
               Capture lung sounds, collect patient context, and generate a
@@ -803,9 +833,10 @@ export default function DiagnosePage() {
           <div style={{ alignSelf: "flex-start" }}>
             <ServerBadge status={serverStatus} />
           </div>
-        </div>
+        </motion.div>
 
         <div
+          className="responsive-two-column"
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 0.9fr)",
@@ -815,7 +846,7 @@ export default function DiagnosePage() {
           <div
             style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
           >
-            <div className="diag-card" style={{ padding: "1.5rem" }}>
+            <div className="diag-card analysis-console" style={{ padding: "1.5rem" }}>
               <div
                 style={{
                   display: "flex",
@@ -853,6 +884,7 @@ export default function DiagnosePage() {
               </div>
 
               <div
+                className="responsive-form-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -860,8 +892,9 @@ export default function DiagnosePage() {
                 }}
               >
                 <div>
-                  <label className="diag-label">Patient ID</label>
+                  <label className="diag-label" htmlFor="patient-id">Patient ID</label>
                   <input
+                    id="patient-id"
                     className="diag-input"
                     value={patientInfo.patientId}
                     onChange={(e) => updatePatient("patientId", e.target.value)}
@@ -869,9 +902,13 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Age</label>
+                  <label className="diag-label" htmlFor="patient-age">Age</label>
                   <input
+                    id="patient-age"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="120"
                     inputMode="numeric"
                     value={patientInfo.age}
                     onChange={(e) => updatePatient("age", e.target.value)}
@@ -879,8 +916,9 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Sex</label>
+                  <label className="diag-label" htmlFor="patient-sex">Sex</label>
                   <select
+                    id="patient-sex"
                     className="diag-select"
                     value={patientInfo.sex}
                     onChange={(e) => updatePatient("sex", e.target.value)}
@@ -892,8 +930,9 @@ export default function DiagnosePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="diag-label">Occupation</label>
+                  <label className="diag-label" htmlFor="patient-occupation">Occupation</label>
                   <input
+                    id="patient-occupation"
                     className="diag-input"
                     value={patientInfo.occupation}
                     onChange={(e) =>
@@ -903,18 +942,26 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Height (cm)</label>
+                  <label className="diag-label" htmlFor="patient-height">Height (cm)</label>
                   <input
+                    id="patient-height"
                     className="diag-input"
+                    type="number"
+                    min="30"
+                    max="250"
                     inputMode="numeric"
                     value={patientInfo.heightCm}
                     onChange={(e) => updatePatient("heightCm", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Weight (kg)</label>
+                  <label className="diag-label" htmlFor="patient-weight">Weight (kg)</label>
                   <input
+                    id="patient-weight"
                     className="diag-input"
+                    type="number"
+                    min="1"
+                    max="500"
                     inputMode="numeric"
                     value={patientInfo.weightKg}
                     onChange={(e) => updatePatient("weightKg", e.target.value)}
@@ -934,8 +981,9 @@ export default function DiagnosePage() {
                   </div>
                 </div>
                 <div>
-                  <label className="diag-label">Smoker Status</label>
+                  <label className="diag-label" htmlFor="smoker-status">Smoker Status</label>
                   <select
+                    id="smoker-status"
                     className="diag-select"
                     value={patientInfo.smokerStatus}
                     onChange={(e) =>
@@ -948,9 +996,13 @@ export default function DiagnosePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="diag-label">Pack Years</label>
+                  <label className="diag-label" htmlFor="pack-years">Pack Years</label>
                   <input
+                    id="pack-years"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="300"
                     inputMode="numeric"
                     value={patientInfo.packYears}
                     onChange={(e) => updatePatient("packYears", e.target.value)}
@@ -958,9 +1010,13 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Symptom Duration (days)</label>
+                  <label className="diag-label" htmlFor="symptom-days">Symptom Duration (days)</label>
                   <input
+                    id="symptom-days"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="3650"
                     inputMode="numeric"
                     value={patientInfo.symptomDays}
                     onChange={(e) =>
@@ -970,8 +1026,9 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Cough Type</label>
+                  <label className="diag-label" htmlFor="cough-type">Cough Type</label>
                   <select
+                    id="cough-type"
                     className="diag-select"
                     value={patientInfo.coughType}
                     onChange={(e) => updatePatient("coughType", e.target.value)}
@@ -984,8 +1041,9 @@ export default function DiagnosePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="diag-label">Sputum Color</label>
+                  <label className="diag-label" htmlFor="sputum-color">Sputum Color</label>
                   <input
+                    id="sputum-color"
                     className="diag-input"
                     value={patientInfo.sputumColor}
                     onChange={(e) =>
@@ -995,9 +1053,14 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Temperature (C)</label>
+                  <label className="diag-label" htmlFor="temperature-c">Temperature (C)</label>
                   <input
+                    id="temperature-c"
                     className="diag-input"
+                    type="number"
+                    min="30"
+                    max="45"
+                    step="0.1"
                     inputMode="numeric"
                     value={patientInfo.temperatureC}
                     onChange={(e) =>
@@ -1006,18 +1069,26 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">SpO2 (%)</label>
+                  <label className="diag-label" htmlFor="spo2">SpO2 (%)</label>
                   <input
+                    id="spo2"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="100"
                     inputMode="numeric"
                     value={patientInfo.spo2}
                     onChange={(e) => updatePatient("spo2", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Respiratory Rate</label>
+                  <label className="diag-label" htmlFor="respiratory-rate">Respiratory Rate</label>
                   <input
+                    id="respiratory-rate"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="100"
                     inputMode="numeric"
                     value={patientInfo.respiratoryRate}
                     onChange={(e) =>
@@ -1026,9 +1097,13 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Heart Rate</label>
+                  <label className="diag-label" htmlFor="heart-rate">Heart Rate</label>
                   <input
+                    id="heart-rate"
                     className="diag-input"
+                    type="number"
+                    min="0"
+                    max="250"
                     inputMode="numeric"
                     value={patientInfo.heartRate}
                     onChange={(e) => updatePatient("heartRate", e.target.value)}
@@ -1071,6 +1146,7 @@ export default function DiagnosePage() {
               </div>
 
               <div
+                className="responsive-form-grid"
                 style={{
                   marginTop: "1.1rem",
                   display: "grid",
@@ -1079,8 +1155,9 @@ export default function DiagnosePage() {
                 }}
               >
                 <div>
-                  <label className="diag-label">Comorbidities</label>
+                  <label className="diag-label" htmlFor="comorbidities">Comorbidities</label>
                   <textarea
+                    id="comorbidities"
                     className="diag-textarea"
                     value={patientInfo.comorbidities}
                     onChange={(e) =>
@@ -1090,8 +1167,9 @@ export default function DiagnosePage() {
                   />
                 </div>
                 <div>
-                  <label className="diag-label">Medications</label>
+                  <label className="diag-label" htmlFor="medications">Medications</label>
                   <textarea
+                    id="medications"
                     className="diag-textarea"
                     value={patientInfo.medications}
                     onChange={(e) =>
@@ -1103,8 +1181,9 @@ export default function DiagnosePage() {
               </div>
 
               <div style={{ marginTop: "1.1rem" }}>
-                <label className="diag-label">Additional Notes</label>
+                <label className="diag-label" htmlFor="additional-notes">Additional Notes</label>
                 <textarea
+                  id="additional-notes"
                   className="diag-textarea"
                   value={patientInfo.notes}
                   onChange={(e) => updatePatient("notes", e.target.value)}
@@ -1135,8 +1214,8 @@ export default function DiagnosePage() {
                 <div>
                   <div className="diag-label">Noise Cancellation</div>
                   <div className="toggle-caption">
-                    Spectral gating to reduce background noise before MFCC
-                    extraction.
+                    Experimental spectral gating. Disabled by default because it
+                    was not part of the historical training pipeline.
                   </div>
                 </div>
                 <label className="toggle">
@@ -1161,6 +1240,7 @@ export default function DiagnosePage() {
                   <button
                     key={t}
                     onClick={() => setTab(t)}
+                    aria-pressed={tab === t}
                     className={`diag-tab ${tab === t ? "is-active" : ""}`}
                     style={{ flex: 1 }}
                   >
@@ -1188,6 +1268,15 @@ export default function DiagnosePage() {
                       }
                       onDrop={handleDrop}
                       onClick={() => fileInputRef.current?.click()}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label="Choose an audio file for research classification"
                       className="glass-card"
                       style={{
                         padding: "2.2rem 1.5rem",
@@ -1208,7 +1297,7 @@ export default function DiagnosePage() {
                           marginBottom: "0.5rem",
                         }}
                       >
-                        Drop a WAV file or click to browse
+                        Drop a supported audio file or click to browse
                       </p>
                       <span
                         className="btn-primary"
@@ -1219,7 +1308,7 @@ export default function DiagnosePage() {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept=".wav,audio/*"
+                        accept=".wav,.flac,.ogg,.mp3,.webm"
                         hidden
                         onChange={(e) =>
                           e.target.files?.[0] && handleFile(e.target.files[0])
@@ -1420,7 +1509,12 @@ export default function DiagnosePage() {
                               style={{ flex: 1 }}
                               onClick={() =>
                                 audioBlob &&
-                                runPipeline(audioBlob, "recording.wav", true)
+                                runPipeline(
+                                  audioBlob,
+                                  audioBlob.type.includes("webm")
+                                    ? "recording.webm"
+                                    : "recording.wav",
+                                )
                               }
                             >
                               <Send size={15} /> Send to Model
@@ -1429,6 +1523,10 @@ export default function DiagnosePage() {
                               className="btn-ghost"
                               onClick={() => {
                                 setAudioBlob(null);
+                                if (audioUrlRef.current) {
+                                  URL.revokeObjectURL(audioUrlRef.current);
+                                  audioUrlRef.current = null;
+                                }
                                 setAudioUrl(null);
                                 setRecTime(MAX_RECORD_SECS);
                               }}
@@ -1498,9 +1596,10 @@ export default function DiagnosePage() {
                 {infoTab === "overview" && (
                   <motion.div
                     key="overview"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, x: 14, filter: "blur(4px)" }}
+                    animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, x: -10, filter: "blur(3px)" }}
+                    transition={{ duration: 0.32 }}
                   >
                     {phase === "idle" && (
                       <div
@@ -1528,7 +1627,7 @@ export default function DiagnosePage() {
                     )}
 
                     {phase === "pipeline" && (
-                      <div style={{ padding: "0.5rem 0.2rem" }}>
+                      <div className="pipeline-live" style={{ padding: "0.5rem 0.2rem" }}>
                         <div
                           className="diag-label"
                           style={{ marginBottom: "0.6rem" }}
@@ -1540,7 +1639,15 @@ export default function DiagnosePage() {
                     )}
 
                     {phase === "result" && result && (
-                      <div>
+                      <div className="result-reveal">
+                        <motion.div
+                          className="result-spark"
+                          initial={{ opacity: 0, scale: 0.4, rotate: -25 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                        >
+                          <Sparkles size={18} />
+                        </motion.div>
                         <div
                           style={{
                             display: "flex",
@@ -1551,8 +1658,11 @@ export default function DiagnosePage() {
                         >
                           <div>
                             <div className="diag-label">Model Result</div>
-                            <div
-                              className="diag-title"
+                            <motion.div
+                              className="diag-title result-prediction"
+                              initial={{ opacity: 0, y: 12, scale: 0.94 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              transition={{ delay: 0.08, type: "spring", stiffness: 220 }}
                               style={{
                                 fontSize: "2rem",
                                 color: predColor,
@@ -1560,7 +1670,7 @@ export default function DiagnosePage() {
                               }}
                             >
                               {result.prediction}
-                            </div>
+                            </motion.div>
                             <p
                               style={{
                                 fontSize: "0.86rem",
@@ -1597,10 +1707,31 @@ export default function DiagnosePage() {
                                 color: "var(--text-muted)",
                               }}
                             >
-                              Confidence
+                              Uncalibrated model probability
                             </div>
                           </div>
                         </div>
+
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "0.5rem",
+                            marginTop: "1rem",
+                            fontSize: "0.78rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={externalLlmConsent}
+                            onChange={(event) =>
+                              setExternalLlmConsent(event.target.checked)
+                            }
+                          />
+                          I consent to sending de-identified structured context
+                          to the configured external LLM provider.
+                        </label>
 
                         <div
                           style={{
@@ -1688,7 +1819,9 @@ export default function DiagnosePage() {
                           <button
                             className="btn-primary"
                             onClick={requestSummary}
-                            disabled={llmStatus === "loading"}
+                            disabled={
+                              llmStatus === "loading" || !externalLlmConsent
+                            }
                           >
                             {llmStatus === "loading"
                               ? "Generating report..."
@@ -1746,6 +1879,7 @@ export default function DiagnosePage() {
                     exit={{ opacity: 0 }}
                   >
                     <div
+                      className="responsive-form-grid"
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -1893,7 +2027,37 @@ export default function DiagnosePage() {
                     )}
 
                     {result && (
-                      <div>
+                      <div className="result-reveal">
+                        <motion.div
+                          className="result-spark"
+                          initial={{ opacity: 0, scale: 0.4, rotate: -25 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                        >
+                          <Sparkles size={18} />
+                        </motion.div>
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: "0.5rem",
+                            marginBottom: "1rem",
+                            fontSize: "0.78rem",
+                            color: "var(--text-secondary)",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={externalLlmConsent}
+                            onChange={(event) =>
+                              setExternalLlmConsent(event.target.checked)
+                            }
+                          />
+                          I consent to sending de-identified structured context
+                          to the configured external LLM provider. Patient ID,
+                          occupation, notes, medications, and comorbidities are
+                          excluded by the server.
+                        </label>
                         <div
                           style={{
                             display: "flex",
@@ -1908,13 +2072,15 @@ export default function DiagnosePage() {
                               className="diag-title"
                               style={{ fontSize: "1.2rem" }}
                             >
-                              Readable Diagnostic Summary
+                              Research Summary
                             </div>
                           </div>
                           <button
                             className="btn-primary"
                             onClick={requestSummary}
-                            disabled={llmStatus === "loading"}
+                            disabled={
+                              llmStatus === "loading" || !externalLlmConsent
+                            }
                           >
                             {llmStatus === "loading"
                               ? "Generating..."

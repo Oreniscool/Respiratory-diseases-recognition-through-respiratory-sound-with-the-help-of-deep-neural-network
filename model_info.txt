@@ -1,3 +1,7 @@
+LEGACY / UNVERIFIED ARTIFACT
+This file does not describe the current checked-in model.py. Regenerate it from
+the corrected patient-level pipeline before publishing architecture claims.
+
 Model summary
 ============
 Model: "functional"

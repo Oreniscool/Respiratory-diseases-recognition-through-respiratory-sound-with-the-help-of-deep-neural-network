@@ -1,3 +1,7 @@
+LEGACY / LEAKAGE-PRONE DEVELOPMENT RUN
+These values came from the previous sample-level split after augmentation. They
+are not patient-level test metrics and must not be presented as clinical evidence.
+
 Training Results per Epoch
 ==========================
 Epoch 1:

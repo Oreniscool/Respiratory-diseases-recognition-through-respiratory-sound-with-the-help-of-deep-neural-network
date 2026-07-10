@@ -1,227 +1,209 @@
-# RespiNet: Respiratory Disease Recognition from Lung Sounds
+# RespiNet
 
-RespiNet is a deep learning pipeline that classifies respiratory conditions from lung sound recordings. It includes:
+RespiNet is a research prototype for classifying respiratory-sound recordings
+with MFCC features, temporal convolutions, and bidirectional GRUs. It includes
+a patient-safe training pipeline, Flask inference API, React research UI,
+evaluation utilities, and optional externally generated narrative summaries.
 
-- A full data pipeline to extract MFCC features and augment audio data.
-- A Conv1D + BiGRU sequence model trained with class weighting.
-- A Flask inference server with optional explainability and LLM summaries.
-- Two frontends: a static HTML demo and a full React diagnostic UI.
+> **Not a medical device.** RespiNet has not been clinically validated and must
+> not be used to diagnose, rule out, screen for, or treat disease. A softmax
+> value is a model probability, not clinical confidence.
 
-This README explains how the project is wired end to end, what each module does, and how to run each part.
+## Current evidence status
 
-## Project flow at a glance
+The repository contains a legacy `best_model.h5` and historical plots. That
+artifact predates the corrected patient-level split and has no metadata file,
+so the server identifies it as `legacy-unverified`.
 
-1. **Raw audio + labels**: Download the ICBHI 2017 respiratory sound dataset into [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/) and place [patient_diagnosis.csv](patient_diagnosis.csv) in the project root.
-2. **Feature extraction**: [featureExtraction.py](featureExtraction.py) loads audio, performs augmentation, and extracts MFCC features into a fixed-length tensor.
-3. **Model training**: [main.py](main.py) prepares the train/test split and calls [train.py](train.py) to train the model defined in [model.py](model.py). The best weights are saved to [best_model.h5](best_model.h5).
-4. **Evaluation**: Use [validate.py](validate.py) and [evaluate.py](evaluate.py) to get predictions and metrics.
-5. **Inference server**: [server.py](server.py) loads [best_model.h5](best_model.h5), exposes REST endpoints, and optionally provides explainability overlays and LLM summaries.
-6. **Frontends**: [frontend/](frontend/) is a static demo UI. [frontend-react/](frontend-react/) is a multi-page diagnostic UI that calls the API.
+The captured historical run reached 82.12% final training accuracy, 73.44%
+final validation accuracy, and 75.36% best validation accuracy at epoch 48.
+Those numbers came from the previous sample-level split after augmentation and
+are **not a valid estimate of patient-level or clinical performance**. Replace
+all historical values after running the corrected pipeline.
 
-## Data and labels
+## Corrected experiment flow
 
-- **Dataset**: ICBHI 2017 Respiratory Sound Database. Place the `.wav` files in [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/).
-- **Labels**: [patient_diagnosis.csv](patient_diagnosis.csv) must map `patient_id` to `disease`.
-- **Class list**: The class list is derived from the CSV by both training and the server. If the CSV is missing, the server falls back to a default list and [main.py](main.py) creates a dummy CSV for testing.
-- **Known filters**: [featureExtraction.py](featureExtraction.py) ignores patients 103, 108, and 115 to match prior experiments.
+1. `main.py` loads the real diagnosis CSV and fails if it is missing.
+2. `featureExtraction.py` builds a deterministic recording manifest.
+3. Patients are stratified into train, validation, and locked test partitions.
+4. Only training recordings receive augmentation; validation and test audio
+   remain original.
+5. `preprocessing.py` supplies the same explicit audio/MFCC configuration to
+   both training and serving.
+6. `train.py` selects the checkpoint using validation loss.
+7. `evaluate.py` evaluates the untouched test partition.
+8. The run writes a split manifest, metrics, model hash, ordered labels, and
+   preprocessing contract under `artifacts/latest/`.
 
-## Feature extraction and augmentation
+The default split is 60% train, 20% validation, and 20% test by patient.
+Augmentation uses 20 dB SNR noise, zero-filled time shift, and two time-stretch
+rates. It is deterministic from the configured seed and is applied equally to
+all training classes.
 
-All feature work happens in [featureExtraction.py](featureExtraction.py) and [Augmentation.py](Augmentation.py):
+## Dataset
 
-- **Audio loading**: `librosa.load(..., res_type="kaiser_fast")`.
-- **Features**: 40 MFCC coefficients plus delta and delta-delta, stacked into 120 features per time step.
-- **Fixed length**: Features are padded or truncated to 200 time steps.
-- **Augmentations for non-COPD**:
-  - Additive noise
-  - Time shift
-  - Time stretch (rate 1.2 and 0.8)
-- **COPD handling**: Limits samples per patient to reduce dominance from repeated recording locations.
+Download the ICBHI 2017 Respiratory Sound Database separately:
 
-This yields an input tensor with shape $N \times 200 \times 120$.
+```text
+dataset/ICBHI_final_dataset/*.wav
+patient_diagnosis.csv
+```
 
-## Model architecture
+The repository intentionally ignores the audio dataset. See
+[`DATASET_CARD.md`](DATASET_CARD.md) before interpreting results. Patient
+exclusions are disabled by default; any explicit exclusion must be supplied on
+the command line and documented in the resulting experiment.
 
-Defined in [model.py](model.py):
+## Environment
 
-- BatchNorm
-- Conv1D (kernel 5) + LeakyReLU + Dropout
-- Conv1D (kernel 3) + LeakyReLU + Dropout
-- Bidirectional GRU (64 units) + LeakyReLU + Dropout
-- Bidirectional GRU (32 units) + LeakyReLU
-- GlobalAveragePooling1D
-- Dense (64) + LeakyReLU + Dropout
-- Dense softmax output
-
-For a full layer listing and a specific training run configuration, see [model_info.txt](model_info.txt).
-
-## Training and evaluation
-
-Training is coordinated in [main.py](main.py):
-
-- Loads [patient_diagnosis.csv](patient_diagnosis.csv)
-- Extracts features from [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/)
-- One-hot encodes labels and performs a stratified train/test split
-- Sets `num_epochs` and `num_batch_size`
-- Calls `trainModel(...)` in [train.py](train.py)
-
-[train.py](train.py) uses:
-
-- `categorical_crossentropy` loss
-- `Adamax` optimizer
-- Early stopping and checkpointing to [best_model.h5](best_model.h5)
-- Class weights derived from `y_train`, with an optional multiplier to upweight the Healthy class
-
-Evaluation utilities:
-
-- [validate.py](validate.py) loads [best_model.h5](best_model.h5) and returns predicted class indices.
-- [evaluate.py](evaluate.py) computes accuracy, precision, recall, F1, Cohen kappa, and MCC.
-
-## Results and run summary
-
-The following reflects a captured training run summary (data stats and configuration) to make the results visible without opening any extra files.
-
-**Dataset and split checks**
-
-- Extracted samples: 1,720
-- Patient leakage overlap: 0 (no shared patient IDs between train and test)
-
-**Class distribution (sample run)**
-
-| Class          | Count |
-| -------------- | ----: |
-| Asthma         |   358 |
-| Bronchiolitis  |   302 |
-| Pneumonia      |   300 |
-| Healthy        |   260 |
-| Bronchiectasis |   188 |
-| URTI           |   146 |
-| LRTI           |   106 |
-| COPD           |    60 |
-
-**Training configuration highlights**
-
-- Split strategy: GroupShuffleSplit by patient ID
-- SpecAugment: enabled (time mask width 20, freq mask width 8, two masks each)
-- Healthy class multiplier: 1.5
-- Feature cache: features_cache/
-
-**Performance metrics (observed training run)**
-
-These numbers reflect the training log in [Images/training_results.txt](Images/training_results.txt).
-
-- Best validation accuracy: 75.36% (epoch 48)
-- Final validation accuracy: 73.44% (epoch 50)
-- Final training accuracy: 82.12% (epoch 50)
-- Best validation loss: 0.7183 (epoch 48)
-
-If you want precision/recall/F1 and per-class metrics for this same run, run evaluation with [evaluate.py](evaluate.py) and I can add those numbers too.
-
-## Inference server (Flask)
-
-The inference service in [server.py](server.py) exposes:
-
-- `GET /health` - server, model, and dataset status
-- `POST /predict` - upload a `.wav` file, get class probabilities
-- `GET /predict-sample/<disease>` - pick a real dataset sample and run inference
-- `POST /explain` - returns spectrogram, saliency heatmap, and overlay images
-- `POST /summarize` - optional LLM-generated narrative summary
-
-Feature extraction on the server mirrors [featureExtraction.py](featureExtraction.py), with an optional spectral-gate noise reduction step.
-
-### Optional LLM summaries
-
-Set these environment variables (for example in a local environment file at the project root):
-
-- `GROQ_API_KEY` (required for LLM features)
-- `GROQ_API_URL` (defaults to the Groq chat completions endpoint)
-- `GROQ_MODEL` (defaults to `llama-3.1-8b-instant`)
-- `GROQ_DEBUG` (set to `1` for extra diagnostics)
-- `GROQ_USER_AGENT` (optional)
-
-## Frontends
-
-### Static demo UI
-
-- Location: [frontend/](frontend/)
-- Entry file: [frontend/index.html](frontend/index.html)
-- Script: [frontend/app.js](frontend/app.js)
-
-This UI polls `GET /health`, shows demo data when the server is offline, and calls `/predict` or `/predict-sample` when the server is online.
-
-### React diagnostic UI
-
-- Location: [frontend-react/](frontend-react/)
-- Framework: Vite + React + Tailwind
-- Routes include diagnostics, metrics, explainability, and report generation.
-- Calls `/predict`, `/predict-sample`, `/explain`, and `/summarize` through helper utilities.
-
-## How to run
-
-### 1) Install Python dependencies
+Create an isolated Python environment and install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2) Prepare the dataset
+`requirements.txt` defines supported ranges, not a fully resolved lock. After
+validating a working CPU/GPU environment, create and retain a platform-specific
+lock file for reproducible retraining.
 
-- Put `.wav` files under [dataset/ICBHI_final_dataset/](dataset/ICBHI_final_dataset/)
-- Place [patient_diagnosis.csv](patient_diagnosis.csv) in the project root
+Copy `.env.example` to `.env` for local configuration. Do not commit `.env` or
+API keys.
 
-### 3) Train the model
+## Training
+
+Training is explicit and has no import-time side effects:
 
 ```bash
-python main.py
+python main.py \
+  --dataset-dir dataset/ICBHI_final_dataset \
+  --diagnosis-csv patient_diagnosis.csv \
+  --output-dir artifacts/latest \
+  --seed 42
 ```
 
-This writes [best_model.h5](best_model.h5) and training plots under [Images/](Images/).
+Useful options:
 
-### 4) Run the backend
+- `--test-size` and `--validation-size`: total patient fractions.
+- `--no-augmentation`: disable all training augmentation.
+- `--healthy-class-multiplier`: optional additional weighting; defaults to 1.
+- `--exclude-patient ID`: explicit exclusion, repeatable.
+- `--epochs` and `--batch-size`: training controls.
+- `--prepare-only`: validate and write patient splits without extracting audio
+  features or training a model.
+
+To inspect the corrected split safely before training:
+
+```bash
+python main.py --prepare-only --output-dir artifacts/split-check
+```
+
+Expected run artifacts:
+
+```text
+artifacts/latest/
+├── best_model.keras
+├── model_metadata.json
+├── split_manifest.csv
+├── split_summary.json
+├── test_metrics.json
+├── training_history.csv
+├── training_history.json
+├── model_summary.txt
+├── accuracy_plot.png
+└── loss_plot.png
+```
+
+`test_metrics.json` includes recording-level and patient-aggregated accuracy,
+balanced accuracy, macro/weighted F1,
+macro precision/recall, kappa, MCC, log loss, multiclass Brier score,
+calibration error, confusion matrix, classification report, and macro one-vs-
+rest AUROC when it is defined.
+
+## Inference API
+
+Start the API only after producing or selecting an artifact:
 
 ```bash
 python server.py
 ```
 
-The server runs at `http://localhost:5000` and enables CORS for local frontends.
+The server prefers `artifacts/latest/best_model.keras` and its metadata. It can
+fall back to the checked-in H5 for local legacy inspection, but reports that
+contract as unverified. Set `RESPINET_REQUIRE_METADATA=1` outside local legacy
+work.
 
-### 5) Run a frontend
+Endpoints:
 
-Static demo:
+- `GET /health`: model, dataset, label, and contract status.
+- `POST /predict`: multipart audio inference.
+- `GET /predict-sample/<disease>`: local dataset demonstration without patient
+  IDs in the response.
+- `POST /explain`: experimental spectrogram and attribution output.
+- `POST /summarize`: optional external narrative generation.
 
-- Open [frontend/index.html](frontend/index.html) directly in a browser.
+The API limits request size and decoded duration, validates extensions and
+probability shape, checks the model hash and output dimension, binds to
+`127.0.0.1` by default, and restricts CORS to configured origins.
 
-React UI:
+### External LLM privacy
+
+LLM endpoints require `external_llm_consent=true`. The server removes patient
+ID, occupation, notes, medications, comorbidities, and other free text before
+sending structured context to the configured provider. This is a technical
+minimum, not a complete privacy/compliance program. Do not use real patient
+data without organizational approval, a provider agreement, retention rules,
+and a reviewed consent process.
+
+## React frontend
 
 ```bash
 cd frontend-react
-npm install
+npm ci
 npm run dev
 ```
 
-## Outputs and artifacts
+The frontend uses same-origin API requests by default, which work through the
+Vite proxy. Set `VITE_API_BASE_URL` when the API is hosted separately.
 
-- [best_model.h5](best_model.h5) - trained model weights used by the server.
-- [Images/](Images/) - training plots and sample visualizations.
-- [results_summary.txt](results_summary.txt) - sample run metadata.
-- [model_info.txt](model_info.txt) - model summary and training config dump.
-- [features_cache/](features_cache/) - cached feature arrays from prior experiments.
+The UI fails closed when inference is unavailable. It does not fabricate
+results or rewrite model probabilities. Recorded WebM audio retains its real
+container type. The checked-in `frontend-react/dist` directory was removed;
+build deployable assets from source with `npm run build`.
 
-## Notes and limitations
+`frontend/` is retained only as a legacy visualization. Its historical six-
+class plots do not describe the current source model, and its inference path
+also fails closed.
 
-- This project is for research and educational use only; it is not a medical diagnostic device.
-- The class list depends on [patient_diagnosis.csv](patient_diagnosis.csv). Ensure the model and server agree on the same labels.
-- The React UI shows demo metrics and sample predictions when the server is offline or the dataset is missing.
+## Static checks
 
-## Key modules (quick reference)
+Development dependencies and dataset-free checks:
 
-- [main.py](main.py) - orchestration of feature extraction, split, and training
-- [featureExtraction.py](featureExtraction.py) - MFCC extraction and augmentation
-- [Augmentation.py](Augmentation.py) - noise, shift, and stretch utilities
-- [model.py](model.py) - model architecture
-- [train.py](train.py) - training loop and callbacks
-- [validate.py](validate.py) - model inference on feature arrays
-- [evaluate.py](evaluate.py) - evaluation metrics
-- [server.py](server.py) - Flask API with explainability and LLM summary
-- [frontend/](frontend/) - static demo UI
-- [frontend-react/](frontend-react/) - React diagnostic UI
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest
+
+cd frontend-react
+npm ci
+npm run typecheck
+```
+
+CI runs these checks without loading a trained model or requiring the audio
+dataset.
+
+## Important remaining work
+
+- Run patient-level cross-validation and an untouched test evaluation.
+- Add patient-bootstrap confidence intervals and device/location subgroup
+  reporting.
+- Calibrate probabilities and implement audio-quality/OOD abstention.
+- Validate denoising separately; it is experimental inference preprocessing.
+- Replace tiled time-only saliency with a validated attribution method.
+- Obtain clinical review and citations for all disease/treatment content.
+- Add a project license and formal citation metadata once ownership and license
+  choice are confirmed.
+- Conduct privacy, threat-model, accessibility, and clinical-safety reviews
+  before any deployment.
+
+See [`MODEL_CARD.md`](MODEL_CARD.md) and [`SECURITY.md`](SECURITY.md) for the
+current limitations and reporting guidance.

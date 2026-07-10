@@ -11,8 +11,10 @@ export default function ChatMessage({ message }: Props) {
 
   return (
     <motion.div
+      className={`chat-message ${isUser ? 'is-user' : 'is-assistant'}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ x: isUser ? -3 : 3 }}
       transition={{ duration: 0.3 }}
       style={{
         display: 'flex',
@@ -24,7 +26,7 @@ export default function ChatMessage({ message }: Props) {
     >
       {/* Bot avatar */}
       {!isUser && (
-        <div style={{
+        <div className="chat-avatar" style={{
           width: 32, height: 32, borderRadius: '50%',
           background: 'linear-gradient(135deg,#06b6d4,#6366f1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -35,7 +37,7 @@ export default function ChatMessage({ message }: Props) {
       )}
 
       {/* Bubble */}
-      <div style={{
+      <div className={`chat-bubble ${isUser ? 'chat-bubble-user' : 'chat-bubble-assistant'}`} style={{
         maxWidth: '78%',
         padding: '0.75rem 1rem',
         borderRadius: isUser ? '1rem 1rem 0.25rem 1rem' : '1rem 1rem 1rem 0.25rem',

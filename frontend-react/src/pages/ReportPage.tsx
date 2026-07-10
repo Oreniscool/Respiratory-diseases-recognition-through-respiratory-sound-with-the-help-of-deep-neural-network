@@ -156,7 +156,7 @@ export default function ReportPage() {
           style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem" }}
         >
           <div
-            className="diag-card"
+            className="diag-card empty-state-card"
             style={{ padding: "2rem", textAlign: "center" }}
           >
             <div className="diag-label">No Report</div>
@@ -193,6 +193,7 @@ export default function ReportPage() {
         }}
       >
         <div
+          className="page-intro report-hero"
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -211,7 +212,7 @@ export default function ReportPage() {
                 marginTop: "0.5rem",
               }}
             >
-              Diagnostic Summary
+              Research Summary
             </h1>
             <p style={{ color: "var(--text-secondary)", marginTop: "0.6rem" }}>
               Generated {createdAt} using {report.model}.
@@ -243,13 +244,14 @@ export default function ReportPage() {
         </div>
 
         <div
+          className="responsive-two-column"
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 0.8fr)",
             gap: "1.5rem",
           }}
         >
-          <div className="diag-card" style={{ padding: "1.6rem" }}>
+          <div className="diag-card report-narrative-card" style={{ padding: "1.6rem" }}>
             <div className="diag-label">LLM Narrative</div>
             <div className="report-content" style={{ marginTop: "0.6rem" }}>
               {renderRichText(report.summary)}
@@ -257,9 +259,10 @@ export default function ReportPage() {
           </div>
 
           <div
+            className="report-side-stack"
             style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
           >
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card report-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">Model Output</div>
               <div
                 style={{
@@ -273,7 +276,7 @@ export default function ReportPage() {
               <div
                 style={{ color: "var(--text-secondary)", marginTop: "0.3rem" }}
               >
-                Confidence: {report.modelResult.confidence.toFixed(1)}%
+                Uncalibrated model probability: {report.modelResult.confidence.toFixed(1)}%
               </div>
               <div
                 style={{
@@ -290,7 +293,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card report-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">Patient Snapshot</div>
               <div style={{ display: "grid", gap: "0.5rem" }}>
                 {metaItems.map((item) => (
@@ -324,7 +327,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            <div className="diag-card" style={{ padding: "1.2rem" }}>
+            <div className="diag-card report-data-card" style={{ padding: "1.2rem" }}>
               <div className="diag-label">Notes</div>
               <div
                 style={{
