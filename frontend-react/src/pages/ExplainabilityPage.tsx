@@ -1,449 +1,123 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
+import AlertTriangle from "lucide-react/dist/esm/icons/alert-triangle.js";
+import ArrowLeft from "lucide-react/dist/esm/icons/arrow-left.js";
+import Eye from "lucide-react/dist/esm/icons/eye.js";
+import Image from "lucide-react/dist/esm/icons/image.js";
+import Info from "lucide-react/dist/esm/icons/info.js";
+import Sparkles from "lucide-react/dist/esm/icons/sparkles.js";
 import { useNavigate } from "react-router-dom";
-import {
-  requestExplainability,
-  type ExplainabilityResponse,
-} from "../utils/predict";
 import { useReportStore } from "../store/reportStore";
-
-function renderInlineBold(text: string) {
-  const parts: React.ReactNode[] = [];
-  const regex = /\*\*(.+?)\*\*/g;
-  let last = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index));
-    parts.push(
-      <strong
-        key={`bold-${match.index}`}
-        style={{ color: "var(--text-primary)" }}
-      >
-        {match[1]}
-      </strong>,
-    );
-    last = match.index + match[0].length;
-  }
-
-  if (last < text.length) parts.push(text.slice(last));
-  return parts.length ? parts : text;
-}
-
-function renderRichText(text: string) {
-  const lines = text.split(/\r?\n/);
-  const blocks: React.ReactNode[] = [];
-  let listItems: string[] = [];
-
-  const flushList = (keyBase: string) => {
-    if (!listItems.length) return;
-    const items = listItems;
-    listItems = [];
-    blocks.push(
-      <ul
-        key={`${keyBase}-list`}
-        style={{ paddingLeft: "1.1rem", marginBottom: "0.6rem" }}
-      >
-        {items.map((item, idx) => (
-          <li key={`${keyBase}-item-${idx}`} style={{ marginBottom: "0.3rem" }}>
-            {renderInlineBold(item)}
-          </li>
-        ))}
-      </ul>,
-    );
-  };
-
-  lines.forEach((line, idx) => {
-    const trimmed = line.trim();
-    const keyBase = `line-${idx}`;
-
-    if (!trimmed) {
-      flushList(keyBase);
-      blocks.push(<div key={`${keyBase}-spacer`} style={{ height: 8 }} />);
-      return;
-    }
-
-    if (trimmed.startsWith("- ")) {
-      listItems.push(trimmed.slice(2));
-      return;
-    }
-
-    const boldHeading = trimmed.match(/^\*\*(.+)\*\*$/);
-    if (boldHeading) {
-      flushList(keyBase);
-      blocks.push(
-        <div
-          key={`${keyBase}-bold`}
-          style={{ margin: "0.7rem 0 0.35rem", fontWeight: 700 }}
-        >
-          {renderInlineBold(boldHeading[1])}
-        </div>,
-      );
-      return;
-    }
-
-    flushList(keyBase);
-    blocks.push(
-      <p
-        key={`${keyBase}-p`}
-        style={{ marginBottom: "0.6rem", color: "var(--text-secondary)" }}
-      >
-        {renderInlineBold(trimmed)}
-      </p>,
-    );
-  });
-
-  flushList("final");
-  return blocks;
-}
+import { requestExplainability, type ExplainabilityResponse } from "../utils/predict";
 
 export default function ExplainabilityPage() {
   const navigate = useNavigate();
   const analysis = useReportStore((state) => state.analysis);
-  const report = useReportStore((state) => state.report);
-  const [includeReason, setIncludeReason] = useState(false);
-  const [externalLlmConsent, setExternalLlmConsent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ExplainabilityResponse | null>(null);
+  const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
-  const [response, setResponse] = useState<ExplainabilityResponse | null>(null);
+  const [includeReason, setIncludeReason] = useState(false);
+  const [consent, setConsent] = useState(false);
 
-  const summaryMeta = useMemo(() => {
-    if (!analysis?.modelResult) return null;
-    return {
-      prediction: analysis.modelResult.prediction,
-      confidence: analysis.modelResult.confidence.toFixed(1),
-      duration: analysis.modelResult.duration_s.toFixed(1),
-    };
-  }, [analysis]);
-
-  const canExplain = !!analysis?.audioFile;
-
-  const generateExplainability = async () => {
-    if (!analysis?.audioFile || !analysis.modelResult) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await requestExplainability({
-        file: analysis.audioFile,
-        patient_info: analysis.patientInfo,
-        include_reason: includeReason,
-        external_llm_consent: includeReason && externalLlmConsent,
-        denoise: analysis.modelResult?.noise_cancellation,
-      });
-      setResponse(res);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Explainability failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!analysis?.modelResult) {
+  if (!analysis?.audioFile || !analysis.modelResult) {
     return (
-      <div className="diagnostic-shell" style={{ paddingTop: 64 }}>
-        <div
-          className="diagnostic-container"
-          style={{ maxWidth: 960, margin: "0 auto", padding: "3rem 1.5rem" }}
-        >
-          <div
-            className="diag-card empty-state-card"
-            style={{ padding: "2rem", textAlign: "center" }}
-          >
-            <div className="diag-label">No Analysis</div>
-            <h2 className="diag-title" style={{ fontSize: "1.6rem" }}>
-              Run a diagnostic first
-            </h2>
-            <p style={{ color: "var(--text-secondary)", marginTop: "0.6rem" }}>
-              Explainability requires a recent analysis. Return to diagnostics
-              to create one.
-            </p>
-            <button
-              className="btn-primary"
-              style={{ marginTop: "1.2rem" }}
-              onClick={() => navigate("/diagnose")}
-            >
-              Back to Diagnostics
-            </button>
-          </div>
-        </div>
+      <div className="empty-page-state">
+        <Eye aria-hidden="true" />
+        <p className="eyebrow">Experimental attribution</p>
+        <h1>An uploaded or recorded analysis is required.</h1>
+        <p>Dataset examples are processed remotely and do not expose the source audio needed for this view.</p>
+        <button type="button" className="button button-primary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Return to Analyze</button>
       </div>
     );
   }
 
+  const run = async () => {
+    setStatus("loading");
+    setError(null);
+    try {
+      const response = await requestExplainability({
+        file: analysis.audioFile!,
+        patient_info: analysis.patientInfo,
+        include_reason: includeReason,
+        denoise: analysis.modelResult?.noise_cancellation,
+        external_llm_consent: includeReason && consent,
+      });
+      setResult(response);
+      setStatus("idle");
+    } catch (caught) {
+      setStatus("error");
+      setError(caught instanceof Error ? caught.message : "Attribution could not be generated.");
+    }
+  };
+
   return (
-    <div className="diagnostic-shell" style={{ paddingTop: 64 }}>
-      <div
-        className="diagnostic-container"
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "2.5rem 1.5rem 4rem",
-        }}
-      >
-        <div
-          className="page-intro explain-hero"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            gap: "1rem",
-            marginBottom: "1.5rem",
-          }}
-        >
-          <div>
-            <div className="section-tag">Explainability</div>
-            <h1
-              className="diag-title"
-              style={{
-                fontSize: "2.2rem",
-                fontWeight: 700,
-                marginTop: "0.5rem",
-              }}
-            >
-              Experimental Attribution
-            </h1>
-            <p style={{ color: "var(--text-secondary)", marginTop: "0.6rem" }}>
-              The overlay shows time-only gradient sensitivity repeated across
-              frequencies. It is not causal evidence or a clinical diagnosis.
-            </p>
-          </div>
-          <div
-            style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start" }}
-          >
-            <button
-              className="btn-ghost"
-              onClick={() => navigate(report ? "/report" : "/diagnose")}
-            >
-              Back
-            </button>
-          </div>
+    <div className="editorial-page explain-page">
+      <header className="editorial-hero explain-hero">
+        <div>
+          <p className="eyebrow">Experimental attribution</p>
+          <h1>Inspect where the model was sensitive.</h1>
+          <p className="hero-deck">This view can help debug model behavior. It cannot prove why a prediction occurred or provide clinical evidence.</p>
         </div>
-
-        <div
-          className="responsive-two-column"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 0.8fr)",
-            gap: "1.5rem",
-          }}
-        >
-          <div className="diag-card explain-visual-card" style={{ padding: "1.5rem" }}>
-            <div className="diag-label">Experimental visualization</div>
-            {response?.attribution_warning && (
-              <div
-                style={{
-                  marginTop: "0.7rem",
-                  padding: "0.7rem",
-                  borderRadius: "0.6rem",
-                  background: "rgba(245,158,11,0.08)",
-                  border: "1px solid rgba(245,158,11,0.3)",
-                  color: "#fbbf24",
-                  fontSize: "0.78rem",
-                }}
-              >
-                {response.attribution_warning}
-              </div>
-            )}
-            <div style={{ display: "grid", gap: "1rem", marginTop: "0.8rem" }}>
-              <div className="explain-frame">
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--text-muted)",
-                    marginBottom: "0.35rem",
-                  }}
-                >
-                  Spectrogram
-                </div>
-                {response?.spectrogram ? (
-                  <img
-                    src={response.spectrogram}
-                    alt="Spectrogram"
-                    className="explain-image"
-                  />
-                ) : (
-                  <div className="explain-placeholder">
-                    Generate to view the spectrogram.
-                  </div>
-                )}
-              </div>
-              <div className="explain-frame">
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--text-muted)",
-                    marginBottom: "0.35rem",
-                  }}
-                >
-                  Saliency Overlay
-                </div>
-                {response?.overlay ? (
-                  <img
-                    src={response.overlay}
-                    alt="Saliency overlay"
-                    className="explain-image"
-                  />
-                ) : (
-                  <div className="explain-placeholder">
-                    Generate to view the saliency overlay.
-                  </div>
-                )}
-              </div>
-              <div className="explain-frame">
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "var(--text-muted)",
-                    marginBottom: "0.35rem",
-                  }}
-                >
-                  Saliency Heatmap
-                </div>
-                {response?.saliency ? (
-                  <img
-                    src={response.saliency}
-                    alt="Saliency heatmap"
-                    className="explain-image"
-                  />
-                ) : (
-                  <div className="explain-placeholder">
-                    Generate to view the heatmap.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="explain-side-stack"
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
-            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
-              <div className="diag-label">Analysis Snapshot</div>
-              {summaryMeta && (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "0.5rem",
-                    marginTop: "0.4rem",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontWeight: 700,
-                      fontSize: "1.4rem",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {summaryMeta.prediction}
-                  </div>
-                  <div style={{ color: "var(--text-secondary)" }}>
-                    Uncalibrated model probability: {summaryMeta.confidence}%
-                  </div>
-                  <div style={{ color: "var(--text-secondary)" }}>
-                    Duration: {summaryMeta.duration} s
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
-              <div className="diag-label">Explainability Controls</div>
-              <div
-                style={{ display: "grid", gap: "0.6rem", marginTop: "0.6rem" }}
-              >
-                <label
-                  style={{
-                    display: "flex",
-                    gap: "0.5rem",
-                    alignItems: "center",
-                    fontSize: "0.85rem",
-                    color: "var(--text-secondary)",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={includeReason}
-                    onChange={(e) => setIncludeReason(e.target.checked)}
-                  />
-                  Include LLM reasoning
-                </label>
-                {includeReason && (
-                  <label
-                    style={{
-                      display: "flex",
-                      gap: "0.5rem",
-                      alignItems: "flex-start",
-                      fontSize: "0.78rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={externalLlmConsent}
-                      onChange={(event) =>
-                        setExternalLlmConsent(event.target.checked)
-                      }
-                    />
-                    I consent to sending de-identified structured context to
-                    the configured external LLM provider.
-                  </label>
-                )}
-                <button
-                  className="btn-primary"
-                  onClick={generateExplainability}
-                  disabled={
-                    !canExplain ||
-                    loading ||
-                    (includeReason && !externalLlmConsent)
-                  }
-                >
-                  {loading ? "Generating..." : "Generate Explainability"}
-                </button>
-                {!canExplain && (
-                  <div
-                    style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}
-                  >
-                    Explainability requires an uploaded or recorded audio file.
-                  </div>
-                )}
-                {error && (
-                  <div style={{ fontSize: "0.78rem", color: "#fca5a5" }}>
-                    {error}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="diag-card explain-data-card" style={{ padding: "1.2rem" }}>
-              <div className="diag-label">LLM Reasoning</div>
-              {!includeReason && (
-                <div
-                  style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}
-                >
-                  Enable the LLM reasoning toggle to generate a narrative
-                  explanation.
-                </div>
-              )}
-              {response?.reasoning_error && (
-                <div
-                  style={{
-                    color: "#fca5a5",
-                    fontSize: "0.85rem",
-                    marginTop: "0.6rem",
-                  }}
-                >
-                  {response.reasoning_error}
-                </div>
-              )}
-              {response?.reasoning && (
-                <div className="report-content" style={{ marginTop: "0.6rem" }}>
-                  {renderRichText(response.reasoning)}
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="learn-callout">
+          <AlertTriangle aria-hidden="true" />
+          <div><strong>Not causal or clinical evidence</strong><p>The backend repeats one time-sensitivity score across all frequencies. Read the overlay accordingly.</p></div>
         </div>
-      </div>
+      </header>
+
+      <section className="explain-controls">
+        <div>
+          <span className="file-icon"><Image aria-hidden="true" /></span>
+          <div><strong>{analysis.audioFile.name}</strong><p className="mono-meta">Top model output: {analysis.modelResult.prediction} · {analysis.modelResult.confidence.toFixed(1)}%</p></div>
+        </div>
+        <label className="checkbox-field">
+          <input type="checkbox" checked={includeReason} onChange={(event) => setIncludeReason(event.target.checked)} />
+          <span><strong>Request generated interpretation</strong><small>Optional; may contain errors</small></span>
+        </label>
+        {includeReason && (
+          <label className="consent-row">
+            <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
+            <span>I consent to sending de-identified structured context to the configured external LLM provider.</span>
+          </label>
+        )}
+        <button type="button" className="button button-primary" disabled={status === "loading" || (includeReason && !consent)} onClick={run}>
+          <Sparkles size={17} /> {status === "loading" ? "Generating attribution…" : "Generate attribution"}
+        </button>
+      </section>
+
+      {error && <div className="inline-alert alert-error" role="alert"><AlertTriangle /><div><strong>Attribution unavailable</strong><p>{error}</p></div></div>}
+
+      {!result ? (
+        <div className="results-empty explain-empty"><Eye aria-hidden="true" /><div><strong>No attribution generated yet</strong><p>Generate the view to compare the processed spectrogram, time sensitivity, and overlay.</p></div></div>
+      ) : (
+        <>
+          <section className="explain-gallery" aria-label="Attribution visualizations">
+            <ExplainFigure title="Processed spectrogram" body="Time–frequency energy after preprocessing." src={result.spectrogram} />
+            <ExplainFigure title="Time sensitivity" body="The model gradient summarized over features." src={result.saliency} />
+            <ExplainFigure title="Sensitivity overlay" body="Time sensitivity aligned over the spectrogram." src={result.overlay} />
+          </section>
+          <section className="explain-reading">
+            <div>
+              <p className="eyebrow">How to read this view</p>
+              <h2>Attention is not explanation.</h2>
+              <p>{result.attribution_warning ?? "Highlighted regions show where the model was sensitive in the processed audio. They do not prove cause or establish why a prediction is correct."}</p>
+              <dl className="result-metadata">
+                <div><dt>Attribution scope</dt><dd>{result.attribution_scope ?? "Experimental"}</dd></div>
+                <div><dt>Saliency class</dt><dd>{result.saliency_class}</dd></div>
+              </dl>
+            </div>
+            <div className="generated-reasoning">
+              <p className="eyebrow">Generated interpretation</p>
+              {result.reasoning ? <div className="generated-copy">{result.reasoning.split("\n").map((line, index) => line.trim() ? <p key={`${line}-${index}`}>{line}</p> : null)}</div> : <p>{result.reasoning_error ?? "No generated interpretation was requested."}</p>}
+              <div className="inline-alert alert-warning"><Info /><div><strong>Interpretation may be wrong.</strong><p>Generated text does not add clinical validation and is not medical advice.</p></div></div>
+            </div>
+          </section>
+        </>
+      )}
+
+      <div className="page-footer-actions"><button type="button" className="button button-secondary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Back to Analyze</button></div>
     </div>
   );
+}
+
+function ExplainFigure({ title, body, src }: { title: string; body: string; src: string }) {
+  return <figure><img src={src} alt={title} /><figcaption><strong>{title}</strong><p>{body}</p></figcaption></figure>;
 }
