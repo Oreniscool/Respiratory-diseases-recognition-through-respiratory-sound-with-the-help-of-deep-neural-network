@@ -51,8 +51,10 @@ MODEL_PATH = os.getenv("RESPINET_MODEL_PATH") or (
 MODEL_METADATA_PATH = os.getenv("RESPINET_MODEL_METADATA") or os.path.join(
     os.path.dirname(MODEL_PATH), "model_metadata.json"
 )
-DATASET_DIR = os.getenv("RESPINET_DATASET_DIR") or os.path.join(
-    BASE_DIR, "dataset", "ICBHI_final_dataset"
+DATASET_DIR = os.getenv("RESPINET_DATASET_DIR") or (
+    os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset")
+    if os.path.exists(os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset"))
+    else os.path.join(os.path.dirname(BASE_DIR), "dataset", "ICBHI_final_dataset")
 )
 DIAGNOSIS = os.getenv("RESPINET_DIAGNOSIS_CSV") or os.path.join(
     BASE_DIR, "patient_diagnosis.csv"

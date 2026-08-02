@@ -1,7 +1,7 @@
 # RespiNet Frontend Revamp Plan
 
-Status: in progress  
-Canonical frontend: `frontend-react`  
+Status: completed  
+Canonical frontend: `frontend`  
 Selected visual target: generated option 3, **Respiratory Atlas**
 
 ## Outcome

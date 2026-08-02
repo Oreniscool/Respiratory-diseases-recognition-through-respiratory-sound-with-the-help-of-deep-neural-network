@@ -40,25 +40,36 @@ Augmentation uses 20 dB SNR noise, zero-filled time shift, and two time-stretch
 rates. It is deterministic from the configured seed and is applied equally to
 all training classes.
 
+## Directory Structure
+
+```text
+.
+├── backend/          # Python backend, Flask API, model definition, training & inference
+├── documentation/    # System architecture, benchmarks, dataset specs & design docs
+├── frontend/         # React + Vite + TypeScript web interface (Respiratory Atlas spec)
+└── README.md         # Repository overview
+```
+
 ## Dataset
 
 Download the ICBHI 2017 Respiratory Sound Database separately:
 
 ```text
-dataset/ICBHI_final_dataset/*.wav
-patient_diagnosis.csv
+backend/dataset/ICBHI_final_dataset/*.wav
+backend/patient_diagnosis.csv
 ```
 
 The repository intentionally ignores the audio dataset. See
-[`DATASET_CARD.md`](DATASET_CARD.md) before interpreting results. Patient
+[`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md) before interpreting results. Patient
 exclusions are disabled by default; any explicit exclusion must be supplied on
 the command line and documented in the resulting experiment.
 
 ## Environment
 
-Create an isolated Python environment and install dependencies:
+Create an isolated Python environment and navigate to the backend:
 
 ```bash
+cd backend
 pip install -r requirements.txt
 ```
 
@@ -74,6 +85,7 @@ API keys.
 Training is explicit and has no import-time side effects:
 
 ```bash
+cd backend
 python main.py \
   --dataset-dir dataset/ICBHI_final_dataset \
   --diagnosis-csv patient_diagnosis.csv \
@@ -94,13 +106,14 @@ Useful options:
 To inspect the corrected split safely before training:
 
 ```bash
+cd backend
 python main.py --prepare-only --output-dir artifacts/split-check
 ```
 
 Expected run artifacts:
 
 ```text
-artifacts/latest/
+backend/artifacts/latest/
 ├── best_model.keras
 ├── model_metadata.json
 ├── split_manifest.csv
@@ -124,10 +137,11 @@ rest AUROC when it is defined.
 Start the API only after producing or selecting an artifact:
 
 ```bash
+cd backend
 python server.py
 ```
 
-The server prefers `artifacts/latest/best_model.keras` and its metadata. It can
+The server prefers `backend/artifacts/latest/best_model.keras` and its metadata. It can
 fall back to the checked-in H5 for local legacy inspection, but reports that
 contract as unverified. Set `RESPINET_REQUIRE_METADATA=1` outside local legacy
 work.
@@ -157,7 +171,7 @@ and a reviewed consent process.
 ## React frontend
 
 ```bash
-cd frontend-react
+cd frontend
 npm ci
 npm run dev
 ```
@@ -167,23 +181,19 @@ Vite proxy. Set `VITE_API_BASE_URL` when the API is hosted separately.
 
 The UI fails closed when inference is unavailable. It does not fabricate
 results or rewrite model probabilities. Recorded WebM audio retains its real
-container type. The checked-in `frontend-react/dist` directory was removed;
-build deployable assets from source with `npm run build`.
-
-`frontend/` is retained only as a legacy visualization. Its historical six-
-class plots do not describe the current source model, and its inference path
-also fails closed.
+container type. Build deployable assets from source with `npm run build`.
 
 ## Static checks
 
 Development dependencies and dataset-free checks:
 
 ```bash
+cd backend
 pip install -r requirements-dev.txt
 ruff check .
 pytest
 
-cd frontend-react
+cd ../frontend
 npm ci
 npm run typecheck
 ```
@@ -191,19 +201,17 @@ npm run typecheck
 CI runs these checks without loading a trained model or requiring the audio
 dataset.
 
-## Important remaining work
+## Documentation & Architecture Reports
 
-- Run patient-level cross-validation and an untouched test evaluation.
-- Add patient-bootstrap confidence intervals and device/location subgroup
-  reporting.
-- Calibrate probabilities and implement audio-quality/OOD abstention.
-- Validate denoising separately; it is experimental inference preprocessing.
-- Replace tiled time-only saliency with a validated attribution method.
-- Obtain clinical review and citations for all disease/treatment content.
-- Add a project license and formal citation metadata once ownership and license
-  choice are confirmed.
-- Conduct privacy, threat-model, accessibility, and clinical-safety reviews
-  before any deployment.
+Detailed documentation is available in the [`documentation/`](documentation/) directory:
 
-See [`MODEL_CARD.md`](MODEL_CARD.md) and [`SECURITY.md`](SECURITY.md) for the
+- [`documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md`](documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md)
+- [`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md)
+- [`documentation/MODEL_CARD.md`](documentation/MODEL_CARD.md)
+- [`documentation/SECURITY.md`](documentation/SECURITY.md)
+- [`documentation/design.md`](documentation/design.md)
+- [`documentation/design-qa.md`](documentation/design-qa.md)
+- [`documentation/CHANGELOG.md`](documentation/CHANGELOG.md)
+
+See [`documentation/MODEL_CARD.md`](documentation/MODEL_CARD.md) and [`documentation/SECURITY.md`](documentation/SECURITY.md) for the
 current limitations and reporting guidance.

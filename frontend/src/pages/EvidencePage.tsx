@@ -148,7 +148,7 @@ export default function EvidencePage() {
           <div><span>Calibration study</span><strong>Not run</strong><small>Scores must remain labeled uncalibrated</small></div>
           <div><span>External clinical validation</span><strong>None</strong><small>Prototype is not screening- or diagnostic-grade</small></div>
         </div>
-        <a className="text-link" href="/ARCHITECTURE_AND_BENCHMARK_REPORT.md" target="_blank" rel="noreferrer">
+        <a className="text-link" href="/documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md" target="_blank" rel="noreferrer">
           Read the repository architecture and benchmark report <ArrowUpRight size={16} />
         </a>
       </section>
