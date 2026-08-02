@@ -4,7 +4,8 @@
 
 Research prototype; not clinically validated and not intended for diagnosis,
 screening, triage, treatment, or reassurance. The checked-in H5 artifact is a
-legacy artifact without a verified class/preprocessing contract.
+legacy artifact without a verified class/preprocessing contract and is blocked
+from serving.
 
 ## Intended use
 
@@ -22,14 +23,17 @@ legacy artifact without a verified class/preprocessing contract.
 
 ## Inputs and outputs
 
-The current source expects mono audio resampled to 22.05 kHz and converts the
-first 200 MFCC frames into 40 MFCC, 40 delta, and 40 delta-delta features. The
-model outputs a softmax distribution over the ordered classes stored in
-`model_metadata.json`.
+The current source expects mono audio resampled to 22.05 kHz and converts audio
+into 40 MFCC, 40 delta, and 40 delta-delta features. It evaluates overlapping
+200-frame windows across the complete recording, then averages calibrated window
+probabilities. The model outputs a distribution over the ordered classes stored
+in a verified `model_metadata.json` contract.
 
-Softmax values are uncalibrated model probabilities. Unsupported sounds,
-silence, noise, unseen devices, and out-of-distribution populations may still
-receive a high probability because abstention is not implemented.
+Raw softmax values are calibrated using validation-set temperature scaling before
+they are returned. The service can abstain when confidence is low or entropy is
+high, but this remains a research-only heuristic. Unsupported sounds, silence,
+noise, unseen devices, and out-of-distribution populations may still receive a
+high probability.
 
 ## Evaluation requirement
 
@@ -49,16 +53,17 @@ partitions created before augmentation. Report at least:
 
 - Small, geographically and technically constrained benchmark dataset.
 - Patient-level labels may not fully describe every recorded respiratory cycle.
-- The fixed feature window discards audio after the configured frame limit.
-- Padding is not explicitly masked by the current convolutional architecture.
-- Inference-time denoising was not part of the historical training pipeline.
-- No external clinical validation, prospective study, OOD detector, or
-  calibrated abstention threshold.
+- Windowing, calibration, and abstention need a newly trained verified artifact
+  before they have any evidence of usefulness.
+- Inference-time denoising is disabled unless it is explicitly verified in the
+  training contract.
+- No external clinical validation, prospective study, or OOD detector.
 - Current explanation overlays provide time-region sensitivity, not causal or
   frequency-specific clinical evidence.
 
 ## Artifact requirements
 
 Do not deploy a model unless its hash, ordered classes, preprocessing settings,
-split-manifest hash, training seed, evaluation file, limitations, and source
-revision are recorded together and verified at server startup.
+split-manifest hash, training seed, evaluation and calibration files, provenance
+hashes, limitations, and source revision are recorded together and verified at
+server startup.

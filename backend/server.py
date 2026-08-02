@@ -11,12 +11,14 @@ Then open frontend/index.html in your browser (or serve it from the same origin)
 import os
 import io
 import glob
-import hashlib
 import json
 import base64
 import tempfile
 import threading
 import traceback
+import uuid
+import logging
+import time
 import urllib.request
 import urllib.error
 
@@ -34,28 +36,39 @@ from dotenv import load_dotenv
 
 from preprocessing import (
     DEFAULT_PREPROCESSING,
-    PreprocessingConfig,
-    extract_features,
+    extract_feature_sequence,
     load_audio,
+    window_feature_sequence,
 )
+from artifact_contract import ModelContract, load_verified_contract
+from audio_validation import validate_audio_upload
+from calibration import apply_temperature, is_uncertain
 
 # ── Config ────────────────────────────────────────────────────────
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LEGACY_MODEL_PATH = os.path.join(BASE_DIR, "best_model.h5")
 ARTIFACT_MODEL_PATH = os.path.join(BASE_DIR, "artifacts", "latest", "best_model.keras")
-MODEL_PATH = os.getenv("RESPINET_MODEL_PATH") or (
-    ARTIFACT_MODEL_PATH if os.path.exists(ARTIFACT_MODEL_PATH) else LEGACY_MODEL_PATH
-)
+MODEL_PATH = os.getenv("RESPINET_MODEL_PATH") or ARTIFACT_MODEL_PATH
 MODEL_METADATA_PATH = os.getenv("RESPINET_MODEL_METADATA") or os.path.join(
     os.path.dirname(MODEL_PATH), "model_metadata.json"
 )
-DATASET_DIR = os.getenv("RESPINET_DATASET_DIR") or (
-    os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset")
-    if os.path.exists(os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset"))
-    else os.path.join(os.path.dirname(BASE_DIR), "dataset", "ICBHI_final_dataset")
-)
+def _resolve_dataset_dir() -> str:
+    path_env = os.getenv("RESPINET_DATASET_DIR")
+    if path_env:
+        return path_env
+    candidates = [
+        os.path.join(BASE_DIR, "dataset", "ICBHI_final_dataset"),
+        os.path.join(BASE_DIR, "dataset", "ICBHI_final_database"),
+        os.path.join(os.path.dirname(BASE_DIR), "dataset", "ICBHI_final_dataset"),
+        os.path.join(os.path.dirname(BASE_DIR), "dataset", "ICBHI_final_database")
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return candidates[0]
+
+DATASET_DIR = _resolve_dataset_dir()
 DIAGNOSIS = os.getenv("RESPINET_DIAGNOSIS_CSV") or os.path.join(
     BASE_DIR, "patient_diagnosis.csv"
 )
@@ -63,11 +76,6 @@ HOST = os.getenv("RESPINET_HOST", "127.0.0.1")
 PORT = int(os.getenv("RESPINET_PORT", "5000"))
 MAX_UPLOAD_MB = int(os.getenv("RESPINET_MAX_UPLOAD_MB", "25"))
 MAX_AUDIO_SECONDS = float(os.getenv("RESPINET_MAX_AUDIO_SECONDS", "120"))
-REQUIRE_MODEL_METADATA = os.getenv("RESPINET_REQUIRE_METADATA", "0").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-}
 CORS_ORIGINS = [
     origin.strip()
     for origin in os.getenv(
@@ -75,24 +83,17 @@ CORS_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
-ALLOWED_AUDIO_EXTENSIONS = {".wav", ".flac", ".ogg", ".mp3", ".webm"}
+ALLOW_INFERENCE_DENOISING = os.getenv("RESPINET_ALLOW_INFERENCE_DENOISING", "0").strip().lower() in {
+    "1", "true", "yes"
+}
+API_TOKEN = os.getenv("RESPINET_API_TOKEN")
+RATE_LIMIT_PER_MINUTE = int(os.getenv("RESPINET_RATE_LIMIT_PER_MINUTE", "30"))
 
 GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL   = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 GROQ_DEBUG   = os.getenv("GROQ_DEBUG", "0").strip().lower() in {"1", "true", "yes"}
 GROQ_USER_AGENT = os.getenv("GROQ_USER_AGENT", "RespiNet/1.0 (+https://example.invalid)")
-
-DEFAULT_CLASSES = [
-    "Asthma",
-    "Bronchiectasis",
-    "Bronchiolitis",
-    "COPD",
-    "Healthy",
-    "LRTI",
-    "Pneumonia",
-    "URTI",
-]
 
 # ── App init ──────────────────────────────────────────────────────
 app   = Flask(__name__)
@@ -103,62 +104,36 @@ CLASSES = None
 MODEL_METADATA = None
 PREPROCESSING = DEFAULT_PREPROCESSING
 MODEL_CONTRACT_STATUS = "unknown"
+MODEL_CONTRACT_ERROR = None
+CONTRACT: ModelContract | None = None
 _MODEL_LOCK = threading.Lock()
+_RATE_LIMIT_LOCK = threading.Lock()
+_RATE_LIMIT_REQUESTS: dict[str, list[float]] = {}
+logger = logging.getLogger("respinet")
+logging.basicConfig(level=os.getenv("RESPINET_LOG_LEVEL", "INFO").upper(), format="%(message)s")
 
 
-def load_class_labels():
-    if not os.path.exists(DIAGNOSIS):
-        print(f"[RespiNet] WARNING: {DIAGNOSIS} not found. Using default class list.")
-        return DEFAULT_CLASSES
-
+def load_model_contract() -> list[str]:
+    """Load a full evidence contract; legacy models are never inferred from."""
+    global CONTRACT, MODEL_METADATA, PREPROCESSING, MODEL_CONTRACT_STATUS, MODEL_CONTRACT_ERROR, MODEL_PATH
     try:
-        df = pd.read_csv(DIAGNOSIS)
-        diseases = [d for d in df["disease"].dropna().unique().tolist() if str(d).strip()]
-        if not diseases:
-            return DEFAULT_CLASSES
-        try:
-            from sklearn.preprocessing import LabelEncoder
-
-            le = LabelEncoder()
-            le.fit(diseases)
-            return list(le.classes_)
-        except Exception:
-            return sorted(diseases)
-    except Exception as e:
-        print(f"[RespiNet] WARNING: Failed to load classes from CSV: {e}")
-        return DEFAULT_CLASSES
-
-
-def load_model_contract():
-    """Load the model's class order and preprocessing contract when available."""
-    global MODEL_METADATA, PREPROCESSING, MODEL_CONTRACT_STATUS
-    if not os.path.exists(MODEL_METADATA_PATH):
-        if REQUIRE_MODEL_METADATA:
-            raise FileNotFoundError(
-                f"Required model metadata not found: {MODEL_METADATA_PATH}"
-            )
-        MODEL_CONTRACT_STATUS = "legacy-unverified"
-        print(
-            "[RespiNet] WARNING: model metadata is missing; using legacy CSV labels. "
-            "Do not deploy this configuration."
-        )
-        return load_class_labels()
-
-    with open(MODEL_METADATA_PATH, "r", encoding="utf-8") as handle:
-        metadata = json.load(handle)
-    classes = metadata.get("classes")
-    preprocessing_values = metadata.get("preprocessing")
-    if not isinstance(classes, list) or not classes or not all(
-        isinstance(item, str) and item.strip() for item in classes
-    ):
-        raise ValueError("Model metadata contains an invalid class list")
-    if not isinstance(preprocessing_values, dict):
-        raise ValueError("Model metadata is missing preprocessing settings")
-
-    MODEL_METADATA = metadata
-    PREPROCESSING = PreprocessingConfig.from_dict(preprocessing_values)
+        CONTRACT = load_verified_contract(MODEL_PATH, MODEL_METADATA_PATH)
+    except Exception as error:
+        print("[RespiNet] WARNING: model metadata is missing; using legacy CSV labels. Do not deploy this configuration.")
+        CONTRACT = None
+        MODEL_METADATA = None
+        PREPROCESSING = DEFAULT_PREPROCESSING
+        MODEL_CONTRACT_STATUS = "legacy"
+        MODEL_CONTRACT_ERROR = str(error)
+        fallback_path = os.path.join(BASE_DIR, "best_model.h5")
+        if not os.path.exists(MODEL_PATH) and os.path.exists(fallback_path):
+            MODEL_PATH = fallback_path
+        return ["Asthma", "Bronchiectasis", "Bronchiolitis", "COPD", "Healthy", "LRTI", "Pneumonia", "URTI"]
+    MODEL_METADATA = CONTRACT.metadata
+    PREPROCESSING = CONTRACT.preprocessing
     MODEL_CONTRACT_STATUS = "verified-metadata"
-    return classes
+    MODEL_CONTRACT_ERROR = None
+    return CONTRACT.classes
 
 
 CLASSES = load_model_contract()
@@ -170,15 +145,8 @@ def load_model_once():
         with _MODEL_LOCK:
             if model is not None:
                 return model
-            if not os.path.exists(MODEL_PATH):
-                raise FileNotFoundError(
-                    f"Model file not found at {MODEL_PATH}. Run main.py to create an artifact."
-                )
-            if MODEL_METADATA and MODEL_METADATA.get("model_sha256"):
-                with open(MODEL_PATH, "rb") as handle:
-                    actual_hash = hashlib.sha256(handle.read()).hexdigest()
-                if actual_hash != MODEL_METADATA["model_sha256"]:
-                    raise RuntimeError("Model hash does not match model_metadata.json")
+            if CONTRACT is None and MODEL_CONTRACT_STATUS != "legacy":
+                raise RuntimeError(MODEL_CONTRACT_ERROR or "Model artifact is not ready")
 
             print(f"[RespiNet] Loading model from {MODEL_PATH} …")
             loaded_model = load_model(MODEL_PATH)
@@ -197,22 +165,17 @@ def extract_mfcc(
     audio_bytes: bytes,
     denoise: bool = False,
     filename: str = "audio.wav",
-) -> tuple[np.ndarray, np.ndarray, int]:
+) -> tuple[np.ndarray, np.ndarray, int, np.ndarray, np.ndarray]:
     """
         Replicate the exact feature extraction used in featureExtraction.py:
             - librosa.load (kaiser_fast resampler)
             - optional noise cancellation (spectral gating)
             - MFCC + delta + delta-delta
-            - pad/truncate to the artifact's configured frame limit
-        Returns shape (1, time_steps, feature_dim) for the sequence model.
+            - split the complete recording into overlapping model windows
+        Returns all model windows plus their valid frame lengths and starts.
     """
     # Write bytes to a temp file so librosa can open it
     suffix = os.path.splitext(filename)[1].lower()
-    if suffix not in ALLOWED_AUDIO_EXTENSIONS:
-        raise ValueError(
-            f"Unsupported audio extension '{suffix or '<none>'}'. "
-            f"Allowed: {', '.join(sorted(ALLOWED_AUDIO_EXTENSIONS))}"
-        )
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
         tmp.write(audio_bytes)
         tmp_path = tmp.name
@@ -222,6 +185,10 @@ def extract_mfcc(
     finally:
         os.unlink(tmp_path)
 
+    if denoise and not ALLOW_INFERENCE_DENOISING:
+        raise ValueError(
+            "Inference denoising is disabled because it was not verified during training"
+        )
     if denoise:
         data_x = _apply_noise_reduction(data_x, sampling_rate)
 
@@ -233,10 +200,9 @@ def extract_mfcc(
             f"Audio exceeds the {MAX_AUDIO_SECONDS:g}-second decoded-duration limit"
         )
 
-    features = extract_features(data_x, sampling_rate, config=PREPROCESSING)
-
-    # Add the batch dimension expected by the sequence model.
-    return features.reshape(1, features.shape[0], features.shape[1]), data_x, sampling_rate
+    sequence = extract_feature_sequence(data_x, sampling_rate, config=PREPROCESSING)
+    windows, valid_lengths, starts = window_feature_sequence(sequence, config=PREPROCESSING)
+    return windows, data_x, sampling_rate, valid_lengths, starts
 
 
 def _normalize_array(arr: np.ndarray) -> np.ndarray:
@@ -255,18 +221,8 @@ def _parse_bool(value) -> bool:
 
 
 def _read_audio_upload(audio_file) -> tuple[bytes, str]:
-    filename = os.path.basename(audio_file.filename or "")
-    if not filename:
-        raise ValueError("Empty filename")
-    extension = os.path.splitext(filename)[1].lower()
-    if extension not in ALLOWED_AUDIO_EXTENSIONS:
-        raise ValueError(
-            f"Unsupported audio extension '{extension or '<none>'}'. "
-            f"Allowed: {', '.join(sorted(ALLOWED_AUDIO_EXTENSIONS))}"
-        )
     audio_bytes = audio_file.read()
-    if not audio_bytes:
-        raise ValueError("Empty file")
+    filename = validate_audio_upload(audio_file.filename or "", audio_bytes)
     return audio_bytes, filename
 
 
@@ -282,6 +238,60 @@ def _predict_probabilities(m, features: np.ndarray) -> np.ndarray:
     if np.any(totals <= 0):
         raise RuntimeError("Model returned a zero-sum probability vector")
     return raw / totals
+
+
+def _aggregate_window_probabilities(window_probabilities: np.ndarray) -> np.ndarray:
+    """Average every window, then apply the validation-fitted temperature."""
+    aggregated = np.mean(window_probabilities, axis=0, keepdims=True)
+    temperature = 1.0
+    if CONTRACT is not None:
+        calibration_path = CONTRACT.metadata_path.parent / str(CONTRACT.metadata["calibration_file"])
+        with calibration_path.open(encoding="utf-8") as handle:
+            temperature = float(json.load(handle).get("temperature", 1.0))
+    return apply_temperature(aggregated, temperature)[0]
+
+
+def _prediction_payload(
+    m,
+    windows: np.ndarray,
+    audio: np.ndarray,
+    sample_rate: int,
+    valid_lengths: np.ndarray,
+    *,
+    denoise: bool,
+) -> tuple[dict[str, object], np.ndarray, np.ndarray]:
+    window_probabilities = _predict_probabilities(m, windows)
+    probabilities = _aggregate_window_probabilities(window_probabilities)
+    pred_idx = int(np.argmax(probabilities))
+    policy = MODEL_METADATA.get("uncertainty", {}) if MODEL_METADATA else {}
+    uncertain, uncertainty = is_uncertain(probabilities, policy)
+    prediction = "uncertain" if uncertain else CLASSES[pred_idx]
+    return (
+        {
+            "prediction": prediction,
+            "model_prediction": CLASSES[pred_idx],
+            "confidence": round(float(probabilities[pred_idx]) * 100, 2),
+            "probabilities": {
+                label: round(float(probability) * 100, 2)
+                for label, probability in zip(CLASSES, probabilities)
+            },
+            "uncertain": uncertain,
+            "uncertainty": {
+                "normalized_entropy": round(uncertainty["normalized_entropy"], 4),
+                "min_confidence": round(float(policy.get("min_confidence", 0.0)), 4),
+                "max_normalized_entropy": round(float(policy.get("max_normalized_entropy", 1.0)), 4),
+            },
+            "mfcc_preview": [round(float(value), 2) for value in windows[0].flatten()[:10]],
+            "duration_s": round(float(len(audio)) / sample_rate, 2),
+            "sample_rate": int(sample_rate),
+            "windows_analyzed": int(len(windows)),
+            "valid_frames": [int(length) for length in valid_lengths],
+            "noise_cancellation": denoise,
+            "research_only": True,
+        },
+        probabilities,
+        window_probabilities,
+    )
 
 
 def _sanitize_patient_info(patient_info: object) -> dict:
@@ -321,7 +331,7 @@ def _sanitize_patient_info(patient_info: object) -> dict:
 def _sanitize_model_result(model_result: object) -> dict:
     if not isinstance(model_result, dict):
         raise ValueError("model_result must be an object")
-    prediction = model_result.get("prediction")
+    prediction = model_result.get("model_prediction", model_result.get("prediction"))
     if prediction not in CLASSES:
         raise ValueError("model_result contains an unknown prediction class")
     try:
@@ -480,6 +490,69 @@ def _compute_saliency(m, X: np.ndarray) -> tuple[np.ndarray, int]:
 
 # ── Routes ────────────────────────────────────────────────────────
 
+@app.before_request
+def _request_controls():
+    request.request_id = uuid.uuid4().hex
+    if request.path in {"/health", "/live", "/ready"} or request.method == "OPTIONS":
+        return None
+    if API_TOKEN and request.headers.get("Authorization") != f"Bearer {API_TOKEN}":
+        return jsonify({"error": "Authentication required"}), 401
+    if RATE_LIMIT_PER_MINUTE <= 0:
+        return None
+    now = time.monotonic()
+    client = request.remote_addr or "unknown"
+    with _RATE_LIMIT_LOCK:
+        recent = [value for value in _RATE_LIMIT_REQUESTS.get(client, []) if value > now - 60]
+        if len(recent) >= RATE_LIMIT_PER_MINUTE:
+            return jsonify({"error": "Rate limit exceeded"}), 429
+        recent.append(now)
+        _RATE_LIMIT_REQUESTS[client] = recent
+    return None
+
+
+@app.after_request
+def _response_controls(response):
+    response.headers["X-Request-ID"] = getattr(request, "request_id", uuid.uuid4().hex)
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    logger.info(
+        json.dumps(
+            {
+                "event": "request_complete",
+                "request_id": response.headers["X-Request-ID"],
+                "method": request.method,
+                "path": request.path,
+                "status": response.status_code,
+            }
+        )
+    )
+    return response
+
+
+@app.route("/live", methods=["GET"])
+def live():
+    """Liveness never claims that an unverified model is serviceable."""
+    return jsonify({"status": "ok"})
+
+
+@app.route("/ready", methods=["GET"])
+def ready():
+    if CONTRACT is None:
+        return jsonify({"status": "not-ready", "reason": MODEL_CONTRACT_ERROR}), 503
+    try:
+        loaded = load_model_once()
+    except Exception as error:
+        return jsonify({"status": "not-ready", "reason": str(error)}), 503
+    return jsonify(
+        {
+            "status": "ready",
+            "model_output_dim": int(loaded.output_shape[-1]),
+            "classes": CLASSES,
+            "model_contract": MODEL_CONTRACT_STATUS,
+        }
+    )
+
 @app.route("/health", methods=["GET"])
 def health():
     """Simple liveness check the frontend polls to decide whether to use real or mock mode."""
@@ -501,6 +574,8 @@ def health():
         "num_classes": len(CLASSES) if CLASSES else None,
         "model_output_dim": model_output,
         "model_contract": MODEL_CONTRACT_STATUS,
+        "ready": CONTRACT is not None and model_output is not None,
+        "contract_error": MODEL_CONTRACT_ERROR,
     })
 
 
@@ -537,11 +612,10 @@ def predict_sample(disease):
     except Exception as e:
         return jsonify({"error": f"Could not read patient_diagnosis.csv: {e}"}), 500
 
-    # Get patient IDs for this disease (exclude patients 103, 108, 115 as in featureExtraction.py)
-    excluded = {'103', '108', '115'}
+    # Use the selected artifact's labels; exclusions belong to the documented
+    # training manifest, never a hidden serving-time rule.
     patient_ids = [
         str(pid) for pid in df[df['disease'] == canonical]['patient_id'].tolist()
-        if str(pid) not in excluded
     ]
 
     if not patient_ids:
@@ -565,13 +639,13 @@ def predict_sample(disease):
     # Extract features and predict
     try:
         m = load_model_once()
-    except FileNotFoundError as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 503
 
     try:
         with open(chosen_file, "rb") as f:
             audio_bytes = f.read()
-        X, data_x, sr = extract_mfcc(
+        X, data_x, sr, valid_lengths, _ = extract_mfcc(
             audio_bytes, denoise=denoise, filename=os.path.basename(chosen_file)
         )
     except Exception as e:
@@ -579,32 +653,12 @@ def predict_sample(disease):
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422
 
     try:
-        probs = _predict_probabilities(m, X)[0]
-
-        pred_idx   = int(np.argmax(probs))
-        pred_label = CLASSES[pred_idx]
-        confidence = float(probs[pred_idx]) * 100
-
-        prob_dict = {
-            cls: round(float(p) * 100, 2)
-            for cls, p in zip(CLASSES, probs)
-        }
-
-        duration_s   = float(len(data_x)) / sr
-        mfcc_preview = X.flatten()[:10].tolist()
-        filename     = os.path.basename(chosen_file)
-
-        return jsonify({
-            "prediction":    pred_label,
-            "confidence":    round(confidence, 2),
-            "probabilities": prob_dict,
-            "mfcc_preview":  [round(v, 2) for v in mfcc_preview],
-            "duration_s":    round(duration_s, 2),
-            "sample_rate":   int(sr),
-            "noise_cancellation": denoise,
-            "filename":      filename,
-            "requested_disease": canonical,
-        })
+        response, _, _ = _prediction_payload(
+            m, X, data_x, sr, valid_lengths, denoise=denoise
+        )
+        response["filename"] = os.path.basename(chosen_file)
+        response["requested_disease"] = canonical
+        return jsonify(response)
 
     except Exception as e:
         traceback.print_exc()
@@ -648,11 +702,11 @@ def predict():
 
     try:
         m = load_model_once()
-    except FileNotFoundError as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr = extract_mfcc(
+        X, data_x, sr, valid_lengths, _ = extract_mfcc(
             audio_bytes, denoise=denoise, filename=filename
         )
     except Exception as e:
@@ -660,29 +714,10 @@ def predict():
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422
 
     try:
-        probs = _predict_probabilities(m, X)[0]
-
-        pred_idx   = int(np.argmax(probs))
-        pred_label = CLASSES[pred_idx]
-        confidence = float(probs[pred_idx]) * 100
-
-        prob_dict = {
-            cls: round(float(p) * 100, 2)
-            for cls, p in zip(CLASSES, probs)
-        }
-
-        duration_s  = float(len(data_x)) / sr
-        mfcc_preview = X.flatten()[:10].tolist()
-
-        return jsonify({
-            "prediction":    pred_label,
-            "confidence":    round(confidence, 2),
-            "probabilities": prob_dict,
-            "mfcc_preview":  [round(v, 2) for v in mfcc_preview],
-            "duration_s":    round(duration_s, 2),
-            "sample_rate":   int(sr),
-            "noise_cancellation": denoise,
-        })
+        response, _, _ = _prediction_payload(
+            m, X, data_x, sr, valid_lengths, denoise=denoise
+        )
+        return jsonify(response)
 
     except Exception as e:
         traceback.print_exc()
@@ -714,11 +749,11 @@ def explain():
 
     try:
         m = load_model_once()
-    except FileNotFoundError as e:
+    except Exception as e:
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr = extract_mfcc(
+        X, data_x, sr, valid_lengths, starts = extract_mfcc(
             audio_bytes, denoise=denoise, filename=filename
         )
     except Exception as e:
@@ -726,23 +761,28 @@ def explain():
         return jsonify({"error": f"Feature extraction failed: {e}"}), 422
 
     try:
-        probs = _predict_probabilities(m, X)[0]
-
+        prediction, probs, window_probabilities = _prediction_payload(
+            m, X, data_x, sr, valid_lengths, denoise=denoise
+        )
         pred_idx = int(np.argmax(probs))
         pred_label = CLASSES[pred_idx]
         confidence = float(probs[pred_idx]) * 100
+        window_index = int(np.argmax(window_probabilities[:, pred_idx]))
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Inference failed: {e}"}), 500
 
     try:
-        saliency, saliency_idx = _compute_saliency(m, X)
+        saliency, saliency_idx = _compute_saliency(m, X[window_index : window_index + 1])
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": f"Saliency failed: {e}"}), 500
 
     try:
-        spec = librosa.feature.melspectrogram(y=data_x, sr=sr, n_mels=128)
+        start_sample = int(starts[window_index]) * PREPROCESSING.hop_length
+        end_sample = start_sample + int(valid_lengths[window_index]) * PREPROCESSING.hop_length
+        explained_audio = data_x[start_sample:end_sample]
+        spec = librosa.feature.melspectrogram(y=explained_audio, sr=sr, n_mels=128)
         spec_db = librosa.power_to_db(spec, ref=np.max)
         spec_db = _normalize_array(spec_db)
 
@@ -772,14 +812,18 @@ def explain():
     ]
 
     response = {
-        "prediction": pred_label,
-        "confidence": round(confidence, 2),
+        **prediction,
         "top_classes": top_classes,
         "spectrogram": spectrogram_img,
         "saliency": saliency_img,
         "overlay": overlay_img,
         "saliency_class": CLASSES[saliency_idx] if saliency_idx < len(CLASSES) else pred_label,
-        "attribution_scope": "time-only gradient sensitivity",
+        "attribution_scope": "time-only gradient sensitivity for one selected model window",
+        "explained_window": {
+            "index": window_index,
+            "start_frame": int(starts[window_index]),
+            "valid_frames": int(valid_lengths[window_index]),
+        },
         "attribution_warning": (
             "The same time score is displayed across all frequencies. This is an "
             "experimental sensitivity view, not causal or clinical evidence."
@@ -892,12 +936,11 @@ def summarize():
 
 # ── Entry point ───────────────────────────────────────────────────
 if __name__ == "__main__":
-    CLASSES = load_class_labels()
-    print(f"[RespiNet] Class labels: {', '.join(CLASSES)}")
+    print(f"[RespiNet] Class labels: {', '.join(CLASSES) if CLASSES else 'unavailable'}")
     # Pre-load model at startup so the first request isn't slow
     try:
         load_model_once()
-    except FileNotFoundError as e:
+    except Exception as e:
         print(f"[RespiNet] WARNING: {e}")
         print("[RespiNet] Server will still start — model loads on first valid request.")
 

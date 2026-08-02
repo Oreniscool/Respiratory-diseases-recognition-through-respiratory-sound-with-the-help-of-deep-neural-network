@@ -19,6 +19,7 @@ class PreprocessingConfig:
     sample_rate: int = 22_050
     n_mfcc: int = 40
     max_len: int = 200
+    window_hop: int = 100
     use_deltas: bool = True
     hop_length: int = 512
     n_fft: int = 2_048
@@ -67,12 +68,12 @@ def pad_or_truncate(features: np.ndarray, max_len: int) -> np.ndarray:
     return features[:, :max_len]
 
 
-def extract_features(
+def extract_feature_sequence(
     data: np.ndarray,
     sample_rate: int,
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
 ) -> np.ndarray:
-    """Return a ``(time_steps, feature_dim)`` MFCC sequence."""
+    """Return the complete, unpadded ``(time_steps, feature_dim)`` MFCC sequence."""
     if data.size == 0:
         raise ValueError("Cannot extract features from empty audio")
 
@@ -89,7 +90,67 @@ def extract_features(
             [librosa.feature.delta(mfcc), librosa.feature.delta(mfcc, order=2)]
         )
 
-    features = pad_or_truncate(np.vstack(feature_blocks), config.max_len).T
+    features = np.vstack(feature_blocks).T
     if not np.isfinite(features).all():
         raise ValueError("Feature extraction produced non-finite values")
     return features.astype(np.float32, copy=False)
+
+
+def window_feature_sequence(
+    features: np.ndarray,
+    config: PreprocessingConfig = DEFAULT_PREPROCESSING,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Cover a complete feature sequence with padded, overlapping model windows.
+
+    The final window is anchored at the end of a long recording, so no audio is
+    silently discarded. ``valid_lengths`` lets models and aggregation code
+    distinguish real frames from the zero padding in short windows.
+    """
+    if features.ndim != 2:
+        raise ValueError(f"Expected a 2D feature array, got shape {features.shape}")
+    if features.shape[0] == 0:
+        raise ValueError("Cannot window an empty feature sequence")
+    if config.window_hop <= 0 or config.window_hop > config.max_len:
+        raise ValueError("window_hop must be positive and no greater than max_len")
+
+    total_frames = features.shape[0]
+    if total_frames <= config.max_len:
+        starts = np.asarray([0], dtype=np.int32)
+    else:
+        starts = np.arange(0, total_frames - config.max_len + 1, config.window_hop)
+        final_start = total_frames - config.max_len
+        if starts[-1] != final_start:
+            starts = np.append(starts, final_start)
+
+    windows = []
+    valid_lengths = []
+    for start in starts:
+        window = features[int(start) : int(start) + config.max_len]
+        valid_lengths.append(window.shape[0])
+        if window.shape[0] < config.max_len:
+            window = np.pad(
+                window,
+                ((0, config.max_len - window.shape[0]), (0, 0)),
+                mode="constant",
+            )
+        windows.append(window)
+    return (
+        np.asarray(windows, dtype=np.float32),
+        np.asarray(valid_lengths, dtype=np.int32),
+        starts.astype(np.int32),
+    )
+
+
+def extract_features(
+    data: np.ndarray,
+    sample_rate: int,
+    config: PreprocessingConfig = DEFAULT_PREPROCESSING,
+) -> np.ndarray:
+    """Return the first padded window for backward-compatible callers.
+
+    New training and serving code should call ``extract_feature_sequence`` and
+    ``window_feature_sequence`` so that all of a recording is evaluated.
+    """
+    sequence = extract_feature_sequence(data, sample_rate, config=config)
+    windows, _, _ = window_feature_sequence(sequence, config=config)
+    return windows[0]

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from featureExtraction import AudioRecord
 from main import split_by_patient
 
@@ -37,3 +39,15 @@ def test_patient_split_has_no_overlap_and_keeps_recordings_together():
         for record in split_records:
             counts[record.patient_id] = counts.get(record.patient_id, 0) + 1
         assert set(counts.values()) == {2}
+
+
+def test_patient_split_rejects_classes_that_cannot_fill_three_partitions():
+    records = [
+        AudioRecord(path=Path("1_0.wav"), patient_id=1, disease="rare"),
+        AudioRecord(path=Path("2_0.wav"), patient_id=2, disease="rare"),
+        AudioRecord(path=Path("3_0.wav"), patient_id=3, disease="common"),
+        AudioRecord(path=Path("4_0.wav"), patient_id=4, disease="common"),
+        AudioRecord(path=Path("5_0.wav"), patient_id=5, disease="common"),
+    ]
+    with pytest.raises(ValueError, match="fewer than three"):
+        split_by_patient(records, test_size=0.2, validation_size=0.2, seed=42)

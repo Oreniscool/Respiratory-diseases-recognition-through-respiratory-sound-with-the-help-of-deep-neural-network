@@ -15,6 +15,12 @@ patient_diagnosis.csv
 labels, missing labels for an audio file, malformed filenames, and an empty
 dataset now stop the pipeline instead of being silently ignored.
 
+Training additionally requires a separate, untracked `dataset_provenance.json`
+matching `dataset_provenance.example.json`. It records the authorized source,
+download date, license, diagnosis CSV checksum, and published ICBHI patient
+label distribution. This intentionally blocks the historical CSV retained in
+this repository because it does not have authentic ICBHI label counts.
+
 ## Splitting policy
 
 - Patient is the unit of partitioning.
@@ -23,6 +29,9 @@ dataset now stop the pipeline instead of being silently ignored.
 - Validation and test contain original audio only.
 - The split manifest and its SHA-256 hash are retained with each run.
 - Patient exclusions are opt-in and must have a documented data-quality reason.
+- A three-way disease split is rejected when a class has fewer than three
+  independent patients. The authentic eight-class ICBHI task therefore needs a
+  documented redesign before training because Asthma and LRTI are too rare.
 
 ## Bias and representativeness
 

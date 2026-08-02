@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import ArrowUpRight from "lucide-react/dist/esm/icons/arrow-up-right.js";
 import BookOpen from "lucide-react/dist/esm/icons/book-open.js";
 import ChevronDown from "lucide-react/dist/esm/icons/chevron-down.js";
@@ -25,7 +26,12 @@ export default function LearnPage() {
 
   return (
     <div className="editorial-page learn-page">
-      <header className="editorial-hero learn-hero">
+      <motion.header
+        className="editorial-hero learn-hero"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div>
           <p className="eyebrow">Respiratory reference</p>
           <h1>Learn what the labels mean—and where they stop.</h1>
@@ -37,7 +43,7 @@ export default function LearnPage() {
           <CircleAlert aria-hidden="true" />
           <div><strong>General information only</strong><p>This library does not interpret personal symptoms, recommend treatment, or replace professional assessment.</p></div>
         </div>
-      </header>
+      </motion.header>
 
       <div className="reference-toolbar">
         <label className="search-field">
@@ -49,16 +55,31 @@ export default function LearnPage() {
       </div>
 
       <section className="reference-list" aria-label="Respiratory reference entries">
-        {filtered.map((entry) => (
-          <ReferenceRow
-            key={entry.id}
-            entry={entry}
-            open={openId === entry.id}
-            onToggle={() => setOpenId((current) => current === entry.id ? null : entry.id)}
-          />
-        ))}
+        <AnimatePresence>
+          {filtered.map((entry) => (
+            <motion.div
+              key={entry.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ReferenceRow
+                entry={entry}
+                open={openId === entry.id}
+                onToggle={() => setOpenId((current) => current === entry.id ? null : entry.id)}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {!filtered.length && (
-          <div className="no-results"><Search aria-hidden="true" /><h2>No matching reference</h2><p>Try a broader term such as “wheeze”, “infection”, or “cough”.</p></div>
+          <motion.div 
+            className="no-results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <Search aria-hidden="true" /><h2>No matching reference</h2><p>Try a broader term such as “wheeze”, “infection”, or “cough”.</p>
+          </motion.div>
         )}
       </section>
 
@@ -88,8 +109,17 @@ function ReferenceRow({ entry, open, onToggle }: { entry: ReferenceEntry; open: 
         <span className="reference-summary">{entry.summary}</span>
         <ChevronDown className="reference-chevron" aria-hidden="true" />
       </button>
+      <AnimatePresence>
       {open && (
-        <div className="reference-content" id={`${entry.id}-content`}>
+        <motion.div
+          className="reference-content"
+          id={`${entry.id}-content`}
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          style={{ overflow: "hidden" }}
+        >
           <div className="reference-block">
             <Stethoscope aria-hidden="true" />
             <div><h3>Commonly described signs</h3><ul>{entry.commonSigns.map((sign) => <li key={sign}>{sign}</li>)}</ul></div>
@@ -103,8 +133,9 @@ function ReferenceRow({ entry, open, onToggle }: { entry: ReferenceEntry; open: 
             <div><h3>Assessment boundary</h3><p>{entry.assessment}</p></div>
           </div>
           <a href={entry.sourceUrl} target="_blank" rel="noreferrer">{entry.sourceLabel}<ArrowUpRight size={16} aria-hidden="true" /></a>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </article>
   );
 }

@@ -10,6 +10,13 @@
 | Model performance status | **Not currently benchmarkable** |
 | Deployment status | **Not release-ready and not suitable for clinical use** |
 
+> Update, 2026-08-03: the immediate backend safeguards identified here have
+> been implemented: legacy inference is blocked, metadata contracts fail closed,
+> complete-recording windowing/masked pooling and calibration infrastructure are
+> present, and `/ready` enforces artifact readiness. The data-provenance and
+> rare-class feasibility findings remain unresolved evidence blockers; this
+> historical assessment should be read with that distinction in mind.
+
 ## 1. Executive summary
 
 RespiNet has a credible research-oriented shape: a React single-page application,

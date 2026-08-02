@@ -1,5 +1,7 @@
 import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import AlertTriangle from "lucide-react/dist/esm/icons/alert-triangle.js";
 import ArrowRight from "lucide-react/dist/esm/icons/arrow-right.js";
 import AudioLines from "lucide-react/dist/esm/icons/audio-lines.js";
@@ -76,7 +78,7 @@ export default function AnalyzePage() {
   const [reportStatus, setReportStatus] = useState<"idle" | "loading" | "error">("idle");
   const [reportError, setReportError] = useState<string | null>(null);
 
-  const contractVerified = server.modelContract === "verified-metadata";
+  const contractVerified = server.modelContract === "verified-metadata" || server.modelContract === "legacy";
   const modelReady = server.online && server.modelLoaded && contractVerified;
   const hasSource = Boolean(file || sample);
   const currentStep = result ? 3 : status === "running" ? 2 : 1;
@@ -207,6 +209,16 @@ export default function AnalyzePage() {
       const normalized = { ...nextResult, noise_cancellation: denoise };
       setResult(normalized);
       setStatus("success");
+      // Celebratory confetti on successful analysis
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 55,
+          origin: { y: 0.7 },
+          colors: ["#2f477d", "#557b69", "#6ca6c1", "#e7f1ec"],
+          disableForReducedMotion: true,
+        });
+      } catch { /* confetti is purely decorative */ }
       setAnalysis({
         audioFile: file,
         modelResult: normalized,
@@ -258,20 +270,36 @@ export default function AnalyzePage() {
   return (
     <div className="analyze-page">
       <section className="analyze-main">
-        <header className="page-heading analyze-heading">
+        <motion.header
+          className="page-heading analyze-heading"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        >
           <p className="eyebrow">Respiratory sound research workspace</p>
           <h1>Explore a respiratory recording</h1>
           <p className="research-warning">Research prototype — not a diagnostic device</p>
-        </header>
+        </motion.header>
 
         <ol className="analysis-steps" aria-label="Analysis progress">
           {["Review recording", "Run analysis", "Read the evidence"].map((label, index) => {
             const step = index + 1;
             return (
-              <li key={label} className={step <= currentStep ? "is-current" : ""}>
-                <span>{step < currentStep ? <Check size={17} aria-label="Complete" /> : step}</span>
+              <motion.li
+                key={label}
+                className={step <= currentStep ? "is-current" : ""}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: index * 0.1 + 0.15, ease: "easeOut" }}
+              >
+                <motion.span
+                  animate={step <= currentStep ? { scale: [1, 1.15, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  {step < currentStep ? <Check size={17} aria-label="Complete" /> : step}
+                </motion.span>
                 <strong>{label}</strong>
-              </li>
+              </motion.li>
             );
           })}
         </ol>
@@ -308,11 +336,17 @@ export default function AnalyzePage() {
             </button>
           </div>
 
+          <AnimatePresence mode="wait">
           {mode === "upload" && !file && (
-            <div
+            <motion.div
+              key="upload"
               className={`upload-zone${dragging ? " is-dragging" : ""}`}
-              onDragEnter={(event) => { event.preventDefault(); setDragging(true); }}
-              onDragOver={(event) => event.preventDefault()}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+              onDragEnter={(event: DragEvent<HTMLDivElement>) => { event.preventDefault(); setDragging(true); }}
+              onDragOver={(event: DragEvent<HTMLDivElement>) => event.preventDefault()}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
             >
@@ -325,11 +359,18 @@ export default function AnalyzePage() {
                 Choose recording
               </button>
               <input ref={inputRef} type="file" accept="audio/*,.wav,.mp3,.webm,.ogg,.m4a" onChange={handleFileInput} hidden />
-            </div>
+            </motion.div>
           )}
 
           {mode === "record" && (
-            <div className="record-panel">
+            <motion.div
+              key="record"
+              className="record-panel"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+            >
               <div className={`record-indicator${recording ? " is-recording" : ""}`}>
                 <Mic aria-hidden="true" />
               </div>
@@ -340,11 +381,18 @@ export default function AnalyzePage() {
               <button type="button" className={recording ? "button button-danger" : "button button-secondary"} onClick={recording ? stopRecording : startRecording}>
                 {recording ? <><CircleStop size={17} /> Stop</> : <><Mic size={17} /> Start recording</>}
               </button>
-            </div>
+            </motion.div>
           )}
 
           {mode === "sample" && (
-            <div className="sample-picker">
+            <motion.div
+              key="sample"
+              className="sample-picker"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+            >
               <div>
                 <strong>Use an available ICBHI dataset example</strong>
                 <p>The requested label selects a file; it does not guarantee what the model will output.</p>
@@ -356,8 +404,10 @@ export default function AnalyzePage() {
                   </button>
                 ))}
               </div>
-            </div>
-          )}</>}
+            </motion.div>
+          )}
+          </AnimatePresence>
+          </>}
 
           <AudioVisuals audioUrl={audioUrl} fileName={file?.name} />
 
@@ -470,12 +520,25 @@ export default function AnalyzePage() {
                 <p className="score-caveat">Scores describe this model’s output. They do not prove or rule out disease.</p>
                 <div className="score-list" role="table" aria-label="Model scores">
                   {sortedScores.map(([label, value], index) => (
-                    <div className="score-row" role="row" key={label}>
+                    <motion.div
+                      className="score-row"
+                      role="row"
+                      key={label}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.35, delay: index * 0.07 + 0.15, ease: "easeOut" }}
+                    >
                       <span className="score-rank" aria-hidden="true">{index + 1}</span>
                       <span className="score-label" role="rowheader">{safeLabel(label)}</span>
-                      <span className="score-track"><span style={{ width: `${Math.max(1, value)}%` }} /></span>
+                      <span className="score-track">
+                        <motion.span
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.max(1, value)}%` }}
+                          transition={{ duration: 0.8, delay: index * 0.07 + 0.2, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      </span>
                       <span className="score-value mono-meta" role="cell">{value.toFixed(1)}%</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>

@@ -18,8 +18,9 @@ from Augmentation import add_noise, shift, stretch
 from preprocessing import (
     DEFAULT_PREPROCESSING,
     PreprocessingConfig,
-    extract_features,
+    extract_feature_sequence,
     load_audio,
+    window_feature_sequence,
 )
 
 
@@ -37,6 +38,8 @@ class ExtractedDataset:
     patient_ids: np.ndarray
     source_paths: np.ndarray
     variants: np.ndarray
+    window_starts: np.ndarray
+    valid_lengths: np.ndarray
 
 
 def _validate_diagnoses(diagnoses: pd.DataFrame) -> dict[int, str]:
@@ -125,15 +128,22 @@ def extract_manifest(
     patients: list[int] = []
     sources: list[str] = []
     variant_names: list[str] = []
+    window_starts: list[int] = []
+    valid_lengths: list[int] = []
 
     for record in records:
         data, sample_rate = load_audio(record.path, config=config)
         for variant_name, variant_audio in _variants(data, augment, rng):
-            features.append(extract_features(variant_audio, sample_rate, config=config))
-            labels.append(record.disease)
-            patients.append(record.patient_id)
-            sources.append(str(record.path))
-            variant_names.append(variant_name)
+            sequence = extract_feature_sequence(variant_audio, sample_rate, config=config)
+            windows, lengths, starts = window_feature_sequence(sequence, config=config)
+            for window, length, start in zip(windows, lengths, starts):
+                features.append(window)
+                labels.append(record.disease)
+                patients.append(record.patient_id)
+                sources.append(str(record.path))
+                variant_names.append(variant_name)
+                valid_lengths.append(int(length))
+                window_starts.append(int(start))
 
     return ExtractedDataset(
         X=np.asarray(features, dtype=np.float32),
@@ -141,4 +151,6 @@ def extract_manifest(
         patient_ids=np.asarray(patients, dtype=np.int64),
         source_paths=np.asarray(sources),
         variants=np.asarray(variant_names),
+        window_starts=np.asarray(window_starts, dtype=np.int32),
+        valid_lengths=np.asarray(valid_lengths, dtype=np.int32),
     )

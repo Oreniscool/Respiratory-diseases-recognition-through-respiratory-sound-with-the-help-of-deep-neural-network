@@ -4,6 +4,7 @@ import Download from "lucide-react/dist/esm/icons/download.js";
 import FileText from "lucide-react/dist/esm/icons/file-text.js";
 import Info from "lucide-react/dist/esm/icons/info.js";
 import Printer from "lucide-react/dist/esm/icons/printer.js";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useReportStore } from "../store/reportStore";
 
@@ -22,7 +23,7 @@ export default function ReportPage() {
         <p className="eyebrow">Research summary</p>
         <h1>No generated summary is available.</h1>
         <p>Run an analysis and explicitly consent to external summary generation before opening this page.</p>
-        <button type="button" className="button button-primary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Return to Analyze</button>
+        <button type="button" className="button button-primary" onClick={() => navigate("/analyze")}><ArrowLeft size={17} /> Return to Analyze</button>
       </div>
     );
   }
@@ -102,7 +103,7 @@ export default function ReportPage() {
       </div>
 
       <div className="page-footer-actions">
-        <button type="button" className="button button-secondary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Back to Analyze</button>
+        <button type="button" className="button button-secondary" onClick={() => navigate("/analyze")}><ArrowLeft size={17} /> Back to Analyze</button>
       </div>
     </div>
   );

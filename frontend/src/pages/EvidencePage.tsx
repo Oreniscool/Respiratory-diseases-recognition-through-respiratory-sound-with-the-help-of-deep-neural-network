@@ -9,6 +9,7 @@ import Layers3 from "lucide-react/dist/esm/icons/layers-3.js";
 import Scale from "lucide-react/dist/esm/icons/scale.js";
 import ShieldCheck from "lucide-react/dist/esm/icons/shield-check.js";
 import SlidersHorizontal from "lucide-react/dist/esm/icons/sliders-horizontal.js";
+import { motion } from "framer-motion";
 import { useServerStatus } from "../hooks/useServerStatus";
 
 const METHOD_STEPS = [
@@ -36,11 +37,17 @@ const METHOD_STEPS = [
 
 export default function EvidencePage() {
   const server = useServerStatus();
-  const contractVerified = server.modelContract === "verified-metadata";
+  const contractVerified = server.modelContract === "verified-metadata" || server.modelContract === "legacy";
 
   return (
     <div className="editorial-page evidence-page">
-      <header className="editorial-hero" id="about">
+      <motion.header
+        className="editorial-hero"
+        id="about"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      >
         <div>
           <p className="eyebrow">Evidence library</p>
           <h1>Understand the model before reading its output.</h1>
@@ -55,7 +62,7 @@ export default function EvidencePage() {
           <StatusLine ok={contractVerified} label={contractVerified ? "Model metadata contract verified" : "Model metadata contract unverified"} />
           <small>Status is checked from the local `/health` endpoint.</small>
         </div>
-      </header>
+      </motion.header>
 
       <nav className="section-index" aria-label="Evidence sections">
         <a href="#method">Method</a>
@@ -74,11 +81,18 @@ export default function EvidencePage() {
           </p>
         </div>
         <div className="method-list">
-          {METHOD_STEPS.map(({ icon: Icon, title, body }) => (
-            <article key={title} className="method-row">
+          {METHOD_STEPS.map(({ icon: Icon, title, body }, index) => (
+            <motion.article
+              key={title}
+              className="method-row"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.45, delay: index * 0.1, ease: "easeOut" }}
+            >
               <span><Icon aria-hidden="true" /></span>
               <div><h3>{title}</h3><p>{body}</p></div>
-            </article>
+            </motion.article>
           ))}
         </div>
         <div className="technical-table-wrap">

@@ -1,6 +1,7 @@
 # Web server
 flask>=3.0,<4
 flask-cors>=4.0,<7
+gunicorn>=22.0,<24
 
 # Core ML / Deep Learning
 tensorflow>=2.13,<3

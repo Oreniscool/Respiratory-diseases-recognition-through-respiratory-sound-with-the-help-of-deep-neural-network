@@ -22,10 +22,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy backend source code and model files
 COPY . .
 
+RUN useradd --create-home --uid 10001 respinet && chown -R respinet:respinet /app
+USER respinet
+
 EXPOSE 5000
 
 # Healthcheck endpoint
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+    CMD curl -f http://localhost:5000/ready || exit 1
 
-CMD ["python", "server.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "120", "wsgi:app"]

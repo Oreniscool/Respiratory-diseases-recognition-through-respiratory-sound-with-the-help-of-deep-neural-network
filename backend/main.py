@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import random
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -19,7 +20,18 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-from evaluate import evaluate_model, evaluate_patient_level
+from calibration import apply_temperature, fit_abstention_policy, fit_temperature
+from dataset_provenance import (
+    assert_three_way_class_support,
+    build_dataset_audit,
+    load_and_validate_provenance,
+)
+from evaluate import (
+    aggregate_probabilities_by_group,
+    bootstrap_patient_confidence_intervals,
+    evaluate_model,
+    evaluate_patient_level,
+)
 from featureExtraction import AudioRecord, build_manifest, extract_manifest
 from preprocessing import DEFAULT_PREPROCESSING
 
@@ -28,6 +40,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train RespiNet without patient leakage")
     parser.add_argument("--dataset-dir", default="dataset/ICBHI_final_dataset")
     parser.add_argument("--diagnosis-csv", default="patient_diagnosis.csv")
+    parser.add_argument(
+        "--dataset-provenance",
+        default="dataset_provenance.json",
+        help="Authorized dataset provenance JSON containing the diagnosis checksum",
+    )
     parser.add_argument("--output-dir", default="artifacts/latest")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--test-size", type=float, default=0.20)
@@ -35,6 +52,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--healthy-class-multiplier", type=float, default=1.0)
+    parser.add_argument("--bootstrap-samples", type=int, default=1_000)
+    parser.add_argument("--abstention-coverage", type=float, default=0.80)
     parser.add_argument(
         "--source-revision",
         default=os.getenv("RESPINET_SOURCE_REVISION", "unknown"),
@@ -73,6 +92,8 @@ def split_by_patient(
         previous = patient_labels.setdefault(record.patient_id, record.disease)
         if previous != record.disease:
             raise ValueError(f"Patient {record.patient_id} has multiple labels")
+
+    assert_three_way_class_support(patient_labels)
 
     patient_ids = np.asarray(sorted(patient_labels))
     labels = np.asarray([patient_labels[int(patient_id)] for patient_id in patient_ids])
@@ -139,6 +160,7 @@ def run_training(args: argparse.Namespace) -> None:
         raise FileNotFoundError(
             f"Diagnosis CSV not found: {diagnosis_path}. Refusing to create synthetic labels."
         )
+    provenance = load_and_validate_provenance(diagnosis_path, args.dataset_provenance)
     diagnoses = pd.read_csv(diagnosis_path)
     records = build_manifest(
         args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient
@@ -153,6 +175,9 @@ def run_training(args: argparse.Namespace) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest_hash = _write_split_manifest(splits, output_dir)
+    dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
+    with (output_dir / "dataset_audit.json").open("w", encoding="utf-8") as handle:
+        json.dump(dataset_audit, handle, indent=2)
 
     print("Patient-level split summary:")
     split_summary = {}
@@ -211,18 +236,49 @@ def run_training(args: argparse.Namespace) -> None:
         healthy_class_multiplier=args.healthy_class_multiplier,
     )
 
-    test_probabilities = np.asarray(model.predict(test_data.X, verbose=0))
+    validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))
+    validation_targets, validation_probabilities, _ = aggregate_probabilities_by_group(
+        y_validation, validation_raw_probabilities, validation_data.source_paths
+    )
+    calibration = fit_temperature(validation_targets, validation_probabilities)
+    calibration["abstention"] = fit_abstention_policy(
+        apply_temperature(validation_probabilities, calibration["temperature"]),
+        target_coverage=args.abstention_coverage,
+    )
+    with (output_dir / "calibration.json").open("w", encoding="utf-8") as handle:
+        json.dump(calibration, handle, indent=2)
+
+    test_window_probabilities = np.asarray(model.predict(test_data.X, verbose=0))
+    test_targets, test_probabilities, test_sources = aggregate_probabilities_by_group(
+        y_test, test_window_probabilities, test_data.source_paths
+    )
+    test_probabilities = apply_temperature(test_probabilities, calibration["temperature"])
+    source_patient_ids = np.asarray(
+        [
+            test_data.patient_ids[np.flatnonzero(test_data.source_paths == source)[0]]
+            for source in test_sources
+        ],
+        dtype=np.int64,
+    )
     metrics = {
-        "recording_level": evaluate_model(y_test, test_probabilities, class_names),
+        "recording_level": evaluate_model(test_targets, test_probabilities, class_names),
         "patient_level": evaluate_patient_level(
-            y_test, test_probabilities, test_data.patient_ids, class_names
+            test_targets, test_probabilities, source_patient_ids, class_names
+        ),
+        "patient_bootstrap_confidence_intervals": bootstrap_patient_confidence_intervals(
+            test_targets,
+            test_probabilities,
+            source_patient_ids,
+            class_names,
+            samples=args.bootstrap_samples,
+            seed=args.seed,
         ),
     }
     with (output_dir / "test_metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2)
 
     metadata = {
-        "schema_version": 1,
+        "schema_version": 2,
         "source_revision": args.source_revision,
         "model_filename": model_path.name,
         "model_sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
@@ -233,12 +289,29 @@ def run_training(args: argparse.Namespace) -> None:
             "test_size": args.test_size,
             "validation_size": args.validation_size,
             "augmentation": not args.no_augmentation,
+            "windowing": {
+                "window_frames": DEFAULT_PREPROCESSING.max_len,
+                "hop_frames": DEFAULT_PREPROCESSING.window_hop,
+                "aggregation": "mean calibrated probability across all windows",
+            },
             "healthy_class_multiplier": args.healthy_class_multiplier,
             "class_weights": class_weights,
             "split_manifest_sha256": manifest_hash,
             "excluded_patient_ids": args.exclude_patient,
         },
         "evaluation_file": "test_metrics.json",
+        "calibration_file": "calibration.json",
+        "data_provenance": {
+            "dataset_audit_file": "dataset_audit.json",
+            "diagnosis_sha256": dataset_audit["diagnosis_sha256"],
+            "audio_inventory_sha256": dataset_audit["audio_inventory_sha256"],
+        },
+        "uncertainty": calibration["abstention"],
+        "runtime": {
+            "python_version": sys.version,
+            "numpy_version": np.__version__,
+            "platform": sys.platform,
+        },
         "limitations": [
             "Research use only; not clinically validated.",
             "Evaluation is limited to the configured ICBHI patient split.",

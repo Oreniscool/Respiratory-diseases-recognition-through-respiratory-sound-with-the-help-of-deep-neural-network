@@ -25,7 +25,7 @@ export default function ExplainabilityPage() {
         <p className="eyebrow">Experimental attribution</p>
         <h1>An uploaded or recorded analysis is required.</h1>
         <p>Dataset examples are processed remotely and do not expose the source audio needed for this view.</p>
-        <button type="button" className="button button-primary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Return to Analyze</button>
+        <button type="button" className="button button-primary" onClick={() => navigate("/analyze")}><ArrowLeft size={17} /> Return to Analyze</button>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function ExplainabilityPage() {
         </>
       )}
 
-      <div className="page-footer-actions"><button type="button" className="button button-secondary" onClick={() => navigate("/")}><ArrowLeft size={17} /> Back to Analyze</button></div>
+      <div className="page-footer-actions"><button type="button" className="button button-secondary" onClick={() => navigate("/analyze")}><ArrowLeft size={17} /> Back to Analyze</button></div>
     </div>
   );
 }
