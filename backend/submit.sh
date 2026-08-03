@@ -1,0 +1,88 @@
+#!/bin/bash
+#SBATCH --job-name=respinet_train
+#SBATCH --partition=general
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem=64G
+#SBATCH --gres=gpu:1
+#SBATCH --time=1-00:00:00
+#SBATCH --output=%x_%j.out
+#SBATCH --error=%x_%j.err
+
+# ---------------------------------------------------------------------------
+# RespiNet Training Job — SPIT GPU Cluster
+# Respiratory Disease Recognition via Deep Neural Network
+# ---------------------------------------------------------------------------
+
+LOGFILE="respinet_train_${SLURM_JOB_ID}.log"
+
+# Redirect all output to log file as well as stdout/stderr
+exec > >(tee -a "$LOGFILE") 2>&1
+
+echo "===================================="
+echo "JOB START: RespiNet Training"
+date
+echo "Job ID:    $SLURM_JOB_ID"
+echo "Node:      $SLURMD_NODENAME"
+echo "===================================="
+
+# ---------------------------------------------------------------------------
+# 1. Load Python module (managed by the cluster — do NOT install manually)
+# ---------------------------------------------------------------------------
+echo "[1/5] Loading Python 3.11 module..."
+module load python/3.11.14
+
+# ---------------------------------------------------------------------------
+# 2. Set up a fast virtual environment using uv
+#    The env is stored in the project directory so it persists between jobs.
+# ---------------------------------------------------------------------------
+ENV_DIR="respinet_env"
+
+if [ ! -d "$ENV_DIR" ]; then
+    echo "[2/5] Creating virtual environment at $ENV_DIR ..."
+    uv venv "$ENV_DIR"
+else
+    echo "[2/5] Virtual environment already exists — skipping creation."
+fi
+
+source "$ENV_DIR/bin/activate"
+
+# ---------------------------------------------------------------------------
+# 3. Install / sync dependencies from requirements.txt
+# ---------------------------------------------------------------------------
+echo "[3/5] Installing dependencies..."
+uv pip install -r requirements.txt
+
+# ---------------------------------------------------------------------------
+# 4. Verify GPU is visible
+# ---------------------------------------------------------------------------
+echo "[4/5] Checking GPU availability..."
+nvidia-smi
+python - <<'PYEOF'
+import tensorflow as tf
+gpus = tf.config.list_physical_devices('GPU')
+print(f"TensorFlow version : {tf.__version__}")
+print(f"GPUs visible       : {gpus}")
+if not gpus:
+    raise RuntimeError("No GPUs detected by TensorFlow — aborting job.")
+PYEOF
+
+# ---------------------------------------------------------------------------
+# 5. Run training
+#    Adjust --dataset-dir to wherever you have placed the ICBHI dataset.
+#    All other defaults from main.py are used unless overridden here.
+# ---------------------------------------------------------------------------
+echo "[5/5] Starting RespiNet training..."
+python main.py \
+    --dataset-dir    "dataset/ICBHI_final_dataset" \
+    --diagnosis-csv  "patient_diagnosis.csv" \
+    --output-dir     "artifacts/run_${SLURM_JOB_ID}" \
+    --epochs         50 \
+    --batch-size     32 \
+    --seed           42
+
+echo "===================================="
+echo "JOB END"
+date
+echo "===================================="
