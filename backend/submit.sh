@@ -73,9 +73,16 @@ PYEOF
 #    Adjust --dataset-dir to wherever you have placed the ICBHI dataset.
 #    All other defaults from main.py are used unless overridden here.
 # ---------------------------------------------------------------------------
+# Resolve dataset directory path
+DATASET_PATH="dataset/ICBHI_final_dataset"
+if [ ! -d "$DATASET_PATH" ] && [ -d "$HOME/dataset/ICBHI_final_dataset" ]; then
+    DATASET_PATH="$HOME/dataset/ICBHI_final_dataset"
+    echo "[INFO] Using dataset from home directory: $DATASET_PATH"
+fi
+
 echo "[5/5] Starting RespiNet training..."
 python main.py \
-    --dataset-dir    "dataset/ICBHI_final_dataset" \
+    --dataset-dir    "$DATASET_PATH" \
     --diagnosis-csv  "patient_diagnosis.csv" \
     --output-dir     "artifacts/run_${SLURM_JOB_ID}" \
     --epochs         50 \

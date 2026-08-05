@@ -32,6 +32,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
 DATASET_ROOT="dataset"
+if ! mkdir -p "$DATASET_ROOT" 2>/dev/null; then
+    DATASET_ROOT="$HOME/dataset"
+    echo "[INFO] Current directory is not writable by user '$USER'. Falling back to '$DATASET_ROOT'."
+fi
+
 TARGET_DIR="${DATASET_ROOT}/ICBHI_final_dataset"
 ZIP_FILE="${DATASET_ROOT}/icbhi-2017-challenge.zip"
 DATASET_URL="https://www.kaggle.com/api/v1/datasets/download/husninm/icbhi-2017-challenge"
