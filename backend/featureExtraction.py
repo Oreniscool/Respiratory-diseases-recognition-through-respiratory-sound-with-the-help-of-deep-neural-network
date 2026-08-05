@@ -132,10 +132,9 @@ def build_manifest_from_folders(
         else:
             disease = "Unknown"
 
-        try:
-            patient_id = int(path.stem.split("_")[0])
-        except (ValueError, IndexError):
-            patient_id = 100000 + (abs(hash(path.name)) % 800000)
+        # Generate a unique deterministic patient_id based on relative file path
+        # to prevent cross-class ID collisions (e.g. Asthma/1.wav vs Healthy/1.wav)
+        patient_id = 100000 + (abs(hash(path.as_posix())) % 800000)
 
         if patient_id in excluded:
             continue
