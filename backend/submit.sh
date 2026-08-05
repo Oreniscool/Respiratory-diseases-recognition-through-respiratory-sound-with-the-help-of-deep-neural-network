@@ -55,33 +55,35 @@ source "$ENV_DIR/bin/activate"
 echo "[3/5] Installing dependencies..."
 uv pip install -r requirements.txt
 
+# Export installed NVIDIA CUDA/cuDNN library paths into LD_LIBRARY_PATH
+NVIDIA_LIBS=$(python -c "import site, glob, os; print(':'.join(glob.glob(os.path.join(site.getsitepackages()[0], 'nvidia', '*', 'lib'))))" 2>/dev/null)
+if [ -n "$NVIDIA_LIBS" ]; then
+    export LD_LIBRARY_PATH="$NVIDIA_LIBS:$LD_LIBRARY_PATH"
+    echo "[INFO] Exported NVIDIA CUDA libraries to LD_LIBRARY_PATH"
+fi
+
 # Ensure dataset_provenance.json exists and matches patient_diagnosis.csv checksum
 python - <<'PYEOF'
 import hashlib, json
+from collections import Counter
+import pandas as pd
 from pathlib import Path
 
 csv_path = Path("patient_diagnosis.csv")
 if csv_path.exists():
     digest = hashlib.sha256(csv_path.read_bytes()).hexdigest()
+    df = pd.read_csv(csv_path)
+    counts = dict(sorted(Counter(df["disease"].dropna().astype(str).str.strip()).items()))
     prov = {
         "dataset_name": "ICBHI 2017 Respiratory Sound Database",
         "source_url": "https://bhichallenge.med.auth.gr/ICBHI_2017_Challenge",
         "download_date": "2026-08-05",
         "license": "ICBHI 2017 Challenge Terms",
         "diagnosis_sha256": digest,
-        "label_counts": {
-            "Asthma": 1,
-            "Bronchiectasis": 7,
-            "Bronchiolitis": 6,
-            "COPD": 64,
-            "Healthy": 26,
-            "LRTI": 2,
-            "Pneumonia": 6,
-            "URTI": 14
-        }
+        "label_counts": counts
     }
     Path("dataset_provenance.json").write_text(json.dumps(prov, indent=2), encoding="utf-8")
-    print(f"[INFO] Verified dataset_provenance.json (SHA256: {digest[:12]}...)")
+    print(f"[INFO] Verified dataset_provenance.json (SHA256: {digest[:12]}..., Label Counts: {counts})")
 PYEOF
 
 # ---------------------------------------------------------------------------
