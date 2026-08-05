@@ -22,6 +22,49 @@ from sklearn.utils import class_weight
 from model import instantiate_model
 
 
+import tensorflow as tf
+from tensorflow.keras.losses import CategoricalCrossentropy
+from tensorflow.keras.optimizers.schedules import CosineDecay
+
+
+@tf.keras.utils.register_keras_serializable(package="respinet")
+class CategoricalFocalLoss(tf.keras.losses.Loss):
+    def __init__(
+        self,
+        gamma: float = 2.0,
+        alpha: float = 0.25,
+        label_smoothing: float = 0.1,
+        name: str = "categorical_focal_loss",
+    ):
+        super().__init__(name=name)
+        self.gamma = float(gamma)
+        self.alpha = float(alpha)
+        self.label_smoothing = float(label_smoothing)
+
+    def call(self, y_true, y_pred):
+        y_true = tf.cast(y_true, tf.float32)
+        y_pred = tf.cast(y_pred, tf.float32)
+        num_classes = tf.cast(tf.shape(y_true)[-1], tf.float32)
+
+        if self.label_smoothing > 0.0:
+            y_true = y_true * (1.0 - self.label_smoothing) + (self.label_smoothing / num_classes)
+
+        epsilon = tf.keras.backend.epsilon()
+        y_pred = tf.clip_by_value(y_pred, epsilon, 1.0 - epsilon)
+
+        cross_entropy = -y_true * tf.math.log(y_pred)
+        weight = self.alpha * y_true * tf.math.pow(1.0 - y_pred, self.gamma)
+        focal_loss = weight * cross_entropy
+        return tf.reduce_sum(focal_loss, axis=-1)
+
+    def get_config(self):
+        return {
+            "gamma": self.gamma,
+            "alpha": self.alpha,
+            "label_smoothing": self.label_smoothing,
+        }
+
+
 def train_model(
     x_train: np.ndarray,
     y_train: np.ndarray,
@@ -34,6 +77,9 @@ def train_model(
     learning_rate: float = 1e-3,
     healthy_class_index: int | None = None,
     healthy_class_multiplier: float = 1.0,
+    use_focal_loss: bool = True,
+    label_smoothing: float = 0.1,
+    gamma: float = 2.0,
 ) -> tuple[Model, object, Path, dict[int, float]]:
     """Train a model using validation data only for model selection."""
     if x_train.ndim != 3 or x_val.ndim != 3:
@@ -51,10 +97,24 @@ def train_model(
     input_sample = Input(shape=(x_train.shape[1], x_train.shape[2]))
     output = instantiate_model(input_sample, y_train.shape[1])
     model = Model(inputs=input_sample, outputs=output)
+
+    steps_per_epoch = max(1, int(np.ceil(x_train.shape[0] / batch_size)))
+    total_steps = steps_per_epoch * epochs
+    lr_schedule = CosineDecay(
+        initial_learning_rate=learning_rate,
+        decay_steps=total_steps,
+        alpha=1e-2,
+    )
+
+    if use_focal_loss:
+        loss_fn = CategoricalFocalLoss(gamma=gamma, label_smoothing=label_smoothing)
+    else:
+        loss_fn = CategoricalCrossentropy(label_smoothing=label_smoothing)
+
     model.compile(
-        loss="categorical_crossentropy",
+        loss=loss_fn,
         metrics=["accuracy"],
-        optimizer=Adamax(learning_rate=learning_rate),
+        optimizer=Adamax(learning_rate=lr_schedule),
     )
     with (output_dir / "model_summary.txt").open("w", encoding="utf-8") as handle:
         model.summary(print_fn=lambda line: handle.write(f"{line}\n"))
@@ -82,13 +142,10 @@ def train_model(
         EarlyStopping(
             monitor="val_loss",
             min_delta=0.001,
-            patience=10,
+            patience=12,
             mode="min",
             restore_best_weights=True,
             verbose=1,
-        ),
-        ReduceLROnPlateau(
-            monitor="val_loss", mode="min", factor=0.3, patience=4, min_lr=1e-6
         ),
         CSVLogger(output_dir / "training_history.csv"),
     ]

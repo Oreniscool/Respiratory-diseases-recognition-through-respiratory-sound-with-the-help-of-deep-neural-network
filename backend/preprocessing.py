@@ -14,6 +14,9 @@ import librosa
 import numpy as np
 
 
+from scipy.signal import butter, sosfiltfilt
+
+
 @dataclass(frozen=True)
 class PreprocessingConfig:
     sample_rate: int = 22_050
@@ -24,6 +27,10 @@ class PreprocessingConfig:
     hop_length: int = 512
     n_fft: int = 2_048
     res_type: str = "kaiser_fast"
+    use_bandpass: bool = True
+    lowcut: float = 100.0
+    highcut: float = 2000.0
+    use_cmvn: bool = True
 
     @property
     def feature_dim(self) -> int:
@@ -39,6 +46,30 @@ class PreprocessingConfig:
 
 
 DEFAULT_PREPROCESSING = PreprocessingConfig()
+
+
+def apply_bandpass_filter(
+    data: np.ndarray,
+    sample_rate: int,
+    lowcut: float = 100.0,
+    highcut: float = 2000.0,
+    order: int = 4,
+) -> np.ndarray:
+    nyquist = 0.5 * sample_rate
+    low = max(lowcut / nyquist, 1e-4)
+    high = min(highcut / nyquist, 0.9999)
+    if low >= high or data.size < 16:
+        return data
+    sos = butter(order, [low, high], btype="bandpass", output="sos")
+    filtered = sosfiltfilt(sos, data)
+    return filtered.astype(np.float32, copy=False)
+
+
+def apply_cmvn(features: np.ndarray, eps: float = 1e-8) -> np.ndarray:
+    """Apply Cepstral Mean and Variance Normalization across time steps."""
+    mean = np.mean(features, axis=0, keepdims=True)
+    std = np.std(features, axis=0, keepdims=True)
+    return ((features - mean) / (std + eps)).astype(np.float32, copy=False)
 
 
 def load_audio(
@@ -77,6 +108,11 @@ def extract_feature_sequence(
     if data.size == 0:
         raise ValueError("Cannot extract features from empty audio")
 
+    if config.use_bandpass:
+        data = apply_bandpass_filter(
+            data, sample_rate, lowcut=config.lowcut, highcut=config.highcut
+        )
+
     mfcc = librosa.feature.mfcc(
         y=data,
         sr=sample_rate,
@@ -91,6 +127,9 @@ def extract_feature_sequence(
         )
 
     features = np.vstack(feature_blocks).T
+    if config.use_cmvn:
+        features = apply_cmvn(features)
+
     if not np.isfinite(features).all():
         raise ValueError("Feature extraction produced non-finite values")
     return features.astype(np.float32, copy=False)

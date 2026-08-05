@@ -125,12 +125,15 @@ if [ ! -d "$DATASET_PATH" ] && [ -d "$HOME/dataset/ICBHI_final_dataset" ]; then
     echo "[INFO] Using dataset from home directory: $DATASET_PATH"
 fi
 
-echo "[5/5] Starting RespiNet training..."
+echo "[5/5] Starting RespiNet training with 4-class grouping, bandpass filtering, and focal loss..."
 python main.py \
     --dataset-dir        "$DATASET_PATH" \
     --diagnosis-csv      "patient_diagnosis.csv" \
     --dataset-provenance "dataset_provenance.json" \
     --output-dir         "artifacts/run_${SLURM_JOB_ID}" \
+    --group-classes      "4-class" \
+    --use-focal-loss \
+    --label-smoothing    0.1 \
     --epochs             50 \
     --batch-size         32 \
     --seed               42

@@ -7,6 +7,7 @@ from tensorflow.keras.layers import (
     LeakyReLU,
     Layer,
     LayerNormalization,
+    SpatialDropout1D,
 )
 import tensorflow as tf
 
@@ -31,33 +32,18 @@ class MaskedGlobalAveragePooling1D(Layer):
         return total / count
 
 def instantiate_model(in_, num_classes):
-
-    """
-
-    Architecture of the Deep Learning Model.
-
-    Args:
-
-        in_: input tensor shape
-        num_classes: number of output classes
-
-    Returns: Tensor model
-
-    """
-    # Layer normalization leaves all-zero padding untouched. The same mask is
-    # passed to both GRUs and the pooling layer, preventing padded frames from
-    # contributing to recurrent state or the final average.
+    """Architecture of the Deep Learning Model."""
     mask = FeatureValidityMask()(in_)
     x = LayerNormalization()(in_)
 
-    l2_reg = tf.keras.regularizers.l2(1e-4)
+    l2_reg = tf.keras.regularizers.l2(1e-3)
     x = Conv1D(64, kernel_size=5, padding='same', activation=None, kernel_regularizer=l2_reg)(x)
     x = LeakyReLU()(x)
-    x = Dropout(0.2)(x)
+    x = SpatialDropout1D(0.2)(x)
 
     x = Conv1D(64, kernel_size=3, padding='same', activation=None, kernel_regularizer=l2_reg)(x)
     x = LeakyReLU()(x)
-    x = Dropout(0.2)(x)
+    x = SpatialDropout1D(0.2)(x)
 
     x = Bidirectional(GRU(64, return_sequences=True, activation=None, kernel_regularizer=l2_reg))(x, mask=mask)
     x = LeakyReLU()(x)

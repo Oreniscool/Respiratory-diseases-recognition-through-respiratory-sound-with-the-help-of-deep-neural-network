@@ -74,6 +74,24 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Write and validate patient splits without feature extraction or training",
     )
+    parser.add_argument(
+        "--group-classes",
+        choices=["4-class", "none"],
+        default="4-class",
+        help="Map rare ICBHI classes into balanced categories (4-class or none)",
+    )
+    parser.add_argument(
+        "--use-focal-loss",
+        action="store_true",
+        default=True,
+        help="Use Categorical Focal Loss instead of standard cross entropy",
+    )
+    parser.add_argument(
+        "--label-smoothing",
+        type=float,
+        default=0.1,
+        help="Label smoothing factor (default: 0.1)",
+    )
     return parser.parse_args()
 
 
@@ -162,6 +180,10 @@ def run_training(args: argparse.Namespace) -> None:
         )
     provenance = load_and_validate_provenance(diagnosis_path, args.dataset_provenance)
     diagnoses = pd.read_csv(diagnosis_path)
+    if args.group_classes != "none":
+        diagnoses["disease"] = diagnoses["disease"].apply(
+            lambda d: map_disease_labels(d, group_mode=args.group_classes)
+        )
     records = build_manifest(
         args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient
     )
@@ -244,6 +266,8 @@ def run_training(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         healthy_class_index=healthy_index,
         healthy_class_multiplier=args.healthy_class_multiplier,
+        use_focal_loss=args.use_focal_loss,
+        label_smoothing=args.label_smoothing,
     )
 
     validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))

@@ -219,9 +219,12 @@ dataset.
 
 Detailed documentation is available in the [`documentation/`](documentation/) directory:
 
+- [**Documentation Index**](documentation/README.md)
+- [**Dataset Optimization & Accuracy Improvement Plan**](documentation/DATASET_AND_ACCURACY_OPTIMIZATION_PLAN.md) — *Resolving Run 1241 overfitting, skewness & noise issues*
 - [`documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md`](documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md)
 - [`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md)
 - [`documentation/MODEL_CARD.md`](documentation/MODEL_CARD.md)
+- [`documentation/KAGGLE_TRAINING_GUIDE.md`](documentation/KAGGLE_TRAINING_GUIDE.md)
 - [`documentation/SECURITY.md`](documentation/SECURITY.md)
 - [`documentation/design.md`](documentation/design.md)
 - [`documentation/design-qa.md`](documentation/design-qa.md)

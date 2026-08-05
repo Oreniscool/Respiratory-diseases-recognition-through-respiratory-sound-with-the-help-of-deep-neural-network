@@ -116,6 +116,25 @@ def build_dataset_audit(
     }
 
 
+LABEL_MAPPING_4CLASS = {
+    "COPD": "COPD",
+    "Healthy": "Healthy",
+    "Bronchiectasis": "Non_COPD_Chronic",
+    "Asthma": "Non_COPD_Chronic",
+    "URTI": "Acute_Infection",
+    "Pneumonia": "Acute_Infection",
+    "Bronchiolitis": "Acute_Infection",
+    "LRTI": "Acute_Infection",
+}
+
+
+def map_disease_labels(disease: str, group_mode: str = "4-class") -> str:
+    """Map rare ICBHI disease labels into balanced task categories."""
+    if group_mode == "4-class":
+        return LABEL_MAPPING_4CLASS.get(disease, disease)
+    return disease
+
+
 def assert_three_way_class_support(patient_labels: dict[int, str]) -> None:
     """Reject label sets that cannot occupy train, validation, and test patients."""
     counts = Counter(patient_labels.values())
