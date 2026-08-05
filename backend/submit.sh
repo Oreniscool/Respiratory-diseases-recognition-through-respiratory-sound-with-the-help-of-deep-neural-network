@@ -56,10 +56,11 @@ echo "[3/5] Installing dependencies..."
 uv pip install -r requirements.txt
 
 # Export installed NVIDIA CUDA/cuDNN library paths into LD_LIBRARY_PATH
-NVIDIA_LIBS=$(python -c "import site, glob, os; print(':'.join(glob.glob(os.path.join(site.getsitepackages()[0], 'nvidia', '*', 'lib'))))" 2>/dev/null)
+NVIDIA_LIBS=$(python -c "import site, glob, os; dirs = glob.glob(os.path.join(site.getsitepackages()[0], 'nvidia', '*', 'lib')); print(':'.join(dirs))" 2>/dev/null)
 if [ -n "$NVIDIA_LIBS" ]; then
-    export LD_LIBRARY_PATH="$NVIDIA_LIBS:$LD_LIBRARY_PATH"
-    echo "[INFO] Exported NVIDIA CUDA libraries to LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$NVIDIA_LIBS:/usr/local/cuda/lib64:/usr/lib64:$LD_LIBRARY_PATH"
+    echo "[INFO] Exported NVIDIA CUDA library paths into LD_LIBRARY_PATH:"
+    echo "       $NVIDIA_LIBS"
 fi
 
 # Ensure dataset_provenance.json exists and matches patient_diagnosis.csv checksum
@@ -92,12 +93,21 @@ PYEOF
 echo "[4/5] Checking GPU availability..."
 nvidia-smi
 python - <<'PYEOF'
+import ctypes
 import tensorflow as tf
-gpus = tf.config.list_physical_devices('GPU')
+
 print(f"TensorFlow version : {tf.__version__}")
+gpus = tf.config.list_physical_devices('GPU')
 print(f"GPUs visible       : {gpus}")
+
 if not gpus:
-    print("WARNING: TensorFlow did not detect GPU device directly. Checking CUDA environment...")
+    print("[DIAGNOSTIC] TensorFlow did not register GPU. Auditing CUDA libraries in LD_LIBRARY_PATH...")
+    for lib in ["libcudart.so.12", "libcudnn.so.9", "libcublas.so.12", "libcufft.so.11", "libcurand.so.10", "libcusolver.so.11", "libcusparse.so.12", "libnccl.so.2"]:
+        try:
+            ctypes.CDLL(lib)
+            print(f"  ✓ Loaded {lib}")
+        except Exception as err:
+            print(f"  ✗ Failed {lib}: {err}")
 PYEOF
 
 # ---------------------------------------------------------------------------
