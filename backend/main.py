@@ -25,6 +25,7 @@ from dataset_provenance import (
     assert_three_way_class_support,
     build_dataset_audit,
     load_and_validate_provenance,
+    map_disease_labels,
 )
 from evaluate import (
     aggregate_probabilities_by_group,
