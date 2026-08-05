@@ -97,48 +97,54 @@ def build_manifest(
     return records
 
 
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".ogg", ".aac"}
+
+
 def build_manifest_from_folders(
     directory: str | Path,
     excluded_patient_ids: Iterable[int] = (),
 ) -> list[AudioRecord]:
-    """Build a manifest from subdirectories where each subdirectory name is a disease label."""
+    """Build a manifest from subdirectories where each class folder contains audio files."""
     directory = Path(directory)
     if not directory.is_dir():
         raise FileNotFoundError(f"Dataset directory not found: {directory}")
 
     excluded = {int(patient_id) for patient_id in excluded_patient_ids}
+
+    # Find all audio files recursively inside directory
+    all_audio_paths = [
+        p for p in directory.rglob("*")
+        if p.is_file() and p.suffix.lower() in AUDIO_EXTENSIONS
+    ]
+
+    if not all_audio_paths:
+        raise ValueError(
+            f"No audio files ({', '.join(sorted(AUDIO_EXTENSIONS))}) found in {directory}"
+        )
+
     records: list[AudioRecord] = []
-    patient_counter = 1000
 
-    subdirs = sorted([d for d in directory.iterdir() if d.is_dir()])
-    if not subdirs:
-        audio_files = sorted(
-            list(directory.glob("*.wav")) + list(directory.glob("*.mp3")) + list(directory.glob("*.flac"))
-        )
-        for path in audio_files:
-            patient_counter += 1
-            if patient_counter in excluded:
-                continue
-            records.append(AudioRecord(path=path, patient_id=patient_counter, disease="Unknown"))
-        return records
+    for path in sorted(all_audio_paths):
+        rel = path.relative_to(directory)
+        parts = rel.parts
+        if len(parts) > 1:
+            disease = parts[-2]
+        else:
+            disease = "Unknown"
 
-    for subdir in subdirs:
-        disease = subdir.name.strip()
-        audio_files = sorted(
-            list(subdir.glob("*.wav")) + list(subdir.glob("*.mp3")) + list(subdir.glob("*.flac"))
-        )
-        for path in audio_files:
-            try:
-                patient_id = int(path.stem.split("_")[0])
-            except (ValueError, IndexError):
-                patient_id = 100000 + (abs(hash(path.name)) % 800000)
+        try:
+            patient_id = int(path.stem.split("_")[0])
+        except (ValueError, IndexError):
+            patient_id = 100000 + (abs(hash(path.name)) % 800000)
 
-            if patient_id in excluded:
-                continue
-            records.append(AudioRecord(path=path, patient_id=patient_id, disease=disease))
+        if patient_id in excluded:
+            continue
+
+        records.append(AudioRecord(path=path, patient_id=patient_id, disease=disease))
 
     if not records:
-        raise ValueError(f"No audio files (.wav, .mp3, .flac) found in subdirectories of {directory}")
+        raise ValueError(f"No valid audio records found after exclusions in {directory}")
+
     return records
 
 

@@ -41,32 +41,34 @@ fi
 mkdir -p "$DATASET_ROOT"
 
 download_archive() {
-    local url="$1"
-    local target_zip="$2"
-    local extract_dir="$3"
-    local name="$4"
+    local slug="$1"
+    local url="$2"
+    local target_zip="$3"
+    local extract_dir="$4"
+    local name="$5"
 
     echo "------------------------------------"
     echo "[1/3] Downloading $name..."
-    echo "URL: $url"
     mkdir -p "$extract_dir"
 
-    if command -v kaggle >/dev/null 2>&1 && [[ "$url" == kaggle:* ]]; then
-        local slug="${url#kaggle:}"
+    # Try Kaggle CLI first if available
+    if command -v kaggle >/dev/null 2>&1; then
         echo "Using Kaggle CLI to download $slug..."
-        kaggle datasets download -d "$slug" -p "$DATASET_ROOT" --unzip 2>/dev/null || true
+        kaggle datasets download -d "$slug" -p "$extract_dir" --unzip 2>/dev/null || true
     fi
 
-    if [ "$(find "$extract_dir" -type f \( -name "*.wav" -o -name "*.mp3" -o -name "*.flac" \) | wc -l)" -eq 0 ]; then
+    # Fallback to direct curl download if no audio files extracted yet
+    if [ "$(find "$extract_dir" -type f \( -name "*.wav" -o -name "*.mp3" -o -name "*.flac" -o -name "*.WAV" -o -name "*.MP3" \) | wc -l)" -eq 0 ]; then
+        echo "Downloading via curl from $url..."
         curl -L -o "$target_zip" "$url" 2>/dev/null || wget -O "$target_zip" "$url" 2>/dev/null
         if [ -f "$target_zip" ] && [ -s "$target_zip" ]; then
             echo "[2/3] Extracting $name into $extract_dir..."
             if command -v unzip >/dev/null 2>&1; then
-                unzip -q -o "$target_zip" -d "$extract_dir"
+                unzip -q -o "$target_zip" -d "$extract_dir" 2>/dev/null || true
             else
-                python3 -c "import zipfile; zipfile.ZipFile('$target_zip').extractall('$extract_dir')"
+                python3 -c "import zipfile; zipfile.ZipFile('$target_zip').extractall('$extract_dir')" 2>/dev/null || true
             fi
-            rm -f "$target_zip"
+            rm -f "$target_zip" 2>/dev/null || true
         fi
     fi
 
@@ -90,6 +92,7 @@ download_archive() {
 
 if [[ "$CHOICE" == "asthma" || "$CHOICE" == "all" ]]; then
     download_archive \
+        "mohammedtawfikmusaed/asthma-detection-dataset-version-2" \
         "https://www.kaggle.com/api/v1/datasets/download/mohammedtawfikmusaed/asthma-detection-dataset-version-2" \
         "${DATASET_ROOT}/asthma_v2.zip" \
         "${DATASET_ROOT}/Asthma_Detection_V2" \
@@ -98,6 +101,7 @@ fi
 
 if [[ "$CHOICE" == "icbhi" || "$CHOICE" == "all" ]]; then
     download_archive \
+        "husninm/icbhi-2017-challenge" \
         "https://www.kaggle.com/api/v1/datasets/download/husninm/icbhi-2017-challenge" \
         "${DATASET_ROOT}/icbhi_2017.zip" \
         "${DATASET_ROOT}/ICBHI_final_dataset" \
