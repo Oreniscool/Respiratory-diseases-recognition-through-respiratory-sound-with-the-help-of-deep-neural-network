@@ -77,12 +77,23 @@ def load_audio(
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
 ) -> tuple[np.ndarray, int]:
     """Load mono audio at the model's explicit target sample rate."""
-    data, sample_rate = librosa.load(
-        str(path),
-        sr=config.sample_rate,
-        mono=True,
-        res_type=config.res_type,
-    )
+    try:
+        data, sample_rate = librosa.load(
+            str(path),
+            sr=config.sample_rate,
+            mono=True,
+            res_type=config.res_type,
+        )
+    except Exception:
+        try:
+            data, sample_rate = librosa.load(
+                str(path),
+                sr=config.sample_rate,
+                mono=True,
+            )
+        except Exception as e:
+            raise ValueError(f"Could not decode audio recording: {e}")
+
     if data.size == 0:
         raise ValueError("Audio contains no samples")
     if not np.isfinite(data).all():

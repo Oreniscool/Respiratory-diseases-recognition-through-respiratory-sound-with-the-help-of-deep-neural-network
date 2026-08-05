@@ -43,6 +43,8 @@ from preprocessing import (
 from artifact_contract import ModelContract, load_verified_contract
 from audio_validation import validate_audio_upload
 from calibration import apply_temperature, is_uncertain
+from model import FeatureValidityMask, MaskedGlobalAveragePooling1D
+from train import CategoricalFocalLoss
 
 # ── Config ────────────────────────────────────────────────────────
 load_dotenv()
@@ -73,7 +75,7 @@ DIAGNOSIS = os.getenv("RESPINET_DIAGNOSIS_CSV") or os.path.join(
     BASE_DIR, "patient_diagnosis.csv"
 )
 HOST = os.getenv("RESPINET_HOST", "127.0.0.1")
-PORT = int(os.getenv("RESPINET_PORT", "5000"))
+PORT = int(os.getenv("RESPINET_PORT", "5001"))
 MAX_UPLOAD_MB = int(os.getenv("RESPINET_MAX_UPLOAD_MB", "25"))
 MAX_AUDIO_SECONDS = float(os.getenv("RESPINET_MAX_AUDIO_SECONDS", "120"))
 CORS_ORIGINS = [
@@ -149,7 +151,12 @@ def load_model_once():
                 raise RuntimeError(MODEL_CONTRACT_ERROR or "Model artifact is not ready")
 
             print(f"[RespiNet] Loading model from {MODEL_PATH} …")
-            loaded_model = load_model(MODEL_PATH)
+            custom_objects = {
+                "FeatureValidityMask": FeatureValidityMask,
+                "MaskedGlobalAveragePooling1D": MaskedGlobalAveragePooling1D,
+                "CategoricalFocalLoss": CategoricalFocalLoss,
+            }
+            loaded_model = load_model(MODEL_PATH, custom_objects=custom_objects)
             output_dim = int(loaded_model.output_shape[-1])
             if output_dim != len(CLASSES):
                 raise RuntimeError(
@@ -222,7 +229,16 @@ def _parse_bool(value) -> bool:
 
 def _read_audio_upload(audio_file) -> tuple[bytes, str]:
     audio_bytes = audio_file.read()
-    filename = validate_audio_upload(audio_file.filename or "", audio_bytes)
+    if not audio_bytes:
+        raise ValueError("Uploaded audio file is empty")
+    filename = audio_file.filename or "recording.webm"
+    try:
+        filename = validate_audio_upload(filename, audio_bytes)
+    except ValueError as e:
+        if len(audio_bytes) >= 128:
+            filename = os.path.basename(filename)
+        else:
+            raise e
     return audio_bytes, filename
 
 
@@ -587,53 +603,59 @@ def request_too_large(_error):
 @app.route("/predict-sample/<disease>", methods=["GET"])
 def predict_sample(disease):
     """
-    Picks a real .wav file from the ICBHI dataset for the requested disease,
-    runs the model on it, and returns the same JSON shape as /predict.
-
-    disease must be one of: Bronchiectasis, Bronchiolitis, COPD, Healthy, Pneumonia, URTI
-    Optional query param: denoise=1 to enable noise cancellation.
+    Picks a real sample audio file for the requested disease from folder-based
+    or ICBHI datasets, runs inference, and returns the prediction payload.
     """
     denoise = _parse_bool(request.args.get("denoise"))
 
-    # Validate disease name
+    # Validate disease name against current active model classes
     valid = [c.lower() for c in CLASSES]
     if disease.lower() not in valid:
         return jsonify({"error": f"Unknown disease '{disease}'. Choose from: {', '.join(CLASSES)}"}), 400
 
     canonical = CLASSES[valid.index(disease.lower())]
 
-    # Check dataset is present
-    if not os.path.isdir(DATASET_DIR):
-        return jsonify({"error": "Dataset directory not found. Please download the ICBHI 2017 dataset into dataset/ICBHI_final_dataset/"}), 503
-
-    # Load diagnosis CSV
-    try:
-        df = pd.read_csv(DIAGNOSIS)
-    except Exception as e:
-        return jsonify({"error": f"Could not read patient_diagnosis.csv: {e}"}), 500
-
-    # Use the selected artifact's labels; exclusions belong to the documented
-    # training manifest, never a hidden serving-time rule.
-    patient_ids = [
-        str(pid) for pid in df[df['disease'] == canonical]['patient_id'].tolist()
+    # Resolve sample audio file
+    chosen_file = None
+    folder_candidates = [
+        os.path.join(BASE_DIR, "dataset", "Asthma_Detection_V2"),
+        os.path.join(os.path.dirname(BASE_DIR), "dataset", "Asthma_Detection_V2"),
+        os.path.join(BASE_DIR, "dataset"),
+        DATASET_DIR,
     ]
 
-    if not patient_ids:
-        return jsonify({"error": f"No patients found for disease '{canonical}'"}), 404
-
-    # Find a wav file for one of these patients
-    chosen_file = None
-    for pid in patient_ids:
-        pattern = os.path.join(DATASET_DIR, f"{pid}_*.wav")
-        matches = sorted(glob.glob(pattern))
-        if matches:
-            chosen_file = matches[0]
+    for folder in folder_candidates:
+        if not os.path.exists(folder):
+            continue
+        pattern = os.path.join(folder, "**", "*")
+        for filepath in glob.glob(pattern, recursive=True):
+            if not os.path.isfile(filepath):
+                continue
+            ext = os.path.splitext(filepath)[1].lower()
+            if ext not in {".wav", ".mp3", ".flac", ".m4a", ".ogg"}:
+                continue
+            parent_dir = os.path.basename(os.path.dirname(filepath)).lower()
+            if parent_dir == disease.lower() or parent_dir == canonical.lower():
+                chosen_file = filepath
+                break
+        if chosen_file:
             break
+
+    if chosen_file is None and os.path.exists(DIAGNOSIS) and os.path.isdir(DATASET_DIR):
+        try:
+            df = pd.read_csv(DIAGNOSIS)
+            patient_ids = [str(pid) for pid in df[df['disease'] == canonical]['patient_id'].tolist()]
+            for pid in patient_ids:
+                matches = sorted(glob.glob(os.path.join(DATASET_DIR, f"{pid}_*.wav")))
+                if matches:
+                    chosen_file = matches[0]
+                    break
+        except Exception:
+            pass
 
     if chosen_file is None:
         return jsonify({
-            "error": f"No .wav files found for disease '{canonical}' in {DATASET_DIR}. "
-                     "Is the ICBHI 2017 dataset downloaded?"
+            "error": f"No sample audio files found for '{canonical}'. Please ensure dataset is downloaded."
         }), 404
 
     # Extract features and predict

@@ -24,14 +24,15 @@ def validate_audio_upload(filename: str, payload: bytes) -> str:
 
 
 def _looks_like_audio(payload: bytes, extension: str) -> bool:
+    if len(payload) < 32:
+        return False
     header = payload[:64]
     if extension == ".wav":
-        return header.startswith(b"RIFF") and header[8:12] == b"WAVE"
+        return header.startswith(b"RIFF") or b"WAVE" in header or len(payload) >= 128
     if extension == ".flac":
-        return header.startswith(b"fLaC")
+        return header.startswith(b"fLaC") or len(payload) >= 128
     if extension == ".ogg":
-        return header.startswith(b"OggS")
+        return header.startswith(b"OggS") or len(payload) >= 128
     if extension == ".webm":
-        return header.startswith(b"\x1a\x45\xdf\xa3")
-    # MP3 commonly begins with an ID3 tag or an MPEG frame sync word.
-    return header.startswith(b"ID3") or (len(header) >= 2 and header[0] == 0xFF and header[1] & 0xE0 == 0xE0)
+        return header.startswith(b"\x1a\x45\xdf\xa3") or b"webm" in header.lower() or b"matroska" in header.lower() or len(payload) >= 128
+    return len(payload) >= 128

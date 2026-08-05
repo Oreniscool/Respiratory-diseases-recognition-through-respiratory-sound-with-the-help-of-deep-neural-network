@@ -1,0 +1,17 @@
+====================================
+JOB START: Dataset Download (asthma)
+Wed Aug  5 11:15:34 PM IST 2026
+Job ID:    local
+Node:      fedora
+====================================
+------------------------------------
+[1/3] Downloading Kaggle Asthma Detection Dataset V2...
+Downloading via curl from https://www.kaggle.com/api/v1/datasets/download/mohammedtawfikmusaed/asthma-detection-dataset-version-2...
+[2/3] Extracting Kaggle Asthma Detection Dataset V2 into dataset/Asthma_Detection_V2...
+Flattening inner folder: Asthma Detection Dataset Version 2...
+[3/3] Verification for Kaggle Asthma Detection Dataset V2:
+Found 1211 audio files in 'dataset/Asthma_Detection_V2'.
+====================================
+DOWNLOAD JOB COMPLETE
+Wed Aug  5 11:16:39 PM IST 2026
+====================================

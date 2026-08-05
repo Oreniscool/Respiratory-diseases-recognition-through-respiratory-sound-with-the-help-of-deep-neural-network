@@ -12,3 +12,7 @@ frontend-react/*.tsbuildinfo
 .ruff_cache
 .coverage
 htmlcov
+venv/
+.venv/
+respinet_env/
+*/venv/

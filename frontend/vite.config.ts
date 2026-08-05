@@ -6,11 +6,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/predict': 'http://localhost:5000',
-      '/predict-sample': 'http://localhost:5000',
-      '/health': 'http://localhost:5000',
-      '/explain': 'http://localhost:5000',
-      '/summarize': 'http://localhost:5000',
+      '/predict': 'http://localhost:5001',
+      '/predict-sample': 'http://localhost:5001',
+      '/health': 'http://localhost:5001',
+      '/explain': 'http://localhost:5001',
+      '/summarize': 'http://localhost:5001',
     },
   },
 })

@@ -150,6 +150,45 @@ export default function AnalyzePage() {
     setError(null);
   };
 
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const numChannels = 1;
+  const sampleRate = buffer.sampleRate;
+  const samples = buffer.getChannelData(0);
+  const dataLength = samples.length * 2;
+  const bufferLength = 44 + dataLength;
+
+  const arrayBuffer = new ArrayBuffer(bufferLength);
+  const view = new DataView(arrayBuffer);
+
+  const writeString = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  };
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  view.setUint16(32, numChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, dataLength, true);
+
+  let offset = 44;
+  for (let i = 0; i < samples.length; i++, offset += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+  }
+
+  return new Blob([arrayBuffer], { type: "audio/wav" });
+}
+
   const startRecording = async () => {
     setError(null);
     try {
@@ -161,11 +200,30 @@ export default function AnalyzePage() {
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
-      recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-        const recordedFile = new File([blob], `respiratory-recording-${Date.now()}.webm`, {
-          type: blob.type,
-        });
+      recorder.onstop = async () => {
+        const rawBlob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        if (rawBlob.size === 0) {
+          setError("Recorded audio was empty. Please check your microphone permissions and try again.");
+          setRecording(false);
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        let recordedFile: File;
+        try {
+          const arrayBuffer = await rawBlob.arrayBuffer();
+          const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          const audioCtx = new AudioContextClass();
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          const wavBlob = audioBufferToWav(decoded);
+          recordedFile = new File([wavBlob], `recording-${Date.now()}.wav`, { type: "audio/wav" });
+          audioCtx.close();
+        } catch {
+          recordedFile = new File([rawBlob], `recording-${Date.now()}.webm`, {
+            type: rawBlob.type || "audio/webm",
+          });
+        }
+
         if (audioUrl) URL.revokeObjectURL(audioUrl);
         setFile(recordedFile);
         setAudioUrl(URL.createObjectURL(recordedFile));
@@ -175,7 +233,7 @@ export default function AnalyzePage() {
         stream.getTracks().forEach((track) => track.stop());
         if (timerRef.current) clearInterval(timerRef.current);
       };
-      recorder.start();
+      recorder.start(200);
       setRecordSeconds(0);
       setRecording(true);
       timerRef.current = setInterval(() => {
@@ -309,12 +367,12 @@ export default function AnalyzePage() {
             <div className="recording-identity">
               <span className="file-icon"><FileAudio aria-hidden="true" /></span>
               <div>
-                <h2 id="recording-title">{file?.name ?? (sample ? `ICBHI example: ${sample}` : "Choose a respiratory recording")}</h2>
+                <h2 id="recording-title">{file?.name ?? (sample ? `Dataset sample: ${sample}` : "Choose a respiratory recording")}</h2>
                 <p className="mono-meta">
                   {file
                     ? `${(file.size / 1024 / 1024).toFixed(2)} MB · ${file.type || "audio file"}`
                     : sample
-                      ? "Dataset example · audio is processed on the backend"
+                      ? "Dataset sample · audio is processed on the backend"
                       : "WAV recommended · up to 20 MB · audio never autoplays"}
                 </p>
               </div>
@@ -394,13 +452,13 @@ export default function AnalyzePage() {
               transition={{ duration: 0.2 }}
             >
               <div>
-                <strong>Use an available ICBHI dataset example</strong>
-                <p>The requested label selects a file; it does not guarantee what the model will output.</p>
+                <strong>Use an available dataset sample</strong>
+                <p>Select a representative condition pattern from the active model dataset.</p>
               </div>
               <div className="sample-options">
-                {SAMPLE_LABELS.map((label) => (
-                  <button key={label} type="button" className={sample === label ? "is-selected" : ""} onClick={() => chooseSample(label)}>
-                    {label === "healthy" ? "No adventitious sound" : label}
+                {(server.classes && server.classes.length > 0 ? server.classes : ["healthy", "asthma", "copd", "pneumonia", "Bronchial"]).map((label) => (
+                  <button key={label} type="button" className={sample?.toLowerCase() === label.toLowerCase() ? "is-selected" : ""} onClick={() => chooseSample(label)}>
+                    {label.toLowerCase() === "healthy" ? "Healthy (No adventitious sound)" : label}
                   </button>
                 ))}
               </div>
@@ -553,7 +611,7 @@ export default function AnalyzePage() {
                   <div><dt>Analyzed duration</dt><dd>{formatSeconds(result.duration_s)}</dd></div>
                   <div><dt>Sample rate</dt><dd>{(result.sample_rate / 1000).toFixed(1)} kHz</dd></div>
                   <div><dt>Denoising</dt><dd>{result.noise_cancellation ? "Applied" : "Not applied"}</dd></div>
-                  <div><dt>Source</dt><dd>{result.filename ?? file?.name ?? `ICBHI ${sample} example`}</dd></div>
+                  <div><dt>Source</dt><dd>{result.filename ?? file?.name ?? `Dataset sample (${sample})`}</dd></div>
                 </dl>
                 <div className="learning-note">
                   <BookOpenNote />
