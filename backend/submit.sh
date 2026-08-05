@@ -34,6 +34,9 @@ echo "[1/5] Loading Python and CUDA modules..."
 module load python/3.11.14
 module load cuda 2>/dev/null || module load cuda/12.2 2>/dev/null || module load cuda/11.8 2>/dev/null || true
 
+# Suppress non-fatal scikit-learn bootstrap warnings in logs
+export PYTHONWARNINGS="ignore"
+
 # ---------------------------------------------------------------------------
 # 2. Set up a fast virtual environment using uv
 #    The env is stored in the project directory so it persists between jobs.

@@ -203,7 +203,17 @@ def run_training(args: argparse.Namespace) -> None:
         print("Prepare-only mode complete; feature extraction and training were skipped.")
         return
 
+    import tensorflow as tf
     from tensorflow.keras.utils import set_random_seed
+
+    gpus = tf.config.list_physical_devices("GPU")
+    if gpus:
+        try:
+            for gpu in gpus:
+                tf.config.experimental.set_memory_growth(gpu, True)
+            print(f"Enabled dynamic memory growth for {len(gpus)} GPU(s).")
+        except RuntimeError as e:
+            print(f"Error setting memory growth: {e}")
 
     from train import train_model
 

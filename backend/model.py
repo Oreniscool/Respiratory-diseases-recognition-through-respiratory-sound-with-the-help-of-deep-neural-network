@@ -50,27 +50,28 @@ def instantiate_model(in_, num_classes):
     mask = FeatureValidityMask()(in_)
     x = LayerNormalization()(in_)
 
-    x = Conv1D(64, kernel_size=5, padding='same', activation=None)(x)
+    l2_reg = tf.keras.regularizers.l2(1e-4)
+    x = Conv1D(64, kernel_size=5, padding='same', activation=None, kernel_regularizer=l2_reg)(x)
     x = LeakyReLU()(x)
     x = Dropout(0.2)(x)
 
-    x = Conv1D(64, kernel_size=3, padding='same', activation=None)(x)
+    x = Conv1D(64, kernel_size=3, padding='same', activation=None, kernel_regularizer=l2_reg)(x)
     x = LeakyReLU()(x)
     x = Dropout(0.2)(x)
 
-    x = Bidirectional(GRU(64, return_sequences=True, activation=None))(x, mask=mask)
+    x = Bidirectional(GRU(64, return_sequences=True, activation=None, kernel_regularizer=l2_reg))(x, mask=mask)
     x = LeakyReLU()(x)
     x = Dropout(0.3)(x)
 
-    x = Bidirectional(GRU(32, return_sequences=True, activation=None))(x, mask=mask)
+    x = Bidirectional(GRU(32, return_sequences=True, activation=None, kernel_regularizer=l2_reg))(x, mask=mask)
     x = LeakyReLU()(x)
 
     x = MaskedGlobalAveragePooling1D()([x, mask])
-    x = Dense(64, activation=None)(x)
+    x = Dense(64, activation=None, kernel_regularizer=l2_reg)(x)
     x = LeakyReLU()(x)
     x = Dropout(0.4)(x)
 
-    output = Dense(num_classes, activation="softmax")(x)
+    output = Dense(num_classes, activation="softmax", kernel_regularizer=l2_reg)(x)
 
     return output
 
