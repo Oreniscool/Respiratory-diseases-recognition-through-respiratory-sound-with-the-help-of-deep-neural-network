@@ -1,0 +1,17 @@
+{
+  "dataset_name": "ICBHI 2017 Respiratory Sound Database",
+  "source_url": "https://bhichallenge.med.auth.gr/ICBHI_2017_Challenge",
+  "download_date": "2026-08-05",
+  "license": "ICBHI 2017 Challenge Terms",
+  "diagnosis_sha256": "4b6ec3c45a7cddfa6c2bdfa67cdd0ddf8a2adcd5a3a7c645b23d9fa82cb380ff",
+  "label_counts": {
+    "Asthma": 1,
+    "Bronchiectasis": 7,
+    "Bronchiolitis": 6,
+    "COPD": 64,
+    "Healthy": 26,
+    "LRTI": 2,
+    "Pneumonia": 6,
+    "URTI": 14
+  }
+}
