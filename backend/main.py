@@ -33,7 +33,12 @@ from evaluate import (
     evaluate_model,
     evaluate_patient_level,
 )
-from featureExtraction import AudioRecord, build_manifest, extract_manifest
+from featureExtraction import (
+    AudioRecord,
+    build_manifest,
+    build_manifest_from_folders,
+    extract_manifest,
+)
 from preprocessing import DEFAULT_PREPROCESSING
 
 
@@ -74,6 +79,12 @@ def parse_args() -> argparse.Namespace:
         "--prepare-only",
         action="store_true",
         help="Write and validate patient splits without feature extraction or training",
+    )
+    parser.add_argument(
+        "--dataset-format",
+        choices=["icbhi", "folder"],
+        default="icbhi",
+        help="Dataset format: 'icbhi' (ICBHI filename + CSV) or 'folder' (subdirectories as class labels)",
     )
     parser.add_argument(
         "--group-classes",
@@ -174,20 +185,38 @@ def run_training(args: argparse.Namespace) -> None:
     random.seed(args.seed)
     np.random.seed(args.seed)
 
-    diagnosis_path = Path(args.diagnosis_csv)
-    if not diagnosis_path.is_file():
-        raise FileNotFoundError(
-            f"Diagnosis CSV not found: {diagnosis_path}. Refusing to create synthetic labels."
+    if args.dataset_format == "folder":
+        records = build_manifest_from_folders(
+            args.dataset_dir, excluded_patient_ids=args.exclude_patient
         )
-    provenance = load_and_validate_provenance(diagnosis_path, args.dataset_provenance)
-    diagnoses = pd.read_csv(diagnosis_path)
-    if args.group_classes != "none":
-        diagnoses["disease"] = diagnoses["disease"].apply(
-            lambda d: map_disease_labels(d, group_mode=args.group_classes)
+        dataset_audit = {
+            "dataset": "Folder Audio Dataset",
+            "source_url": "local_directory",
+            "download_date": "2026-08-05",
+            "license": "Custom/Kaggle Dataset",
+            "diagnosis_sha256": "folder_based",
+            "recordings": len(records),
+            "patients": len({record.patient_id for record in records}),
+            "recording_label_counts": dict(Counter(record.disease for record in records)),
+            "audio_inventory_sha256": "folder_based",
+        }
+    else:
+        diagnosis_path = Path(args.diagnosis_csv)
+        if not diagnosis_path.is_file():
+            raise FileNotFoundError(
+                f"Diagnosis CSV not found: {diagnosis_path}. Refusing to create synthetic labels."
+            )
+        provenance = load_and_validate_provenance(diagnosis_path, args.dataset_provenance)
+        diagnoses = pd.read_csv(diagnosis_path)
+        if args.group_classes != "none":
+            diagnoses["disease"] = diagnoses["disease"].apply(
+                lambda d: map_disease_labels(d, group_mode=args.group_classes)
+            )
+        records = build_manifest(
+            args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient
         )
-    records = build_manifest(
-        args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient
-    )
+        dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
+
     splits = split_by_patient(
         records,
         test_size=args.test_size,
@@ -198,7 +227,6 @@ def run_training(args: argparse.Namespace) -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest_hash = _write_split_manifest(splits, output_dir)
-    dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
     with (output_dir / "dataset_audit.json").open("w", encoding="utf-8") as handle:
         json.dump(dataset_audit, handle, indent=2)
 

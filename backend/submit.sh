@@ -118,16 +118,29 @@ PYEOF
 #    Adjust --dataset-dir to wherever you have placed the ICBHI dataset.
 #    All other defaults from main.py are used unless overridden here.
 # ---------------------------------------------------------------------------
-# Resolve dataset directory path
-DATASET_PATH="dataset/ICBHI_final_dataset"
-if [ ! -d "$DATASET_PATH" ] && [ -d "$HOME/dataset/ICBHI_final_dataset" ]; then
-    DATASET_PATH="$HOME/dataset/ICBHI_final_dataset"
-    echo "[INFO] Using dataset from home directory: $DATASET_PATH"
+# Resolve dataset directory path and format
+KAGGLE_PATH="dataset/Asthma_Detection_V2"
+if [ -d "$KAGGLE_PATH" ]; then
+    DATASET_PATH="$KAGGLE_PATH"
+    DATASET_FORMAT="folder"
+    echo "[INFO] Using folder-structured dataset: $DATASET_PATH"
+elif [ -d "$HOME/dataset/Asthma_Detection_V2" ]; then
+    DATASET_PATH="$HOME/dataset/Asthma_Detection_V2"
+    DATASET_FORMAT="folder"
+    echo "[INFO] Using folder-structured dataset from home directory: $DATASET_PATH"
+else
+    DATASET_PATH="dataset/ICBHI_final_dataset"
+    if [ ! -d "$DATASET_PATH" ] && [ -d "$HOME/dataset/ICBHI_final_dataset" ]; then
+        DATASET_PATH="$HOME/dataset/ICBHI_final_dataset"
+        echo "[INFO] Using dataset from home directory: $DATASET_PATH"
+    fi
+    DATASET_FORMAT="icbhi"
 fi
 
-echo "[5/5] Starting RespiNet training with 4-class grouping, bandpass filtering, and focal loss..."
+echo "[5/5] Starting RespiNet training (Format: $DATASET_FORMAT)..."
 python main.py \
     --dataset-dir        "$DATASET_PATH" \
+    --dataset-format     "$DATASET_FORMAT" \
     --diagnosis-csv      "patient_diagnosis.csv" \
     --dataset-provenance "dataset_provenance.json" \
     --output-dir         "artifacts/run_${SLURM_JOB_ID}" \
