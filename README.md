@@ -221,6 +221,7 @@ Detailed documentation is available in the [`documentation/`](documentation/) di
 
 - [**Documentation Index**](documentation/README.md)
 - [**Dataset Optimization & Accuracy Improvement Plan**](documentation/DATASET_AND_ACCURACY_OPTIMIZATION_PLAN.md) — *Resolving Run 1241 overfitting, skewness & noise issues*
+- [**Alternative Datasets & Benchmarks Guide**](documentation/ALTERNATIVE_DATASETS_AND_BENCHMARKS.md) — *Guide to SPRSound, HF_Lung, Kaggle Asthma V2, COUGHVID*
 - [`documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md`](documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md)
 - [`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md)
 - [`documentation/MODEL_CARD.md`](documentation/MODEL_CARD.md)
