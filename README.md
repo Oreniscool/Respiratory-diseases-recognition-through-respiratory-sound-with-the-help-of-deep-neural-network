@@ -219,6 +219,7 @@ dataset.
 
 Detailed documentation is available in the [`documentation/`](documentation/) directory:
 
+- [**Project Research Chronicle & Architecture Evolution**](documentation/PROJECT_RESEARCH_CHRONICLE_AND_ARCHITECTURE_EVOLUTION.md) — *Master living document covering complete project history, architectural overhaul, ICBHI failure root cause, and dataset transformation*
 - [**Documentation Index**](documentation/README.md)
 - [**Dataset Optimization & Accuracy Improvement Plan**](documentation/DATASET_AND_ACCURACY_OPTIMIZATION_PLAN.md) — *Resolving Run 1241 overfitting, skewness & noise issues*
 - [**Alternative Datasets & Benchmarks Guide**](documentation/ALTERNATIVE_DATASETS_AND_BENCHMARKS.md) — *Guide to SPRSound, HF_Lung, Kaggle Asthma V2, COUGHVID*
@@ -226,6 +227,7 @@ Detailed documentation is available in the [`documentation/`](documentation/) di
 - [`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md)
 - [`documentation/MODEL_CARD.md`](documentation/MODEL_CARD.md)
 - [`documentation/KAGGLE_TRAINING_GUIDE.md`](documentation/KAGGLE_TRAINING_GUIDE.md)
+- [`documentation/SPIT_GPU_SERVER_GUIDE.md`](documentation/SPIT_GPU_SERVER_GUIDE.md)
 - [`documentation/SECURITY.md`](documentation/SECURITY.md)
 - [`documentation/design.md`](documentation/design.md)
 - [`documentation/design-qa.md`](documentation/design-qa.md)

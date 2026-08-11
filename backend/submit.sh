@@ -1,5 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=respinet_train
+# MODEL_VERSION="RespiNet-Attention v2"  # Updated architecture with multi-scale conv and attention pooling
 #SBATCH --partition=general
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
