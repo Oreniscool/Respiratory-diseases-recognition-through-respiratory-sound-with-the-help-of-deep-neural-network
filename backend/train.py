@@ -12,7 +12,6 @@ from tensorflow.keras.callbacks import (
     CSVLogger,
     EarlyStopping,
     ModelCheckpoint,
-    ReduceLROnPlateau,
 )
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
@@ -72,13 +71,13 @@ def train_model(
     y_val: np.ndarray,
     *,
     output_dir: str | Path,
-    batch_size: int = 32,
-    epochs: int = 50,
-    learning_rate: float = 1e-3,
+    batch_size: int = 64,
+    epochs: int = 75,
+    learning_rate: float = 3e-4,
     healthy_class_index: int | None = None,
     healthy_class_multiplier: float = 1.0,
     use_focal_loss: bool = True,
-    label_smoothing: float = 0.1,
+    label_smoothing: float = 0.08,
     gamma: float = 2.0,
 ) -> tuple[Model, object, Path, dict[int, float]]:
     """Train a model using validation data only for model selection."""
@@ -100,10 +99,13 @@ def train_model(
 
     steps_per_epoch = max(1, int(np.ceil(x_train.shape[0] / batch_size)))
     total_steps = steps_per_epoch * epochs
+    # Cosine decay with warm-up tail: decays smoothly to 5e-3 × lr_init.
+    # alpha=5e-3 (vs old 1e-2) keeps late-epoch lr lower, reducing
+    # overfitting on the smaller Asthma V2 training set.
     lr_schedule = CosineDecay(
         initial_learning_rate=learning_rate,
         decay_steps=total_steps,
-        alpha=1e-2,
+        alpha=5e-3,
     )
 
     if use_focal_loss:
@@ -132,18 +134,29 @@ def train_model(
         class_weights[healthy_class_index] *= float(healthy_class_multiplier)
 
     callbacks = [
+        # Monitor val_accuracy rather than val_loss so that early stopping
+        # does not terminate the run while the model is still learning to
+        # discriminate classes (val_loss can plateau or oscillate when the
+        # focal loss is still re-weighting hard examples, even as accuracy
+        # continues to improve — this was the root cause of the premature
+        # Epoch-7 save in the v2 run).
+        # NOTE: ReduceLROnPlateau is intentionally absent. Keras raises
+        # TypeError when that callback tries to imperatively set
+        # optimizer.learning_rate on an optimizer that was constructed with
+        # a LearningRateSchedule object. CosineDecay already provides
+        # smooth LR reduction natively; the secondary guard is not needed.
         ModelCheckpoint(
             model_path,
-            monitor="val_loss",
-            mode="min",
+            monitor="val_accuracy",
+            mode="max",
             save_best_only=True,
             verbose=1,
         ),
         EarlyStopping(
-            monitor="val_loss",
-            min_delta=0.001,
-            patience=12,
-            mode="min",
+            monitor="val_accuracy",
+            min_delta=0.003,
+            patience=18,
+            mode="max",
             restore_best_weights=True,
             verbose=1,
         ),

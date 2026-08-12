@@ -7,6 +7,8 @@ validation/test partitions.
 
 from __future__ import annotations
 
+import hashlib
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Sequence
@@ -132,9 +134,16 @@ def build_manifest_from_folders(
         else:
             disease = "Unknown"
 
-        # Generate a unique deterministic patient_id based on relative file path
-        # to prevent cross-class ID collisions (e.g. Asthma/1.wav vs Healthy/1.wav)
-        patient_id = 100000 + (abs(hash(path.as_posix())) % 800000)
+        # Generate a unique deterministic patient_id based on disease class and patient prefix/relative path
+        # to prevent cross-class ID collisions (e.g. Asthma/P1.wav vs Healthy/P1.wav) and hash seed variance
+        match = re.match(r"^[pP]?(\d+)", path.name)
+        if match:
+            patient_key = f"{disease}_P{match.group(1)}"
+        else:
+            patient_key = f"{disease}_{path.relative_to(directory).as_posix()}"
+
+        h = int(hashlib.sha256(patient_key.encode("utf-8")).hexdigest()[:12], 16)
+        patient_id = 100000 + (h % 800000)
 
         if patient_id in excluded:
             continue

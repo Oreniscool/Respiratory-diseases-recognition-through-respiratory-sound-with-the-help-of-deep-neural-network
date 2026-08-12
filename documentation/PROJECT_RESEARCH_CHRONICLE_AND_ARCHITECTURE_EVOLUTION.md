@@ -126,8 +126,34 @@ To permanently resolve the empirical failure of Run 1241, the project executed t
 2. **Dataset Transformation:**
    - Recognized that no architectural technique can compensate for single-patient classes in ICBHI 2017 without synthetic data distortion.
    - Migrated the primary training pipeline to the **Kaggle Asthma Detection Dataset (Version 2)** (1,211 multi-class recordings balanced across *Asthma, Bronchial, COPD, Healthy, and Pneumonia*).
-   - Re-engineered `featureExtraction.py` with `build_manifest_from_folders()`, supporting automatic recursive directory traversal, deterministic patient hashing to prevent ID collisions, and multi-format dataset ingestion (`--dataset-format icbhi|folder`).
+   - Re-engineered `featureExtraction.py` with `build_manifest_from_folders()`, supporting automatic recursive directory traversal, deterministic SHA-256 patient ID hashing with filename prefix extraction (e.g. `P57...`) to prevent cross-class ID collisions and hash seed variance, and multi-format dataset ingestion (`--dataset-format icbhi|folder`).
    - Achieved consistent training convergence, eliminated validation loss spikes, and established robust multi-class generalizability.
+
+### Phase 6: RespiNet-Attention v3 — Dual Pooling, Residual GRUs, Relaxed Regularization (August 12, 2026)
+
+After the first confirmed local training run on Kaggle Asthma V2 (RTX 4060, Python 3.11), empirical analysis of the v2 run exposed two final architectural and training bottlenecks:
+
+1. **Early Stopping Monitor Mismatch:** `EarlyStopping` was monitoring `val_loss` (Categorical Focal Loss). Since Focal Loss continues re-weighting hard examples even as classification accuracy improves, `val_loss` was oscillating (+/- 0.02) while `val_accuracy` was steadily climbing from 41% → 59%. The `EarlyStopping` callback reverted weights to Epoch 7 (val_acc 41%) despite Epoch 18 being significantly better (val_acc 59%). **Fix:** switched both `ModelCheckpoint` and `EarlyStopping` to monitor `val_accuracy (mode=max)`, and raised patience from 12 → 18 epochs.
+
+2. **Over-regularization:** $L_2 = 10^{-3}$ on every Conv, GRU, and Dense layer caused underfitting, preventing training accuracy from climbing past ~67% at Epoch 19. **Fix:** reduced $L_2$ to $10^{-4}$ across all layers.
+
+3. **Single tanh Attention Pooling:** The `MaskedSelfAttentivePooling1D` layer computed a single soft weighted average, which dilutes short (<20 ms) acoustic transients like crackles into the surrounding sustained signal. **Fix:** replaced with `MaskedDualTemporalPooling1D`, which concatenates **(a) soft attentive pooling** (captures sustained wheezes and rhonchi) with **(b) masked max-pooling** (captures the strongest crackle transient per channel), doubling pooled representation width from 128 → 256 channels.
+
+4. **Information bottleneck across GRU stack:** High-frequency local texture extracted by `MultiScaleConvBlock` was completely discarded by BiGRU-1 in v2. **Fix:** added a point-wise `Conv1D(256, k=1)` residual projection from the conv block output directly to the `gru1` output before `gru2`, preserving spectral detail across the recurrent stack.
+
+5. **GRU capacity insufficient:** BiGRU units `(64, 32)` produced output widths of `(128, 64)`, which is narrow for 5-class classification over 120-dimensional MFCC sequences. **Fix:** scaled to `(128, 64)` units → output widths `(256, 128)`, aligning with the wider pooled context from Dual Temporal Pooling.
+
+**Hyperparameter rationale (v3):**
+
+| Hyperparameter | v2 Value | v3 Value | Rationale |
+| :--- | :---: | :---: | :--- |
+| `batch_size` | 32 | **64** | Larger batches stabilize gradient estimates for the class-weighted focal loss; RTX 4060 8 GB handles 64 comfortably |
+| `epochs` | 50 | **75** | Gives the model headroom to exploit the increased capacity without relying on aggressive early stopping |
+| `learning_rate` | 1e-3 | **3e-4** | Lower initial lr reduces early oscillation in focal loss; paired with cosine decay this achieves smoother convergence |
+| `label_smoothing` | 0.1 | **0.08** | Slight reduction because v3 has better inductive biases (residual connections, dual pooling) and needs less regularisation from soft targets |
+| `cosine_decay_alpha` | 1e-2 | **5e-3** | Decays lr to a lower floor in late epochs, helping fine-tune the attention weights without disrupting converged GRU states |
+| `EarlyStopping.patience` | 12 | **18** | Permits the model to traverse focal loss plateaus while val_accuracy continues rising |
+| `ReduceLROnPlateau` | *(absent)* | **Removed** | Initially added but incompatible with `CosineDecay` schedule objects — Keras raises `TypeError` when the callback attempts to imperatively set `optimizer.learning_rate` on a schedule-based optimizer. `CosineDecay` provides native LR reduction; the secondary guard is not needed. |
 
 ---
 
