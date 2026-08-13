@@ -76,6 +76,35 @@ def parse_args() -> argparse.Namespace:
         "--no-augmentation", action="store_true", help="Disable training augmentation"
     )
     parser.add_argument(
+        "--no-spec-augment",
+        action="store_true",
+        help="Disable SpecAugment feature masking during training",
+    )
+    parser.add_argument(
+        "--num-freq-masks",
+        type=int,
+        default=2,
+        help="Number of SpecAugment frequency mask strips (default: 2)",
+    )
+    parser.add_argument(
+        "--max-freq-mask",
+        type=int,
+        default=15,
+        help="Maximum width of SpecAugment frequency mask strip (default: 15)",
+    )
+    parser.add_argument(
+        "--num-time-masks",
+        type=int,
+        default=2,
+        help="Number of SpecAugment time mask strips (default: 2)",
+    )
+    parser.add_argument(
+        "--max-time-mask",
+        type=int,
+        default=25,
+        help="Maximum width of SpecAugment time mask strip (default: 25)",
+    )
+    parser.add_argument(
         "--prepare-only",
         action="store_true",
         help="Write and validate patient splits without feature extraction or training",
@@ -104,7 +133,21 @@ def parse_args() -> argparse.Namespace:
         default=0.1,
         help="Label smoothing factor (default: 0.1)",
     )
+    parser.add_argument(
+        "--extra-dataset-dir",
+        action="append",
+        default=[],
+        metavar="DIR",
+        help=(
+            "Additional folder-format dataset directory to merge with the primary "
+            "dataset before splitting.  Each directory must contain audio files "
+            "organised in class subfolders (same format as --dataset-format folder). "
+            "Repeat this flag for each extra directory.  Use reorganize_icbhi.py to "
+            "convert the ICBHI flat layout into the required folder structure."
+        ),
+    )
     return parser.parse_args()
+
 
 
 def split_by_patient(
@@ -217,6 +260,18 @@ def run_training(args: argparse.Namespace) -> None:
         )
         dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
 
+    # Merge any additional folder-format datasets before splitting.
+    # Each extra directory is treated identically to --dataset-format folder.
+    for extra_dir in args.extra_dataset_dir:
+        extra_records = build_manifest_from_folders(
+            extra_dir, excluded_patient_ids=args.exclude_patient
+        )
+        records.extend(extra_records)
+        print(
+            f"[extra-dataset] Merged {len(extra_records)} recordings "
+            f"from {extra_dir}"
+        )
+
     splits = split_by_patient(
         records,
         test_size=args.test_size,
@@ -271,10 +326,18 @@ def run_training(args: argparse.Namespace) -> None:
     set_random_seed(args.seed)
 
     train_data = extract_manifest(
-        splits["train"], augment=not args.no_augmentation, seed=args.seed
+        splits["train"],
+        augment=not args.no_augmentation,
+        use_spec_augment=not args.no_spec_augment,
+        num_freq_masks=args.num_freq_masks,
+        max_freq_mask=args.max_freq_mask,
+        num_time_masks=args.num_time_masks,
+        max_time_mask=args.max_time_mask,
+        seed=args.seed,
     )
-    validation_data = extract_manifest(splits["validation"], augment=False, seed=args.seed)
-    test_data = extract_manifest(splits["test"], augment=False, seed=args.seed)
+    validation_data = extract_manifest(splits["validation"], augment=False, use_spec_augment=False, seed=args.seed)
+    test_data = extract_manifest(splits["test"], augment=False, use_spec_augment=False, seed=args.seed)
+
 
     encoder = LabelEncoder()
     encoder.fit(sorted({record.disease for record in records}))

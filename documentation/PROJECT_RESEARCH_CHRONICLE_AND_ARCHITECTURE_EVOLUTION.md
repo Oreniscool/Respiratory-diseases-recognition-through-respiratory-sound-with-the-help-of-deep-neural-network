@@ -155,6 +155,51 @@ After the first confirmed local training run on Kaggle Asthma V2 (RTX 4060, Pyth
 | `EarlyStopping.patience` | 12 | **18** | Permits the model to traverse focal loss plateaus while val_accuracy continues rising |
 | `ReduceLROnPlateau` | *(absent)* | **Removed** | Initially added but incompatible with `CosineDecay` schedule objects — Keras raises `TypeError` when the callback attempts to imperatively set `optimizer.learning_rate` on a schedule-based optimizer. `CosineDecay` provides native LR reduction; the secondary guard is not needed. |
 
+### Phase 7: Regularization Hardening + ICBHI Dataset Merger (August 12, 2026)
+
+Empirical v3 results revealed a persistent **~19% train/val accuracy gap** (train ~93%, val ~74%), indicating the 442K-parameter model was overfitting on the 724-recording Kaggle Asthma V2 training set.
+
+Two parallel interventions were applied:
+
+#### Option C — Increased Dropout Regularization (`backend/model.py`)
+| Layer | v3 Dropout | v3+C Dropout | Change |
+| :--- | :---: | :---: | :--- |
+| BiGRU-1 output `Dropout` | 0.3 | **0.4** | +33% dropout rate |
+| BiGRU-1 `recurrent_dropout` | *(none)* | **0.15** | New — gates hidden state recurrence |
+| BiGRU-2 `recurrent_dropout` | *(none)* | **0.15** | New — gates hidden state recurrence |
+| Dense-128 `Dropout` | 0.3 | **0.4** | +33% dropout rate |
+| Dense-64 `Dropout` | 0.4 | **0.5** | +25% dropout rate |
+
+`recurrent_dropout=0.15` applies a binary dropout mask to the GRU recurrent weight matrix at each timestep, independently of the output dropout. This specifically prevents the recurrent hidden state from memorising exact temporal sequences of the training recordings.
+
+#### Option D — ICBHI 2017 Dataset Merger (`backend/reorganize_icbhi.py`, `backend/main.py`)
+
+To triple the effective training volume, a pipeline was added to merge the ICBHI 2017 Respiratory Sound Database into the Kaggle Asthma V2 training set:
+
+1. **`reorganize_icbhi.py`** — new helper script that reads `patient_diagnosis.csv` and creates a 5-class folder structure (`copd/`, `healthy/`, `pneumonia/`, `asthma/`, `bronchial/`) compatible with `build_manifest_from_folders()`. Uses symlinks by default (zero disk overhead). The 8-class ICBHI taxonomy is mapped to the 5-class Asthma V2 label space as follows:
+   - `COPD` → `copd`
+   - `Healthy` → `healthy`
+   - `Pneumonia` → `pneumonia`
+   - `Asthma` → `asthma`
+   - `URTI`, `Bronchiectasis`, `Bronchiolitis`, `LRTI` → `bronchial`
+
+2. **`main.py --extra-dataset-dir`** — new repeatable CLI flag that accepts additional folder-format dataset directories to merge into the primary dataset's `AudioRecord` manifest before patient-disjoint splitting. Example merged training command:
+   ```bash
+   python reorganize_icbhi.py
+   python main.py \
+     --dataset-dir dataset/Asthma_Detection_V2 \
+     --dataset-format folder \
+     --extra-dataset-dir dataset/ICBHI_as_folders \
+     --output-dir artifacts/latest \
+     --epochs 75 --batch-size 64
+   ```
+
+3. **`featureExtraction.py` class normalization** — `build_manifest_from_folders()` now lowercases all disease class names extracted from folder names, ensuring consistent label matching across datasets with mixed casing (e.g. Kaggle's `Bronchial` → `bronchial`, ICBHI's `COPD` → `copd`).
+
+4. **SpecAugment Feature Masking (`backend/Augmentation.py`, `backend/featureExtraction.py`, `backend/main.py`)** — Added online frequency masking ($F=2, \text{max\_F}=15$ channels) and valid-region time masking ($T=2, \text{max\_T}=25$ timesteps) directly onto 2D MFCC feature windows `(200, 120)` during training data extraction. Configurable via CLI flags (`--no-spec-augment`, `--num-freq-masks`, `--max-freq-mask`, `--num-time-masks`, `--max-time-mask`).
+
+**Expected effect:** Merging ICBHI (~920 recordings) with Kaggle Asthma V2 (1,211 recordings) yields ~2,131 recordings before augmentation, tripling training set size and directly attacking the overfitting gap. SpecAugment doubles feature-level diversity per waveform variant without audio re-decoding overhead.
+
 ---
 
 ## 3. Acoustic Signal Processing & Feature Engineering
@@ -480,9 +525,20 @@ To provide physicians with visual interpretability, RespiNet computes gradient-b
 $$\mathbf{S}(t, d) = \left| \frac{\partial z_{\hat{c}}}{\partial \mathbf{X}(t, d)} \right|$$
 where $z_{\hat{c}}$ is the unnormalized logit for the predicted class $\hat{c}$, and $\mathbf{X}(t, d)$ is the input MFCC sequence. Saliency values are normalized and interpolated over a high-resolution Mel spectrogram, visually highlighting the specific frequency bands (e.g., $400-800\text{ Hz}$ wheezes) that dictated the model's decision.
 
-### 8.2 Responsible LLM Integration (Groq LLaMA-3.1)
-- **Zero PII Exposure:** Audio recordings, file paths, and patient identifiers are never transmitted to external APIs. Only anonymous class probabilities, top risk factors, and acoustic feature summaries are forwarded.
-- **Strict Clinical Framing:** Generated reports include persistent non-diagnostic disclaimers: *"Research decision support summary only. Not an automated medical diagnosis. Requires clinical validation by a licensed pulmonologist."*
+### 8.2 Responsible LLM Integration (Google Gemini 2.5 Flash)
+- **Gemini REST Integration:** Migrated report generation and explainability reasoning to Google's `gemini-2.5-flash` API via standard HTTP POST (`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`).
+- **Configurable Environment Setup:** Environment variables `GEMINI_API_KEY` and `GEMINI_MODEL` are loaded from `.env` or `backend/.env`.
+- **Zero PII Exposure:** Audio recordings, raw waveforms, and patient names are never transmitted. Only anonymous model scores, patient vitals/symptoms, and acoustic feature metadata are formatted.
+- **Strict Clinical Framing:** Reports include persistent non-diagnostic disclaimers: *"Research decision support summary only. Not an automated medical diagnosis. Requires clinical validation by a licensed pulmonologist."*
+
+### 8.3 Interactive Frontend Refinements & User Experience Suite (August 2026)
+To enhance user engagement and clinical data transparency, the React 19 / TypeScript frontend (`frontend/src`) was upgraded with key interactive elements:
+- **5-Class Model Alignment:** Updated landing page metrics, reference content (`referenceContent.ts`), and dataset sample picker (`AnalyzePage.tsx`) to directly align with the 5 active model classes (`asthma`, `bronchial`, `copd`, `healthy`, `pneumonia`), marking inactive ICBHI classes as historic references.
+- **Radial Confidence Gauge:** Integrated Recharts `RadialBarChart` inside the prediction panel to render a color-coded confidence ring (Moss Green for $>70\%$, Amber for $40-70\%$, Terracotta for $<40\%$).
+- **Real-Time Microphone VU Level Meter:** Added Web Audio API `AnalyserNode` monitoring with `requestAnimationFrame` to visualize incoming audio volume in real-time during live browser microphone recording.
+- **High-Uncertainty Warning Banner & Entropy Progress Bar:** Implemented visual warnings whenever prediction entropy exceeds abstention bounds ($\mathcal{H} > \tau_{\text{entropy}}$), accompanied by a normalized entropy progress indicator.
+- **Sliding Analysis Session History:** Added a persistent Zustand-backed sliding memory (`history: HistoryEntry[]`) storing the last 5 inference runs for instant side-by-side comparison.
+- **Interactive Landing Page Demo:** Added an animated waveform processing preview and interactive architecture stage visualizer (`Audio Input` $\rightarrow$ `MFCC + Δ + Δ²` $\rightarrow$ `Conv1D` $\rightarrow$ `BiGRU` $\rightarrow$ `Dual Pooling` $\rightarrow$ `Softmax`).
 
 ---
 
@@ -506,9 +562,29 @@ When converting this chronicle into a formal University Major Project Report (fo
 
 ## 10. Future Research & Development Roadmap
 
-1. **Self-Supervised Audio Foundation Models:** Pretrain a Masked Autoencoder (Audio-MAE) or Conformer backbone on large-scale unlabeled respiratory databases (COUGHVID, Coswara, HF_Lung) before fine-tuning on downstream clinical triage tasks.
-2. **Multi-Channel & Multi-Site Auscultation:** Incorporate simultaneous 4-channel or 8-channel electronic stethoscope arrays capturing anterior, posterior, and lateral chest positions to model spatial pulmonary airflow dynamics.
-3. **Edge TPU & Microcontroller Quantization:** Quantize RespiNet via TensorFlow Lite (INT8 Post-Training Quantization) for real-time inference on embedded ARM Cortex-M / Raspberry Pi digital stethoscopes in rural clinics.
+A comprehensive performance optimization audit conducted on August 13, 2026 outlined five primary technical directions to systematically elevate model accuracy, out-of-distribution generalization, and clinical reliability:
+
+1. **Acoustic Signal Processing & Multi-Representation Frontends:**
+   - **Log-Mel Spectrogram Tensor Stacking:** Transitioning from 40 static MFCCs to 3-channel Log-Mel Spectrogram tensors `[Log-Mel, Δ-Mel, Δ²-Mel]` (128 Mel bands, $N_{\text{FFT}}=2048$, Hop=512) to retain rich harmonic overtones.
+   - **Continuous Wavelet Transform (CWT):** Applying Morlet wavelet transforms over 100–2000 Hz to resolve short (<20 ms) explosive crackle transients without STFT frequency smearing.
+   - **Deep Denoising:** Integrating pretrained DeepFilterNet or Wiener filtering to suppress background ambient noise and stethoscope movement friction artifacts.
+
+2. **Self-Supervised Audio Foundation Models & Transfer Learning:**
+   - **Audio Spectrogram Transformer (AST / BEATs):** Fine-tuning pretrained AST or BEATs backbones (pretrained on AudioSet 2M) with low-rank adaptation (LoRA) or selective top-layer unfreezing.
+   - **Speech & Sound Representations (wav2vec 2.0 / HuBERT / CLAP):** Extracting 768-dimensional latent embeddings from wav2vec2-base or CLAP encoders to achieve hardware and demographic invariance.
+
+3. **Advanced Data Augmentation & Dataset Expansion:**
+   - **SpecAugment:** Applying online frequency ($f \in [0, 15]$ bins) and time ($t \in [0, 25]$ frames) masking to feature arrays during training.
+   - **Audio Mixup & CutMix:** Linearly blending patient audio features and soft ground-truth label vectors ($\lambda \sim \text{Beta}(\alpha, \alpha)$) to smooth decision boundary logits.
+   - **Multi-Dataset Ingestion:** Incorporating SPRSound (2,683 pediatric files) and HF_Lung_V1 (9,765 files) to scale pre-augmentation dataset volume by >5x.
+
+4. **Representation Learning, Calibration & Test-Time Augmentation:**
+   - **Supervised Contrastive Learning (SupCon):** Two-stage training where Stage 1 optimizes a pairwise SupCon loss to cluster intra-class pathologies in latent space before Stage 2 dense classification.
+   - **Test-Time Augmentation (TTA):** Averaging softmax probability predictions across multi-window sliding crops and pitch-shifted (+/- 0.5 semitones) variants during backend inference.
+
+5. **Multimodal Clinical Fusion & Edge Quantization:**
+   - **Late-Fusion Architecture:** Combining 256-dimensional acoustic feature embeddings with patient vital signs (Age, Smoking History, $\text{SpO}_2$, Temperature) via a multimodal fusion network.
+   - **INT8 Quantization:** Applying TensorFlow Lite post-training quantization for real-time inference on embedded ARM Cortex-M / Raspberry Pi digital stethoscopes in low-resource clinics.
 
 ---
 

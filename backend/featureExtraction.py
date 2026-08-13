@@ -16,7 +16,7 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from Augmentation import add_noise, shift, stretch
+from Augmentation import add_noise, shift, spec_augment, stretch
 from preprocessing import (
     DEFAULT_PREPROCESSING,
     PreprocessingConfig,
@@ -130,9 +130,12 @@ def build_manifest_from_folders(
         rel = path.relative_to(directory)
         parts = rel.parts
         if len(parts) > 1:
-            disease = parts[-2]
+            # Normalise to lowercase so Kaggle's mixed-case folder names
+            # (Bronchial, asthma, copd, healthy, pneumonia) and any ICBHI
+            # reorganised folders all share a consistent label space.
+            disease = parts[-2].lower()
         else:
-            disease = "Unknown"
+            disease = "unknown"
 
         # Generate a unique deterministic patient_id based on disease class and patient prefix/relative path
         # to prevent cross-class ID collisions (e.g. Asthma/P1.wav vs Healthy/P1.wav) and hash seed variance
@@ -178,6 +181,11 @@ def extract_manifest(
     records: Sequence[AudioRecord],
     *,
     augment: bool = False,
+    use_spec_augment: bool = True,
+    num_freq_masks: int = 2,
+    max_freq_mask: int = 15,
+    num_time_masks: int = 2,
+    max_time_mask: int = 25,
     seed: int = 42,
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
 ) -> ExtractedDataset:
@@ -204,6 +212,24 @@ def extract_manifest(
                 valid_lengths.append(int(length))
                 window_starts.append(int(start))
 
+                if augment and use_spec_augment:
+                    spec_window = spec_augment(
+                        window,
+                        valid_length=int(length),
+                        num_freq_masks=num_freq_masks,
+                        max_freq_mask=max_freq_mask,
+                        num_time_masks=num_time_masks,
+                        max_time_mask=max_time_mask,
+                        rng=rng,
+                    )
+                    features.append(spec_window)
+                    labels.append(record.disease)
+                    patients.append(record.patient_id)
+                    sources.append(str(record.path))
+                    variant_names.append(f"{variant_name}_spec_aug")
+                    valid_lengths.append(int(length))
+                    window_starts.append(int(start))
+
     return ExtractedDataset(
         X=np.asarray(features, dtype=np.float32),
         y=np.asarray(labels),
@@ -213,3 +239,4 @@ def extract_manifest(
         window_starts=np.asarray(window_starts, dtype=np.int32),
         valid_lengths=np.asarray(valid_lengths, dtype=np.int32),
     )
+
