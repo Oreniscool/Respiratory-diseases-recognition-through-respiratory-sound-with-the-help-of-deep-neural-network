@@ -64,6 +64,7 @@ class MaskedGlobalAveragePooling1D(Layer):
 # v3 utility layers
 # ------------------------------------------------------------
 
+@tf.keras.utils.register_keras_serializable(package="respinet")
 class SqueezeExcitation1D(Layer):
     """Channel-wise squeeze-excitation for 1-D sequences.
 
@@ -77,8 +78,6 @@ class SqueezeExcitation1D(Layer):
         super().__init__(**kwargs)
         self.reduction = reduction
         self.global_avg = tf.keras.layers.GlobalAveragePooling1D(keepdims=True)
-        self.dense1 = None
-        self.dense2 = None
 
     def build(self, input_shape):
         channel_dim = input_shape[-1]
@@ -86,9 +85,11 @@ class SqueezeExcitation1D(Layer):
         self.dense1 = tf.keras.layers.Dense(
             reduced_dim, activation="relu", kernel_initializer="he_normal"
         )
+        self.dense1.build((None, 1, channel_dim))
         self.dense2 = tf.keras.layers.Dense(
             channel_dim, activation="sigmoid", kernel_initializer="he_normal"
         )
+        self.dense2.build((None, 1, reduced_dim))
         super().build(input_shape)
 
     def call(self, inputs):
@@ -103,6 +104,7 @@ class SqueezeExcitation1D(Layer):
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package="respinet")
 class MultiScaleConvBlock(Layer):
     """Parallel Conv1D branches (k=3, 5, 11) with SE recalibration.
 
@@ -120,15 +122,16 @@ class MultiScaleConvBlock(Layer):
     ):
         super().__init__(**kwargs)
         self.filters = filters
-        self.kernel_sizes = kernel_sizes
+        self.kernel_sizes = tuple(kernel_sizes)
         self.dropout = dropout
+        self.l2_reg_val = l2_reg
         self.l2_reg = tf.keras.regularizers.l2(l2_reg)
-        self.branches = []
         self.se = SqueezeExcitation1D()
         self.spatial_dropout = SpatialDropout1D(self.dropout)
 
     def build(self, input_shape):
         per_branch = self.filters // len(self.kernel_sizes)
+        self.branches = []
         for k in self.kernel_sizes:
             conv = Conv1D(
                 per_branch,
@@ -137,7 +140,9 @@ class MultiScaleConvBlock(Layer):
                 activation=None,
                 kernel_regularizer=self.l2_reg,
             )
+            conv.build(input_shape)
             self.branches.append(conv)
+        self.se.build((None, input_shape[1], self.filters))
         super().build(input_shape)
 
     def call(self, inputs):
@@ -157,11 +162,12 @@ class MultiScaleConvBlock(Layer):
             "filters": self.filters,
             "kernel_sizes": self.kernel_sizes,
             "dropout": self.dropout,
-            "l2_reg": self.l2_reg.l2,
+            "l2_reg": self.l2_reg_val,
         })
         return config
 
 
+@tf.keras.utils.register_keras_serializable(package="respinet")
 class MaskedDualTemporalPooling1D(Layer):
     """Dual temporal pooling: soft attention + masked max-pooling.
 
@@ -183,13 +189,14 @@ class MaskedDualTemporalPooling1D(Layer):
     def __init__(self, attn_units: int = 128, **kwargs):
         super().__init__(**kwargs)
         self.attn_units = attn_units
-        self.dense_tanh = None
-        self.dense_score = None
 
     def build(self, input_shape):
-        # input_shape is a list: [seq_shape, mask_shape]
+        seq_shape = input_shape[0] if isinstance(input_shape, (list, tuple)) else input_shape
+        C = seq_shape[-1]
         self.dense_tanh = tf.keras.layers.Dense(self.attn_units, activation="tanh")
+        self.dense_tanh.build((None, C))
         self.dense_score = tf.keras.layers.Dense(1, use_bias=False)
+        self.dense_score.build((None, self.attn_units))
         super().build(input_shape)
 
     def call(self, inputs, mask=None):

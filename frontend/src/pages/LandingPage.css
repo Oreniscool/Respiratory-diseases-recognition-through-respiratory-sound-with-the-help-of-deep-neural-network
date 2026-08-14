@@ -269,6 +269,107 @@
   transition: color 0.3s;
 }
 
+/* Demo Section */
+.demo-section {
+  padding: 6rem 2rem;
+  background-color: var(--canvas);
+}
+
+.demo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  align-items: center;
+  background-color: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 10px 30px rgba(47, 71, 125, 0.05);
+}
+
+@media (min-width: 768px) {
+  .demo-container {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.demo-text {
+  flex: 1;
+  max-width: 500px;
+}
+
+.demo-text h2 {
+  font-size: 2.5rem;
+  color: var(--indigo-dark);
+  margin-bottom: 1rem;
+}
+
+.demo-text p {
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.demo-cta {
+  font-size: 1.125rem;
+  padding: 0.875rem 1.75rem;
+}
+
+.demo-visual {
+  flex: 1;
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--ink);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mini-waveform {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 80px;
+}
+
+.waveform-bar {
+  width: 6px;
+  background-color: var(--sky);
+  border-radius: 3px;
+}
+
+.demo-result {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.demo-result-label {
+  color: var(--seafoam);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.demo-result-value {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  font-family: 'Cascadia Code', monospace;
+}
+
 /* Stats Section */
 .stats-section {
   background-color: var(--indigo-dark);

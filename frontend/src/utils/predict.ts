@@ -9,6 +9,16 @@ export interface PredictResult {
   patient_id?: string;
   requested_disease?: string;
   noise_cancellation?: boolean;
+  model_prediction?: string;
+  uncertain?: boolean;
+  uncertainty?: {
+    normalized_entropy: number;
+    min_confidence: number;
+    max_normalized_entropy: number;
+  };
+  windows_analyzed?: number;
+  valid_frames?: number[];
+  research_only?: boolean;
 }
 
 export interface SummaryResponse {

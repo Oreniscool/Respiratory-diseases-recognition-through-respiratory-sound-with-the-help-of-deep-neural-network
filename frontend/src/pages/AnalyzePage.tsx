@@ -2,6 +2,7 @@ import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "re
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import AlertTriangle from "lucide-react/dist/esm/icons/alert-triangle.js";
 import ArrowRight from "lucide-react/dist/esm/icons/arrow-right.js";
 import AudioLines from "lucide-react/dist/esm/icons/audio-lines.js";
@@ -30,7 +31,7 @@ import {
   type PredictResult,
 } from "../utils/predict";
 
-const SAMPLE_LABELS = ["healthy", "copd", "urti", "bronchiectasis", "pneumonia", "bronchiolitis"];
+const SAMPLE_LABELS = ["healthy", "asthma", "copd", "pneumonia", "bronchial"];
 const MAX_FILE_MB = 20;
 
 type AnalysisStatus = "idle" | "running" | "success" | "error";
@@ -52,12 +53,19 @@ export default function AnalyzePage() {
   const server = useServerStatus();
   const setAnalysis = useReportStore((state) => state.setAnalysis);
   const setReport = useReportStore((state) => state.setReport);
+  const history = useReportStore((state) => state.history);
+  const addHistory = useReportStore((state) => state.addHistory);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  
+  const [volumeLevel, setVolumeLevel] = useState(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyzerRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   const [mode, setMode] = useState<CaptureMode>("upload");
   const [file, setFile] = useState<File | null>(null);
@@ -92,6 +100,10 @@ export default function AnalyzePage() {
     return () => {
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       if (timerRef.current) clearInterval(timerRef.current);
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close().catch(() => {});
+      }
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, [audioUrl]);
@@ -194,13 +206,29 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
+      
+      let mimeType = "";
+      if (typeof MediaRecorder !== "undefined") {
+        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          mimeType = "audio/webm;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
+          mimeType = "audio/ogg;codecs=opus";
+        } else if (MediaRecorder.isTypeSupported("audio/webm")) {
+          mimeType = "audio/webm";
+        }
+      }
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       recorderRef.current = recorder;
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
       recorder.onstop = async () => {
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close().catch(() => {});
+        }
         const rawBlob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         if (rawBlob.size === 0) {
           setError("Recorded audio was empty. Please check your microphone permissions and try again.");
@@ -214,7 +242,9 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
           const arrayBuffer = await rawBlob.arrayBuffer();
           const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
           const audioCtx = new AudioContextClass();
-          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          const decoded = await new Promise<AudioBuffer>((resolve, reject) => {
+            audioCtx.decodeAudioData(arrayBuffer.slice(0), resolve, reject);
+          });
           const wavBlob = audioBufferToWav(decoded);
           recordedFile = new File([wavBlob], `recording-${Date.now()}.wav`, { type: "audio/wav" });
           audioCtx.close();
@@ -236,6 +266,31 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
       recorder.start(200);
       setRecordSeconds(0);
       setRecording(true);
+      
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioContextClass();
+      audioContextRef.current = audioCtx;
+      const analyzer = audioCtx.createAnalyser();
+      analyzerRef.current = analyzer;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyzer);
+      analyzer.fftSize = 256;
+      const dataArray = new Uint8Array(analyzer.frequencyBinCount);
+      
+      const updateVolume = () => {
+        if (!analyzerRef.current) return;
+        analyzerRef.current.getByteTimeDomainData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const x = (dataArray[i] - 128) / 128;
+          sum += x * x;
+        }
+        const rms = Math.sqrt(sum / dataArray.length);
+        setVolumeLevel(Math.min(1, rms * 10)); // simple scaling
+        animationFrameRef.current = requestAnimationFrame(updateVolume);
+      };
+      updateVolume();
+
       timerRef.current = setInterval(() => {
         setRecordSeconds((value) => {
           if (value >= 29) {
@@ -282,6 +337,14 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
         modelResult: normalized,
         patientInfo,
         capturedAt: new Date().toISOString(),
+      });
+      addHistory({
+        id: crypto.randomUUID(),
+        prediction: normalized.prediction,
+        confidence: normalized.confidence,
+        fileName: file?.name ?? (sample ? `Sample: ${sample}` : "Recording"),
+        timestamp: new Date().toISOString(),
+        result: normalized,
       });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Analysis could not be completed.");
@@ -432,9 +495,14 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
               <div className={`record-indicator${recording ? " is-recording" : ""}`}>
                 <Mic aria-hidden="true" />
               </div>
-              <div>
+              <div className="record-details-wrapper">
                 <strong>{recording ? `Recording ${formatSeconds(recordSeconds)}` : "Record up to 30 seconds"}</strong>
                 <p>Use a quiet room and keep the microphone position steady. Recording stops automatically at 30 seconds.</p>
+                {recording && (
+                  <div className="vu-meter">
+                    <div className="vu-bar" style={{ width: `${volumeLevel * 100}%` }} />
+                  </div>
+                )}
               </div>
               <button type="button" className={recording ? "button button-danger" : "button button-secondary"} onClick={recording ? stopRecording : startRecording}>
                 {recording ? <><CircleStop size={17} /> Stop</> : <><Mic size={17} /> Start recording</>}
@@ -456,7 +524,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
                 <p>Select a representative condition pattern from the active model dataset.</p>
               </div>
               <div className="sample-options">
-                {(server.classes && server.classes.length > 0 ? server.classes : ["healthy", "asthma", "copd", "pneumonia", "Bronchial"]).map((label) => (
+                {(server.classes && server.classes.length > 0 ? server.classes : SAMPLE_LABELS).map((label) => (
                   <button key={label} type="button" className={sample?.toLowerCase() === label.toLowerCase() ? "is-selected" : ""} onClick={() => chooseSample(label)}>
                     {label.toLowerCase() === "healthy" ? "Healthy (No adventitious sound)" : label}
                   </button>
@@ -567,13 +635,36 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
             </div>
           ) : (
             <div className="result-panel">
+              {result.uncertain && (
+                <div className="uncertainty-banner">
+                  <AlertTriangle aria-hidden="true" />
+                  <strong>Model uncertainty is high — this result should be interpreted with extra caution</strong>
+                </div>
+              )}
               <div className="score-column">
                 <div className="result-heading-row">
                   <div>
                     <p className="eyebrow">Model scores — uncalibrated</p>
                     <h3>{safeLabel(result.prediction)}</h3>
                   </div>
-                  <strong className="top-score">{result.confidence.toFixed(1)}<span>%</span></strong>
+                  <div className="confidence-gauge">
+                    <RadialBarChart 
+                      width={80} 
+                      height={80} 
+                      cx={40} 
+                      cy={40} 
+                      innerRadius={28} 
+                      outerRadius={40} 
+                      barSize={6} 
+                      data={[{ name: 'confidence', value: result.confidence, fill: result.confidence > 70 ? "var(--moss)" : result.confidence >= 40 ? "var(--amber)" : "var(--terracotta)" }]} 
+                      startAngle={90} 
+                      endAngle={-270}
+                    >
+                      <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                      <RadialBar background clockWise dataKey="value" cornerRadius={3} />
+                    </RadialBarChart>
+                    <div className="gauge-label">{result.confidence.toFixed(1)}%</div>
+                  </div>
                 </div>
                 <p className="score-caveat">Scores describe this model’s output. They do not prove or rule out disease.</p>
                 <div className="score-list" role="table" aria-label="Model scores">
@@ -612,6 +703,17 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
                   <div><dt>Sample rate</dt><dd>{(result.sample_rate / 1000).toFixed(1)} kHz</dd></div>
                   <div><dt>Denoising</dt><dd>{result.noise_cancellation ? "Applied" : "Not applied"}</dd></div>
                   <div><dt>Source</dt><dd>{result.filename ?? file?.name ?? `Dataset sample (${sample})`}</dd></div>
+                  {result.uncertainty && (
+                    <div className="entropy-meta">
+                      <dt>Entropy (Uncertainty)</dt>
+                      <dd>
+                        <div className="entropy-bar-track">
+                          <div className="entropy-bar-fill" style={{ width: `${result.uncertainty.normalized_entropy * 100}%` }} />
+                        </div>
+                        {(result.uncertainty.normalized_entropy).toFixed(2)}
+                      </dd>
+                    </div>
+                  )}
                 </dl>
                 <div className="learning-note">
                   <BookOpenNote />
@@ -634,6 +736,42 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
                 <FileText size={17} aria-hidden="true" /> {reportStatus === "loading" ? "Generating summary…" : "Generate research summary"}
               </button>
               {reportError && <p className="form-error" role="alert">{reportError}</p>}
+            </div>
+          )}
+
+          {history.length > 0 && (
+            <div className="history-panel">
+              <h3>Recent analyses</h3>
+              <div className="history-list">
+                {history.map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    className="history-item"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    onClick={() => {
+                      setResult(item.result);
+                      setAudioUrl(null);
+                      setFile(null);
+                      setSample(null);
+                      setStatus("success");
+                      setMode("upload");
+                    }}
+                  >
+                    <div className="history-item-header">
+                      <strong>{safeLabel(item.prediction)}</strong>
+                      <span className="history-conf" style={{ color: item.confidence > 70 ? "var(--moss)" : item.confidence >= 40 ? "var(--amber)" : "var(--terracotta)" }}>
+                        {item.confidence.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="history-item-meta">
+                      <span>{item.fileName}</span>
+                      <span>{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </div>
           )}
         </section>

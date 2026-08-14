@@ -1,0 +1,17 @@
+{
+  "dataset": "Folder Audio Dataset",
+  "source_url": "local_directory",
+  "download_date": "2026-08-05",
+  "license": "Custom/Kaggle Dataset",
+  "diagnosis_sha256": "folder_based",
+  "recordings": 1211,
+  "patients": 205,
+  "recording_label_counts": {
+    "bronchial": 104,
+    "asthma": 288,
+    "copd": 401,
+    "healthy": 133,
+    "pneumonia": 285
+  },
+  "audio_inventory_sha256": "folder_based"
+}

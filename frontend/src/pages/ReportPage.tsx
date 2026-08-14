@@ -8,6 +8,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useReportStore } from "../store/reportStore";
 
+import FormattedText from "../components/FormattedText";
+
 function safeLabel(label: string) {
   return label.toLowerCase() === "healthy" ? "No adventitious sound pattern" : label;
 }
@@ -71,7 +73,7 @@ export default function ReportPage() {
             <span>Summary model: <strong>{report.model}</strong></span>
           </div>
           <div className="generated-copy">
-            {report.summary.split("\n").map((line, index) => line.trim() ? <p key={`${line}-${index}`}>{line}</p> : null)}
+            <FormattedText content={report.summary} />
           </div>
           <div className="inline-alert alert-warning">
             <Info aria-hidden="true" />

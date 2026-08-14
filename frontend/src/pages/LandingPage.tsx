@@ -18,7 +18,7 @@ import Stethoscope from 'lucide-react/dist/esm/icons/stethoscope.js';
 
 import './LandingPage.css';
 
-const useCountUp = (end: number, duration: number = 2) => {
+const useCountUp = (end: number, duration: number = 2, decimals: number = 0) => {
   const [count, setCount] = useState(0);
   const { ref, inView } = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
 
@@ -27,7 +27,7 @@ const useCountUp = (end: number, duration: number = 2) => {
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / (duration * 1000), 1);
-      setCount(Math.floor(progress * end));
+      setCount(Number((progress * end).toFixed(decimals)));
       if (progress < 1) {
         window.requestAnimationFrame(step);
       }
@@ -35,7 +35,7 @@ const useCountUp = (end: number, duration: number = 2) => {
     if (inView) {
       window.requestAnimationFrame(step);
     }
-  }, [inView, end, duration]);
+  }, [inView, end, duration, decimals]);
 
   return { count, ref };
 };
@@ -128,8 +128,8 @@ const FadeInWhenVisible = ({ children, delay = 0, className = "" }: { children: 
 };
 
 
-const StatCard = ({ end, label, suffix = "" }: { end: number; label: string; suffix?: string }) => {
-  const { count, ref } = useCountUp(end, 2.5);
+const StatCard = ({ end, label, suffix = "", decimals = 0 }: { end: number; label: string; suffix?: string; decimals?: number }) => {
+  const { count, ref } = useCountUp(end, 2.5, decimals);
   return (
     <div className="stat-card" ref={ref}>
       <div className="stat-value">{count}{suffix}</div>
@@ -246,10 +246,10 @@ export const LandingPage = () => {
         <div className="features-grid">
           {[
             { title: "Real-time audio visualization", desc: "Interactive waveform and spectrogram rendering.", icon: <Activity size={24} /> },
-            { title: "8 respiratory condition patterns", desc: "Identify distinctive adventitious sound labels.", icon: <Stethoscope size={24} /> },
+            { title: "5 respiratory condition patterns", desc: "Identify distinctive adventitious sound labels.", icon: <Stethoscope size={24} /> },
             { title: "Experimental attribution maps", desc: "Saliency/Grad-CAM overlays on spectrograms.", icon: <Eye size={24} /> },
             { title: "Research-grade AI summaries", desc: "LLM integration for contextual interpretation.", icon: <FileText size={24} /> },
-            { title: "ICBHI dataset integration", desc: "Trained on 920 robust clinical recordings.", icon: <Database size={24} /> },
+            { title: "Kaggle Asthma V2 dataset", desc: "Trained on validated respiratory recordings.", icon: <Database size={24} /> },
             { title: "Privacy-first design", desc: "In-browser processing. No audio data stored.", icon: <Shield size={24} /> }
           ].map((feature, i) => (
             <FadeInWhenVisible key={i} delay={i * 0.1}>
@@ -267,13 +267,54 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Live Model Demo Section */}
+      <section className="demo-section">
+        <FadeInWhenVisible className="demo-container">
+          <div className="demo-text">
+            <h2>Live Model Demo</h2>
+            <p>See the model analyze a respiratory recording in real-time.</p>
+            <Link to="/analyze" className="btn-primary demo-cta">
+              <Activity size={18} />
+              Try the Analyzer
+            </Link>
+          </div>
+          <div className="demo-visual">
+            <div className="mini-waveform">
+              {[...Array(16)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="waveform-bar"
+                  animate={{ height: ["20%", "100%", "20%"] }}
+                  transition={{ 
+                    repeat: Infinity, 
+                    duration: 1.2, 
+                    delay: i * 0.1,
+                    ease: "easeInOut" 
+                  }}
+                />
+              ))}
+            </div>
+            <motion.div 
+              className="demo-result"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.8 }}
+            >
+              <span className="demo-result-label">Result:</span>
+              <span className="demo-result-value">Asthma (87%)</span>
+            </motion.div>
+          </div>
+        </FadeInWhenVisible>
+      </section>
+
       {/* Statistics Section */}
       <section className="stats-section">
         <div className="stats-grid">
-          <StatCard end={8} label="Disease Categories" />
-          <StatCard end={920} label="Recordings Analyzed" suffix="+" />
+          <StatCard end={5} label="Disease Categories" />
+          <StatCard end={82.9} label="Patient-Level Accuracy" suffix="%" decimals={1} />
           <StatCard end={40} label="MFCC Features Extracted" />
-          <StatCard end={137} label="Model Parameters" suffix="K" />
+          <StatCard end={120} label="Feature Dimensions" />
         </div>
       </section>
 
@@ -287,18 +328,24 @@ export const LandingPage = () => {
         </FadeInWhenVisible>
         
         <div className="categories-grid">
-          {["Asthma", "Bronchiectasis", "Bronchiolitis", "COPD", "No adventitious sound label", "LRTI", "Pneumonia", "URTI"].map((disease, i) => (
+          {[
+            { name: "Asthma", desc: "Detects wheezing patterns and variable airflow obstruction signatures." },
+            { name: "Bronchial disorders", desc: "Identifies coarse crackles and rhonchi associated with airway inflammation." },
+            { name: "COPD", desc: "Recognizes persistent airflow limitation and prolonged expiratory sounds." },
+            { name: "Healthy (No adventitious sound)", desc: "Confirms absence of crackles, wheezes, and typical adventitious noises." },
+            { name: "Pneumonia", desc: "Detects fine crackles and consolidation signs typical of lung infections." }
+          ].map((disease, i) => (
             <motion.div 
-              key={disease}
+              key={disease.name}
               className="category-card"
               whileHover={{ rotate: 1, scale: 1.02, y: -5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="category-header">
                 <Stethoscope size={20} className="category-icon" />
-                <h4>{disease}</h4>
+                <h4>{disease.name}</h4>
               </div>
-              <p>Recognizing acoustic signatures indicative of {disease.toLowerCase()} pathology.</p>
+              <p>{disease.desc}</p>
               <Link to="/learn" className="category-link">Learn more <ChevronRight size={14} /></Link>
             </motion.div>
           ))}
@@ -315,7 +362,7 @@ export const LandingPage = () => {
         </FadeInWhenVisible>
 
         <div className="pipeline-visual">
-          {["Audio", "MFCC", "Conv1D", "BiGRU", "Softmax"].map((stage, i) => (
+          {["Audio Input", "MFCC + Δ + Δ²", "Conv1D", "BiGRU", "Dual Pooling", "Softmax"].map((stage, i) => (
             <React.Fragment key={stage}>
               <motion.div 
                 className="pipeline-stage"
@@ -327,7 +374,7 @@ export const LandingPage = () => {
                 <Cpu size={24} />
                 <span>{stage}</span>
               </motion.div>
-              {i < 4 && (
+              {i < 5 && (
                 <motion.div 
                   className="pipeline-arrow"
                   initial={{ width: 0 }}
@@ -378,7 +425,7 @@ export const LandingPage = () => {
           <div className="footer-col">
             <h4>Project</h4>
             <a href="https://github.com"><GitBranch size={16} /> GitHub</a>
-            <span className="credit">Trained on ICBHI 2017 Dataset</span>
+            <span className="credit">Trained on Kaggle Asthma V2 Dataset</span>
           </div>
         </div>
         <div className="footer-bottom">

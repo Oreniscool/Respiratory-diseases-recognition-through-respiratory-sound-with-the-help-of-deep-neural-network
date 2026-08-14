@@ -42,3 +42,14 @@ def test_spec_augment_masks_frequency_and_time():
     aug2 = spec_augment(features, rng=rng2)
     np.testing.assert_array_equal(aug1, aug2)
 
+
+def test_spec_augment_tf_masks_batch():
+    import tensorflow as tf
+    from Augmentation import spec_augment_tf
+
+    batch = tf.ones((4, 200, 120), dtype=tf.float32)
+    aug_batch = spec_augment_tf(batch, num_freq_masks=2, max_freq_mask=15, num_time_masks=2, max_time_mask=25)
+
+    assert aug_batch.shape == (4, 200, 120)
+    assert tf.reduce_any(tf.equal(aug_batch, 0.0)).numpy()
+

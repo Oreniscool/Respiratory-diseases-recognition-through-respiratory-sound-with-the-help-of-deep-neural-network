@@ -104,21 +104,45 @@ export default function AudioVisuals({ audioUrl, fileName }: AudioVisualsProps) 
     }
 
     let cancelled = false;
-    let audioContext: AudioContext | null = null;
+    let audioCtx: AudioContext | null = null;
     setStatus("loading");
 
     const render = async () => {
       try {
         const response = await fetch(audioUrl);
         const bytes = await response.arrayBuffer();
-        audioContext = new AudioContext();
-        const buffer = await audioContext.decodeAudioData(bytes.slice(0));
-        if (cancelled || !waveRef.current || !specRef.current) return;
-        drawWaveform(waveRef.current, buffer.getChannelData(0));
+        if (bytes.byteLength === 0) {
+          if (!cancelled) setStatus("error");
+          return;
+        }
 
-        drawSpectrogram(specRef.current, buffer.getChannelData(0), buffer.sampleRate);
-        setStatus("ready");
-      } catch {
+        const AudioContextClass =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        audioCtx = new AudioContextClass();
+
+        // Use promise wrapper for backward & cross-browser compatibility
+        const buffer = await new Promise<AudioBuffer>((resolve, reject) => {
+          const res = audioCtx!.decodeAudioData(bytes.slice(0), resolve, (err) => {
+            // fallback attempt if slice(0) failed
+            audioCtx!.decodeAudioData(bytes, resolve, reject);
+          });
+          if (res && typeof (res as Promise<AudioBuffer>).then === "function") {
+            (res as Promise<AudioBuffer>).then(resolve).catch(reject);
+          }
+        });
+
+        if (cancelled) return;
+        
+        // Brief delay to ensure DOM canvas elements are measured correctly
+        requestAnimationFrame(() => {
+          if (cancelled || !waveRef.current || !specRef.current) return;
+          drawWaveform(waveRef.current, buffer.getChannelData(0));
+          drawSpectrogram(specRef.current, buffer.getChannelData(0), buffer.sampleRate);
+          setStatus("ready");
+        });
+      } catch (err) {
+        console.warn("AudioVisuals decoding failed:", err);
         if (!cancelled) setStatus("error");
       }
     };
@@ -126,7 +150,9 @@ export default function AudioVisuals({ audioUrl, fileName }: AudioVisualsProps) 
     void render();
     return () => {
       cancelled = true;
-      void audioContext?.close();
+      if (audioCtx && audioCtx.state !== "closed") {
+        audioCtx.close().catch(() => {});
+      }
     };
   }, [audioUrl]);
 

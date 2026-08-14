@@ -16,20 +16,33 @@ export interface AnalysisData {
   capturedAt: string;
 }
 
+export interface HistoryEntry {
+  id: string;
+  prediction: string;
+  confidence: number;
+  fileName: string;
+  timestamp: string;
+  result: PredictResult;
+}
+
 interface ReportStore {
   report: ReportData | null;
   analysis: AnalysisData | null;
+  history: HistoryEntry[];
   setReport: (data: ReportData) => void;
   setAnalysis: (data: AnalysisData) => void;
   clearReport: () => void;
   clearAnalysis: () => void;
+  addHistory: (entry: HistoryEntry) => void;
 }
 
 export const useReportStore = create<ReportStore>((set) => ({
   report: null,
   analysis: null,
+  history: [],
   setReport: (data) => set({ report: data }),
   setAnalysis: (data) => set({ analysis: data }),
   clearReport: () => set({ report: null }),
   clearAnalysis: () => set({ analysis: null }),
+  addHistory: (entry) => set((state) => ({ history: [entry, ...state.history].slice(0, 5) })),
 }));

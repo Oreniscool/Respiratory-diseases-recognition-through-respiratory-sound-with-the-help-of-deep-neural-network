@@ -105,6 +105,17 @@ def parse_args() -> argparse.Namespace:
         help="Maximum width of SpecAugment time mask strip (default: 25)",
     )
     parser.add_argument(
+        "--offline-spec-augment",
+        action="store_true",
+        help="Pre-generate static SpecAugment windows during extraction (higher RAM usage; default is dynamic on-the-fly)",
+    )
+    parser.add_argument(
+        "--max-waveform-variants",
+        type=int,
+        default=None,
+        help="Limit number of audio waveform augmentation variants per file (default: all 4 variants)",
+    )
+    parser.add_argument(
         "--prepare-only",
         action="store_true",
         help="Write and validate patient splits without feature extraction or training",
@@ -146,7 +157,34 @@ def parse_args() -> argparse.Namespace:
             "convert the ICBHI flat layout into the required folder structure."
         ),
     )
+    parser.add_argument(
+        "--merge-icbhi",
+        action="store_true",
+        help="Automatically merge the ICBHI dataset (backend/dataset/ICBHI_as_folders) into the training cohort",
+    )
     return parser.parse_args()
+
+
+def resolve_dataset_paths(args: argparse.Namespace) -> None:
+    """Automatically resolve dataset paths without requiring long paths with spaces."""
+    backend_dir = Path(__file__).resolve().parent
+    kaggle_candidate = (
+        backend_dir
+        / "dataset"
+        / "Asthma_Detection_V2"
+        / "Asthma Detection Dataset Version 2"
+        / "Asthma Detection Dataset Version 2"
+    )
+    icbhi_candidate = backend_dir / "dataset" / "ICBHI_as_folders"
+
+    if args.dataset_format == "folder":
+        if args.dataset_dir in ("dataset/ICBHI_final_dataset", "auto", "kaggle", "default"):
+            if kaggle_candidate.is_dir():
+                args.dataset_dir = str(kaggle_candidate)
+
+    if args.merge_icbhi:
+        if icbhi_candidate.is_dir() and str(icbhi_candidate) not in args.extra_dataset_dir:
+            args.extra_dataset_dir.append(str(icbhi_candidate))
 
 
 
@@ -225,6 +263,7 @@ def _write_split_manifest(
 
 
 def run_training(args: argparse.Namespace) -> None:
+    resolve_dataset_paths(args)
     random.seed(args.seed)
     np.random.seed(args.seed)
 
@@ -325,14 +364,16 @@ def run_training(args: argparse.Namespace) -> None:
 
     set_random_seed(args.seed)
 
+    offline_spec = args.offline_spec_augment and (not args.no_spec_augment)
     train_data = extract_manifest(
         splits["train"],
         augment=not args.no_augmentation,
-        use_spec_augment=not args.no_spec_augment,
+        use_spec_augment=offline_spec,
         num_freq_masks=args.num_freq_masks,
         max_freq_mask=args.max_freq_mask,
         num_time_masks=args.num_time_masks,
         max_time_mask=args.max_time_mask,
+        max_waveform_variants=args.max_waveform_variants,
         seed=args.seed,
     )
     validation_data = extract_manifest(splits["validation"], augment=False, use_spec_augment=False, seed=args.seed)
@@ -347,6 +388,7 @@ def run_training(args: argparse.Namespace) -> None:
     y_validation = identity[encoder.transform(validation_data.y)]
     y_test = identity[encoder.transform(test_data.y)]
 
+    use_online_spec = (not args.no_spec_augment) and (not args.offline_spec_augment) and (not args.no_augmentation)
     healthy_index = class_names.index("Healthy") if "Healthy" in class_names else None
     model, _, model_path, class_weights = train_model(
         train_data.X,
@@ -360,6 +402,12 @@ def run_training(args: argparse.Namespace) -> None:
         healthy_class_multiplier=args.healthy_class_multiplier,
         use_focal_loss=args.use_focal_loss,
         label_smoothing=args.label_smoothing,
+        use_spec_augment=use_online_spec,
+        num_freq_masks=args.num_freq_masks,
+        max_freq_mask=args.max_freq_mask,
+        num_time_masks=args.num_time_masks,
+        max_time_mask=args.max_time_mask,
+        seed=args.seed,
     )
 
     validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))

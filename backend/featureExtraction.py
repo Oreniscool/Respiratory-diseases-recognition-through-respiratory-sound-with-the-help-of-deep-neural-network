@@ -163,17 +163,20 @@ def _variants(
     data: np.ndarray,
     augment: bool,
     rng: np.random.Generator,
+    max_variants: int | None = None,
 ) -> Sequence[tuple[str, np.ndarray]]:
     variants: list[tuple[str, np.ndarray]] = [("original", data)]
     if augment:
-        variants.extend(
-            [
-                ("noise_20db", add_noise(data, snr_db=20.0, rng=rng)),
-                ("shift_right_1600", shift(data, 1_600)),
-                ("stretch_1.2", stretch(data, 1.2)),
-                ("stretch_0.8", stretch(data, 0.8)),
-            ]
-        )
+        augmented = [
+            ("noise_20db", add_noise(data, snr_db=20.0, rng=rng)),
+            ("shift_right_1600", shift(data, 1_600)),
+            ("stretch_1.2", stretch(data, 1.2)),
+            ("stretch_0.8", stretch(data, 0.8)),
+        ]
+        if max_variants is not None and 0 < max_variants < len(augmented):
+            chosen_indices = rng.choice(len(augmented), size=max_variants, replace=False)
+            augmented = [augmented[i] for i in sorted(chosen_indices)]
+        variants.extend(augmented)
     return variants
 
 
@@ -181,16 +184,19 @@ def extract_manifest(
     records: Sequence[AudioRecord],
     *,
     augment: bool = False,
-    use_spec_augment: bool = True,
+    use_spec_augment: bool = False,
     num_freq_masks: int = 2,
     max_freq_mask: int = 15,
     num_time_masks: int = 2,
     max_time_mask: int = 25,
+    max_waveform_variants: int | None = None,
     seed: int = 42,
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
 ) -> ExtractedDataset:
+    import gc
+
     rng = np.random.default_rng(seed)
-    features: list[np.ndarray] = []
+    feature_chunks: list[np.ndarray] = []
     labels: list[str] = []
     patients: list[int] = []
     sources: list[str] = []
@@ -198,13 +204,17 @@ def extract_manifest(
     window_starts: list[int] = []
     valid_lengths: list[int] = []
 
-    for record in records:
+    for idx, record in enumerate(records):
         data, sample_rate = load_audio(record.path, config=config)
-        for variant_name, variant_audio in _variants(data, augment, rng):
+        record_windows: list[np.ndarray] = []
+
+        for variant_name, variant_audio in _variants(
+            data, augment, rng, max_variants=max_waveform_variants
+        ):
             sequence = extract_feature_sequence(variant_audio, sample_rate, config=config)
             windows, lengths, starts = window_feature_sequence(sequence, config=config)
             for window, length, start in zip(windows, lengths, starts):
-                features.append(window)
+                record_windows.append(window)
                 labels.append(record.disease)
                 patients.append(record.patient_id)
                 sources.append(str(record.path))
@@ -222,7 +232,7 @@ def extract_manifest(
                         max_time_mask=max_time_mask,
                         rng=rng,
                     )
-                    features.append(spec_window)
+                    record_windows.append(spec_window)
                     labels.append(record.disease)
                     patients.append(record.patient_id)
                     sources.append(str(record.path))
@@ -230,8 +240,23 @@ def extract_manifest(
                     valid_lengths.append(int(length))
                     window_starts.append(int(start))
 
+        if record_windows:
+            feature_chunks.append(np.asarray(record_windows, dtype=np.float32))
+
+        # Periodic garbage collection every 100 recordings to free librosa/FFT caches
+        if (idx + 1) % 100 == 0:
+            gc.collect()
+
+    if feature_chunks:
+        X_all = np.concatenate(feature_chunks, axis=0)
+    else:
+        X_all = np.empty((0, config.max_len, config.feature_dim), dtype=np.float32)
+
+    del feature_chunks
+    gc.collect()
+
     return ExtractedDataset(
-        X=np.asarray(features, dtype=np.float32),
+        X=X_all,
         y=np.asarray(labels),
         patient_ids=np.asarray(patients, dtype=np.int64),
         source_paths=np.asarray(sources),

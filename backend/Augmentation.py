@@ -110,3 +110,38 @@ def spec_augment(
     return augmented
 
 
+def spec_augment_tf(
+    features: "tf.Tensor",
+    num_freq_masks: int = 2,
+    max_freq_mask: int = 15,
+    num_time_masks: int = 2,
+    max_time_mask: int = 25,
+    fill_value: float = 0.0,
+) -> "tf.Tensor":
+    """Vectorized on-the-fly SpecAugment for 3D tensor batches (batch, time, freq)."""
+    import tensorflow as tf
+
+    shape = tf.shape(features)
+    T, F = shape[1], shape[2]
+
+    # 1. Frequency masking
+    for _ in range(num_freq_masks):
+        f = tf.random.uniform([], 0, max_freq_mask + 1, dtype=tf.int32)
+        f0 = tf.random.uniform([], 0, tf.maximum(1, F - f + 1), dtype=tf.int32)
+        f_indices = tf.range(F)
+        f_mask = tf.logical_or(f_indices < f0, f_indices >= f0 + f)
+        f_mask = tf.reshape(tf.cast(f_mask, features.dtype), [1, 1, F])
+        features = features * f_mask + (1.0 - f_mask) * fill_value
+
+    # 2. Time masking
+    for _ in range(num_time_masks):
+        t = tf.random.uniform([], 0, max_time_mask + 1, dtype=tf.int32)
+        t0 = tf.random.uniform([], 0, tf.maximum(1, T - t + 1), dtype=tf.int32)
+        t_indices = tf.range(T)
+        t_mask = tf.logical_or(t_indices < t0, t_indices >= t0 + t)
+        t_mask = tf.reshape(tf.cast(t_mask, features.dtype), [1, T, 1])
+        features = features * t_mask + (1.0 - t_mask) * fill_value
+
+    return features
+
+

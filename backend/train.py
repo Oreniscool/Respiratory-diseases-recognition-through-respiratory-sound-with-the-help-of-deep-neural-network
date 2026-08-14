@@ -79,6 +79,12 @@ def train_model(
     use_focal_loss: bool = True,
     label_smoothing: float = 0.08,
     gamma: float = 2.0,
+    use_spec_augment: bool = False,
+    num_freq_masks: int = 2,
+    max_freq_mask: int = 15,
+    num_time_masks: int = 2,
+    max_time_mask: int = 25,
+    seed: int = 42,
 ) -> tuple[Model, object, Path, dict[int, float]]:
     """Train a model using validation data only for model selection."""
     if x_train.ndim != 3 or x_val.ndim != 3:
@@ -163,12 +169,54 @@ def train_model(
         CSVLogger(output_dir / "training_history.csv"),
     ]
 
+    # Efficient tf.data pipeline to avoid memory duplication during training
+    train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    train_ds = train_ds.shuffle(
+        buffer_size=min(len(x_train), 10_000),
+        seed=seed,
+        reshuffle_each_iteration=True,
+    )
+    train_ds = train_ds.batch(batch_size, drop_remainder=False)
+
+    if use_spec_augment:
+        def _apply_spec_augment_batch(x_b, y_b):
+            shape = tf.shape(x_b)
+            T, F = shape[1], shape[2]
+
+            # 1. Frequency masking
+            for _ in range(num_freq_masks):
+                f = tf.random.uniform([], 0, max_freq_mask + 1, dtype=tf.int32)
+                f0 = tf.random.uniform([], 0, tf.maximum(1, F - f + 1), dtype=tf.int32)
+                f_indices = tf.range(F)
+                f_mask = tf.logical_or(f_indices < f0, f_indices >= f0 + f)
+                f_mask = tf.reshape(tf.cast(f_mask, x_b.dtype), [1, 1, F])
+                x_b = x_b * f_mask
+
+            # 2. Time masking
+            for _ in range(num_time_masks):
+                t = tf.random.uniform([], 0, max_time_mask + 1, dtype=tf.int32)
+                t0 = tf.random.uniform([], 0, tf.maximum(1, T - t + 1), dtype=tf.int32)
+                t_indices = tf.range(T)
+                t_mask = tf.logical_or(t_indices < t0, t_indices >= t0 + t)
+                t_mask = tf.reshape(tf.cast(t_mask, x_b.dtype), [1, T, 1])
+                x_b = x_b * t_mask
+
+            return x_b, y_b
+
+        train_ds = train_ds.map(
+            _apply_spec_augment_batch,
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )
+
+    train_ds = train_ds.prefetch(tf.data.AUTOTUNE)
+
+    val_ds = tf.data.Dataset.from_tensor_slices((x_val, y_val))
+    val_ds = val_ds.batch(batch_size, drop_remainder=False).prefetch(tf.data.AUTOTUNE)
+
     history = model.fit(
-        x_train,
-        y_train,
-        batch_size=batch_size,
+        train_ds,
         epochs=epochs,
-        validation_data=(x_val, y_val),
+        validation_data=val_ds,
         callbacks=callbacks,
         class_weight=class_weights,
         verbose=1,

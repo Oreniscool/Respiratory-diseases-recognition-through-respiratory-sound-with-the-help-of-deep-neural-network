@@ -9,6 +9,7 @@ export interface ReferenceEntry {
   soundNote: string;
   sourceLabel: string;
   sourceUrl: string;
+  isActiveModelClass: boolean;
 }
 
 export const REFERENCE_ENTRIES: ReferenceEntry[] = [
@@ -27,6 +28,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
     sourceLabel: "WHO: Chronic obstructive pulmonary disease",
     sourceUrl:
       "https://www.who.int/news-room/fact-sheets/detail/chronic-obstructive-pulmonary-disease-(copd)",
+    isActiveModelClass: true,
   },
   {
     id: "pneumonia",
@@ -41,13 +43,14 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Crackles can occur in pneumonia, but they are not specific enough to identify pneumonia or its cause from audio alone.",
     sourceLabel: "CDC: About pneumonia",
     sourceUrl: "https://www.cdc.gov/pneumonia/about/index.html",
+    isActiveModelClass: true,
   },
   {
     id: "bronchiectasis",
     name: "Bronchiectasis",
     eyebrow: "Widened or scarred airways",
     summary:
-      "Bronchiectasis affects how well airways clear mucus and can lead to repeated infections and a long-term productive cough.",
+      "Bronchiectasis affects how well airways clear mucus and can lead to repeated infections and a long-term productive cough. Note: This is an inactive model class in RespiNet v3.",
     commonSigns: ["Persistent productive cough", "Repeated chest infections", "Breathlessness", "Wheeze", "Fatigue"],
     assessment:
       "Clinical assessment and tests such as CT imaging may be required. Audio analysis is not equivalent to imaging.",
@@ -55,13 +58,14 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Crackles and wheezes may be present, but neither sound proves bronchiectasis.",
     sourceLabel: "NHLBI: Bronchiectasis",
     sourceUrl: "https://www.nhlbi.nih.gov/health/bronchiectasis",
+    isActiveModelClass: false,
   },
   {
     id: "bronchiolitis",
     name: "Bronchiolitis",
     eyebrow: "Small-airway illness in young children",
     summary:
-      "Bronchiolitis mainly affects babies and children under two. It is usually viral and is frequently associated with respiratory syncytial virus (RSV).",
+      "Bronchiolitis mainly affects babies and children under two. It is usually viral and is frequently associated with respiratory syncytial virus (RSV). Note: This is an inactive model class in RespiNet v3.",
     commonSigns: ["Cough", "Faster or difficult breathing", "Feeding difficulty", "Wheeze", "Crackles"],
     assessment:
       "Age, breathing effort, hydration, feeding, and other clinical findings are important. Audio cannot identify RSV.",
@@ -69,6 +73,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Wheezes or crackles may occur, but they do not establish the cause or severity.",
     sourceLabel: "NHS: Bronchiolitis",
     sourceUrl: "https://www.nhs.uk/conditions/bronchiolitis/",
+    isActiveModelClass: false,
   },
   {
     id: "asthma",
@@ -83,6 +88,23 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Wheeze is not unique to asthma, and asthma can be present without audible wheeze during a recording.",
     sourceLabel: "WHO: Asthma",
     sourceUrl: "https://www.who.int/news-room/fact-sheets/detail/asthma",
+    isActiveModelClass: true,
+  },
+  {
+    id: "bronchial",
+    name: "Bronchial disorders",
+    shortName: "Bronchial",
+    eyebrow: "Airway inflammation and mucus",
+    summary:
+      "Bronchial disorders involve inflammation of the bronchial tubes, often resulting in coughing and mucus production.",
+    commonSigns: ["Cough", "Mucus production", "Fatigue", "Shortness of breath", "Chest discomfort"],
+    assessment:
+      "Diagnosis may involve a physical exam, taking medical history, and sometimes tests like spirometry or chest X-rays.",
+    soundNote:
+      "Rhonchi or coarse crackles may be heard, but are not definitive on their own.",
+    sourceLabel: "NHS: Bronchitis",
+    sourceUrl: "https://www.nhs.uk/conditions/bronchitis/",
+    isActiveModelClass: true,
   },
   {
     id: "urti",
@@ -90,7 +112,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
     shortName: "URTI",
     eyebrow: "Nose, sinuses, and throat",
     summary:
-      "URTI is an anatomical grouping rather than one disease. It includes infections affecting the upper airways, often with overlapping symptoms and causes.",
+      "URTI is an anatomical grouping rather than one disease. It includes infections affecting the upper airways, often with overlapping symptoms and causes. Note: This is an inactive model class in RespiNet v3.",
     commonSigns: ["Cough", "Sneezing", "Blocked or runny nose", "Sore throat", "Headache"],
     assessment:
       "Symptoms, duration, examination, and individual risk guide assessment. A lung recording alone does not locate an infection.",
@@ -98,6 +120,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Upper-airway noise can contaminate lung recordings and should not be treated as a disease signature.",
     sourceLabel: "NHS: Respiratory tract infections",
     sourceUrl: "https://www.nhs.uk/conditions/respiratory-tract-infection/",
+    isActiveModelClass: false,
   },
   {
     id: "lrti",
@@ -105,7 +128,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
     shortName: "LRTI",
     eyebrow: "Airways and lungs",
     summary:
-      "LRTI is another anatomical grouping, covering infections below the throat. It does not identify a specific organism or a fixed level of severity.",
+      "LRTI is another anatomical grouping, covering infections below the throat. It does not identify a specific organism or a fixed level of severity. Note: This is an inactive model class in RespiNet v3.",
     commonSigns: ["Cough", "Breathlessness", "Fever", "Chest discomfort", "Fatigue"],
     assessment:
       "The term covers different conditions. Clinical context is needed to determine cause, location, and severity.",
@@ -113,11 +136,12 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "Crackles or wheezes may appear in lower-airway illness, but audio alone cannot determine the infection location.",
     sourceLabel: "NHS: Respiratory tract infections",
     sourceUrl: "https://www.nhs.uk/conditions/respiratory-tract-infection/",
+    isActiveModelClass: false,
   },
   {
     id: "no-adventitious-sound",
-    name: "No adventitious sound label",
-    shortName: "Dataset label: Healthy",
+    name: "Healthy (No adventitious sound)",
+    shortName: "Healthy",
     eyebrow: "A label, not a clean bill of health",
     summary:
       "The project dataset includes a “Healthy” class. In this interface it is described more carefully as a recording that matches the model’s no-adventitious-sound pattern.",
@@ -128,6 +152,7 @@ export const REFERENCE_ENTRIES: ReferenceEntry[] = [
       "A quiet or typical-sounding recording is an acoustic observation, not a medical conclusion.",
     sourceLabel: "ERS: Standardized respiratory sound terminology",
     sourceUrl: "https://publications.ersnet.org/content/erj/47/3/724",
+    isActiveModelClass: true,
   },
 ];
 

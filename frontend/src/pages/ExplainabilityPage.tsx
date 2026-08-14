@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { useReportStore } from "../store/reportStore";
 import { requestExplainability, type ExplainabilityResponse } from "../utils/predict";
 
+import FormattedText from "../components/FormattedText";
+
 export default function ExplainabilityPage() {
   const navigate = useNavigate();
   const analysis = useReportStore((state) => state.analysis);
@@ -106,7 +108,11 @@ export default function ExplainabilityPage() {
             </div>
             <div className="generated-reasoning">
               <p className="eyebrow">Generated interpretation</p>
-              {result.reasoning ? <div className="generated-copy">{result.reasoning.split("\n").map((line, index) => line.trim() ? <p key={`${line}-${index}`}>{line}</p> : null)}</div> : <p>{result.reasoning_error ?? "No generated interpretation was requested."}</p>}
+              {result.reasoning ? (
+                <FormattedText content={result.reasoning} />
+              ) : (
+                <p>{result.reasoning_error ?? "No generated interpretation was requested."}</p>
+              )}
               <div className="inline-alert alert-warning"><Info /><div><strong>Interpretation may be wrong.</strong><p>Generated text does not add clinical validation and is not medical advice.</p></div></div>
             </div>
           </section>

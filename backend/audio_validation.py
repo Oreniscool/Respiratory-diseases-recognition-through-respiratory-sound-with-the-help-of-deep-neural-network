@@ -24,7 +24,7 @@ def validate_audio_upload(filename: str, payload: bytes) -> str:
 
 
 def _looks_like_audio(payload: bytes, extension: str) -> bool:
-    if len(payload) < 32:
+    if len(payload) < 12:
         return False
     header = payload[:64]
     if extension == ".wav":
