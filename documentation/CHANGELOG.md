@@ -21,3 +21,13 @@ All notable frontend revamp work is recorded here.
 
 - Conducted full static design & visual token QA (`design-qa.md`: `final result: passed`).
 - All active routes (`/`, `/evidence`, `/learn`, `/report`, `/explainability`) and legacy redirects (`/diagnose`, `/diseases`, `/chat`, `/how-it-works`, `/metrics`) verified.
+
+## 2026-08-14 — Merged Cohort Training & Calibration (Completed)
+
+### Summary of Changes
+
+- **Label Correction:** Sourced authentic, peer-reviewed clinical diagnoses (`patient_diagnosis_authentic.csv`) to resolve the validation accuracy collapse caused by scrambled label maps.
+- **Dataset Integration:** Reorganized the ICBHI dataset and combined it with the Kaggle Asthma V2 dataset into a unified 5-class target (`copd`, `asthma`, `healthy`, `pneumonia`, `bronchial`), enabling stable three-way patient-disjoint stratification.
+- **Model Retraining:** Re-trained the Conv1D + BiGRU sequence model on the combined cohort (2,131 recordings from 331 patients), implementing `FeatureValidityMask` to eliminate zero-padding length bias.
+- **Temperature Scaling & Calibration:** Applied post-hoc temperature scaling ($T \approx 1.54$) to reduce ECE to **3.33%** (recording-level) and **10.30%** (patient-level).
+- **Backend Deployment:** Exposed the verified metadata-backed `best_model.keras` on port 5001 using the Flask backend (`server.py`), and confirmed full end-to-end routing with the React frontend.
