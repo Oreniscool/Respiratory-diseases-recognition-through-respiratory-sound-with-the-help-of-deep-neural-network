@@ -126,17 +126,21 @@ export default function EvidencePage() {
         <div className="evidence-two-column">
           <article>
             <Database aria-hidden="true" />
-            <h3>What the original challenge measured</h3>
-            <p>
-              Respiratory cycles were annotated for crackles, wheezes, both, or neither. The official challenge evaluated respiratory-sound-event classification—not automatic clinical diagnosis.
-            </p>
+            <div>
+              <h3>What the original challenge measured</h3>
+              <p>
+                Respiratory cycles were annotated for crackles, wheezes, both, or neither. The official challenge evaluated respiratory-sound-event classification—not automatic clinical diagnosis.
+              </p>
+            </div>
           </article>
           <article>
             <Scale aria-hidden="true" />
-            <h3>Why the project’s eight labels need caution</h3>
-            <p>
-              Published disease counts are highly imbalanced, including only one asthma subject and two LRTI subjects. A patient-level split can therefore leave some labels absent from validation or test sets.
-            </p>
+            <div>
+              <h3>Why the project’s eight labels need caution</h3>
+              <p>
+                Published disease counts are highly imbalanced, including only one asthma subject and two LRTI subjects. A patient-level split can therefore leave some labels absent from validation or test sets.
+              </p>
+            </div>
           </article>
         </div>
         <div className="inline-alert alert-warning">

@@ -548,6 +548,8 @@ To enhance user engagement and clinical data transparency, the React 19 / TypeSc
 - **High-Uncertainty Warning Banner & Entropy Progress Bar:** Implemented visual warnings whenever prediction entropy exceeds abstention bounds ($\mathcal{H} > \tau_{\text{entropy}}$), accompanied by a normalized entropy progress indicator.
 - **Sliding Analysis Session History:** Added a persistent Zustand-backed sliding memory (`history: HistoryEntry[]`) storing the last 5 inference runs for instant side-by-side comparison.
 - **Interactive Landing Page Demo:** Added an animated waveform processing preview and interactive architecture stage visualizer (`Audio Input` $\rightarrow$ `MFCC + Δ + Δ²` $\rightarrow$ `Conv1D` $\rightarrow$ `BiGRU` $\rightarrow$ `Dual Pooling` $\rightarrow$ `Softmax`).
+- **Evidence Page Two-Column Grid Layout Fix:** Resolved a grid layout failure in the Evidence Library dataset section (`EvidencePage.tsx` / `globals.css`). The `.evidence-two-column article` element was configured as a 2-column CSS grid (`36px minmax(0, 1fr)`), but direct `<h3>` and `<p>` siblings were uncontained, causing the `<p>` paragraph to be pushed into the first 36px-wide column and wrap into a vertical text column. Contained the text blocks within a semantic `<div>` container and applied `align-items: start` to guarantee responsive two-column alignment.
+- **RadialBar Recharts Compatibility Fix:** Removed deprecated `clockWise` prop from `RadialBar` in `AnalyzePage.tsx` to maintain full TypeScript compilation compatibility with Recharts 2.15+.
 
 ---
 
