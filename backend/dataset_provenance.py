@@ -69,20 +69,34 @@ def load_and_validate_provenance(
     actual_hash = sha256_file(diagnosis_path)
     if provenance["diagnosis_sha256"] != actual_hash:
         raise ValueError("Diagnosis CSV checksum does not match dataset provenance")
-    diagnoses = pd.read_csv(diagnosis_path)
-    observed = dict(Counter(diagnoses["disease"].dropna().astype(str).str.strip()))
-    expected = provenance.get("label_counts", ICBHI_2017_PATIENT_COUNTS)
-
-    if provenance.get("label_counts") != expected and provenance.get("label_counts") != ICBHI_2017_PATIENT_COUNTS:
+    # Both the declared and the observed counts must equal the *published* distribution.
+    # A provenance file cannot vouch for itself: self-declared counts are not accepted.
+    if provenance["label_counts"] != ICBHI_2017_PATIENT_COUNTS:
         raise ValueError(
-            "Provenance label_counts do not match the expected patient distribution"
+            "Provenance label_counts do not match the published ICBHI 2017 patient distribution"
         )
-
-    if observed != expected and observed != ICBHI_2017_PATIENT_COUNTS:
-        raise ValueError(
-            "Diagnosis CSV label counts do not match the authentic ICBHI 2017 distribution"
-        )
+    assert_authentic_icbhi_labels(pd.read_csv(diagnosis_path))
     return provenance
+
+
+def icbhi_patient_label_counts(diagnoses: pd.DataFrame) -> dict[str, int]:
+    """Count diagnoses per unique patient (one row per patient in the ICBHI CSV)."""
+    if not {"patient_id", "disease"}.issubset(diagnoses.columns):
+        raise ValueError("Diagnosis CSV must have 'patient_id' and 'disease' columns")
+    clean = diagnoses.loc[:, ["patient_id", "disease"]].dropna()
+    clean = clean.assign(disease=clean["disease"].astype(str).str.strip())
+    return dict(Counter(clean.drop_duplicates("patient_id")["disease"]))
+
+
+def assert_authentic_icbhi_labels(diagnoses: pd.DataFrame) -> None:
+    """Reject diagnosis tables whose per-patient counts differ from the published ICBHI set."""
+    observed = icbhi_patient_label_counts(diagnoses)
+    if observed != ICBHI_2017_PATIENT_COUNTS:
+        raise ValueError(
+            "Diagnosis CSV label counts do not match the authentic ICBHI 2017 distribution "
+            f"(observed {dict(sorted(observed.items()))}). The repository's "
+            "patient_diagnosis.csv is deliberately scrambled; use the authentic labels."
+        )
 
 
 def build_dataset_audit(

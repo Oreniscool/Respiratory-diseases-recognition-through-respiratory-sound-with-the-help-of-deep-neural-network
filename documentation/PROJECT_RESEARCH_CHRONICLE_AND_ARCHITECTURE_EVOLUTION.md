@@ -685,6 +685,10 @@ weaker than documented. Changes, in commit order:
    real `.ogg`/`.webm` extension.
 5. **LLM key handling (`server.py`):** the Gemini API key moved from the URL query string to the
    `x-goog-api-key` header, so it can no longer leak via logged URLs or error diagnostics.
+6. **Provenance integrity (`dataset_provenance.py`, `reorganize_icbhi.py`, `submit.sh`):** ICBHI
+   label tables must match the published per-patient distribution (self-declared counts are no
+   longer accepted). `reorganize_icbhi.py` defaults to the authentic CSV and validates before
+   writing. `submit.sh` no longer regenerates provenance and trains the merged folder cohort.
 
 ---
 

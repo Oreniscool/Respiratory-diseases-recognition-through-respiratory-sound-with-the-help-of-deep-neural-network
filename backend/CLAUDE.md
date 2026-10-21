@@ -156,9 +156,10 @@ input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
   Healthy 26, URTI 14, Bronchiectasis 7, Bronchiolitis 6, Pneumonia 6, LRTI 2, Asthma 1).
 - `load_and_validate_provenance` checks that the required fields are present,
   `dataset_name == "ICBHI 2017 Respiratory Sound Database"`, the ISO date, and the CSV sha256.
-  **The label-count check is self-referential:** the CSV passes if its counts equal *either*
-  the provenance file's own `label_counts` *or* the authentic ones. The repo's
-  `dataset_provenance.json` declares the scrambled counts, so the scrambled CSV passes.
+  Both the declared `label_counts` and the CSV's per-patient counts must equal
+  `ICBHI_2017_PATIENT_COUNTS` (`assert_authentic_icbhi_labels`, final-phase item 6). Before that
+  fix, self-declared counts were accepted. The repo's `dataset_provenance.json` describes an
+  older scrambled CSV and fails on checksum.
 - `LABEL_MAPPING_4CLASS` (only used for `--dataset-format icbhi --group-classes 4-class`):
   COPD, Healthy, Non_COPD_Chronic (Bronchiectasis, Asthma), Acute_Infection (URTI,
   Pneumonia, Bronchiolitis, LRTI). This is **different** from the 5-class mapping in
@@ -168,8 +169,9 @@ input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
 ### `reorganize_icbhi.py`
 ICBHI → 5 class folders: COPD→copd, Healthy→healthy, Pneumonia→pneumonia, Asthma→asthma,
 URTI/Bronchiectasis/Bronchiolitis/LRTI→bronchial. Symlinks by default, `--copy` for hard
-copies. Existing destination files are left alone, so **delete the output dir before
-re-running with different labels.** **The default `--diagnosis-csv` is the scrambled file.**
+copies. The default `--diagnosis-csv` is `dataset/patient_diagnosis_authentic.csv`, and labels are
+checked with `assert_authentic_icbhi_labels` before anything is written. An output dir that already
+holds files is refused unless `--force` is given, which deletes and rebuilds the five class folders.
 
 ---
 
@@ -268,8 +270,8 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 | 2 | ~~`server.py` denoise default~~ | **Fixed (final-phase item 3):** default `"0"`. Disabled requests get 400 before decoding. Covered by `tests/test_server_denoise.py` |
 | 3 | ~~upload validation~~ | **Fixed (final-phase item 4):** strict per-extension signatures (RIFF/WAVE, fLaC, OggS, EBML, ID3/MPEG sync, ftyp), `.m4a` allowed, `_read_audio_upload` no longer swallows errors. Verified on all 2,131 dataset WAVs and ffmpeg-encoded samples of every format |
 | 4 | ~~API key in URL~~ | **Fixed (final-phase item 5):** key sent as `x-goog-api-key` header. Covered by `tests/test_llm_key_handling.py` |
-| 5 | `dataset_provenance.py:74-84`, `submit.sh` | The provenance label check is self-referential, and `submit.sh` rewrites the provenance file from the present CSV |
-| 6 | `reorganize_icbhi.py` | Defaults to the scrambled CSV. Skips existing destination files instead of overwriting them |
+| 5 | ~~self-referential provenance~~ | **Fixed (final-phase item 6):** counts must equal the published ICBHI distribution; `submit.sh` no longer writes provenance. Covered by `tests/test_dataset_provenance.py` |
+| 6 | ~~`reorganize_icbhi.py` defaults~~ | **Fixed (final-phase item 6):** defaults to the authentic CSV, validates labels before writing, rebuilds only with `--force` |
 | 7 | `main.py:136-139` | `--use-focal-loss` cannot be turned off. LR is not exposed on the CLI |
 | 8 | `main.py:392` | Healthy multiplier looks up `"Healthy"` while folder labels are lowercase |
 | 9 | `main.py:270-284` | Folder-mode audit undercounts merged data and stores placeholder hashes. `source_revision` defaults to `unknown` |

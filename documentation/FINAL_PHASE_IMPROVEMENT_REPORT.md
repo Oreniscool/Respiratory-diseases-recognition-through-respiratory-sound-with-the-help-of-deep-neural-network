@@ -38,7 +38,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 3 | Denoising off by default (no train/serve drift) | Correctness | ✅ done |
 | 4 | Real upload signature validation | Security | ✅ done |
 | 5 | API key no longer in URL or logs | Security | ✅ done |
-| 6 | Provenance that actually rejects wrong labels | Evidence validity | planned |
+| 6 | Provenance that actually rejects wrong labels | Evidence validity | ✅ done |
 | 7 | Duplicate-free, fully audited dataset | Evidence validity (leakage) | planned |
 | 8 | Complete run metadata + per-source metrics | Reproducibility / evidence | planned |
 | 9 | Retrain on the corrected pipeline | Evidence validity | planned |
@@ -138,7 +138,33 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Status:** ✅ done
 
 ### 6. Provenance integrity
-_planned_
+- **Problem:** Three weaknesses let wrong ICBHI labels reach training:
+  1. `load_and_validate_provenance` accepted a CSV if its counts matched **the provenance file's
+     own declared counts**, so a provenance file could vouch for itself.
+  2. `submit.sh` regenerated `dataset_provenance.json` from whatever CSV was present before every
+     cluster job. Together with (1), any label table passed on the cluster.
+  3. `reorganize_icbhi.py` defaulted to the deliberately scrambled `patient_diagnosis.csv` and
+     silently kept files from previous runs. This is what caused the documented 27–29%
+     validation collapse (chronicle §8.5).
+- **Change:** New `assert_authentic_icbhi_labels` / `icbhi_patient_label_counts`
+  (`dataset_provenance.py`). Both the declared counts and the CSV's per-patient counts must equal
+  the published `ICBHI_2017_PATIENT_COUNTS`. `reorganize_icbhi.py` now defaults to
+  `dataset/patient_diagnosis_authentic.csv`, validates labels before writing anything, and refuses
+  a non-empty output dir unless `--force` (which rebuilds the class folders). The `submit.sh`
+  provenance heredoc is removed, and the job now trains the merged folder cohort
+  (`--epochs 80 --batch-size 64`), building ICBHI class folders from the authentic CSV when they
+  are missing.
+- **Correction to earlier documentation:** The repo's `dataset_provenance.json` describes an
+  *older* scrambled CSV (checksum `4b6e…`), so the current `patient_diagnosis.csv` already failed
+  locally on its checksum. `PROJECT_CONTEXT.md` §4.2/D17 have been corrected accordingly.
+- **Benefit:** Training and reorganization can no longer consume a label table that differs from
+  the published ICBHI distribution, whatever provenance file accompanies it.
+- **Verification:** New `tests/test_dataset_provenance.py` (5 tests: authentic labels pass;
+  self-declared scrambled counts rejected; an authentic declaration cannot cover a scrambled CSV;
+  reorganize refuses scrambled labels before writing; reorganize places files correctly and needs
+  `--force` to rebuild, removing stale files). The real `patient_diagnosis_authentic.csv` passes.
+  `bash -n submit.sh` passes. 52 tests pass.
+- **Status:** ✅ done
 
 ### 7. Duplicate-free, audited dataset
 _planned_

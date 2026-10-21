@@ -122,11 +122,14 @@ serving. It is serialized into `model_metadata.json` and restored at server star
 
 ### 4.2 The two diagnosis CSVs (critical)
 
-- `backend/patient_diagnosis.csv` (tracked) holds **deliberately scrambled** labels. Its
-  per-patient counts are Asthma 13, Bronchiectasis 14, Bronchiolitis 17, COPD 13, Healthy 17,
-  LRTI 12, Pneumonia 18, URTI 17 (from `backend/dataset_provenance.json`). It was kept to make
-  unverified training fail closed. Because `dataset_provenance.json` declares these same
-  counts, and the provenance check accepts self-declared counts, it **passes** validation.
+- `backend/patient_diagnosis.csv` (tracked) holds **deliberately scrambled** labels: per-patient
+  counts Asthma 13, Bronchiectasis 13, Bronchiolitis 17, COPD 13, Healthy 21, LRTI 13,
+  Pneumonia 18, URTI 18 (126 rows). It was kept to make unverified training fail closed.
+  *Correction (2026-10-21):* `backend/dataset_provenance.json` describes an **earlier** scrambled
+  CSV (sha256 `4b6e…`, slightly different counts), so the current CSV already failed the checksum
+  check. The real weakness was that the label-count check accepted self-declared counts, and
+  `submit.sh` regenerated the provenance file from whatever CSV was present. Both are fixed in
+  final-phase item 6: counts must now equal the published distribution.
 - `backend/dataset/patient_diagnosis_authentic.csv` (untracked) holds the real distribution:
   COPD 64, Healthy 26, URTI 14, Bronchiectasis 7, Bronchiolitis 6, Pneumonia 6, LRTI 2,
   Asthma 1 (126 patients). The same counts are hard-coded as
@@ -457,7 +460,7 @@ Each row was checked against code or artifacts on 2026-10-21. "Reality" wins.
 | D14 | README | "Inference-time denoising is disabled by default" | `RESPINET_ALLOW_INFERENCE_DENOISING` defaults to `"1"` | `server.py:94` |
 | D15 | README, chronicle §8 diagram | "Validates audio container signatures" / "MIME & header sniffing" | Any payload of at least 128 bytes passes, and bad extensions are also accepted at that size | `audio_validation.py`, `server.py:241-253` |
 | D16 | SECURITY.md, `.env.example` | `RESPINET_REQUIRE_METADATA=1` enforces metadata | The variable is not read anywhere | grep |
-| D17 | README "Training", DATASET_CARD | Default ICBHI command; provenance "intentionally blocks the historical CSV" | The repo's `dataset_provenance.json` matches the scrambled CSV, so it passes. `submit.sh` regenerates provenance anyway | `dataset_provenance.py:74-84`, `submit.sh` |
+| D17 | README "Training", DATASET_CARD | Default ICBHI command; provenance "intentionally blocks the historical CSV" | The repo's provenance file describes an older CSV, so the current one fails on checksum. But the count check accepted self-declared counts, and `submit.sh` regenerated provenance from any CSV, so scrambled labels passed on the cluster. **Fixed in final-phase item 6** | `dataset_provenance.py:74-84`, `submit.sh` |
 | D18 | README "Expected run artifacts" location | `backend/artifacts/latest/` | Correct, but root `artifacts/latest/` (tracked) is a stale scrambled-label split, not the current one | diff of the two `split_summary.json` |
 | D19 | BACKEND_MODEL_ASSESSMENT, ARCHITECTURE report | Model evidence 9/10, data provenance "Pass", "ground truth verified and dataset audit recorded" | `dataset_audit.json` covers only the Kaggle half (1,211/205) with `"folder_based"` placeholder hashes. `source_revision` is `"unknown"` | `dataset_audit.json`, `model_metadata.json` |
 | D20 | Chronicle §8.2 vs §1/§8 diagram/§9 | LLM is "Groq LLaMA-3.1" | Gemini 2.5 Flash is preferred; Groq is the fallback | `server.py:call_llm` |

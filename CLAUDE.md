@@ -103,7 +103,7 @@ real one is `backend/artifacts/latest/`.
 │   ├── submit.sh / download_dataset.sh  # SLURM jobs for the SPIT GPU cluster
 │   ├── best_model.h5, scaler.pkl        # LEGACY 2021 artifacts (8-class, no contract; do not load scaler.pkl)
 │   ├── patient_diagnosis.csv            # DELIBERATELY SCRAMBLED historical labels; never train on it
-│   ├── dataset_provenance.json          # provenance for the scrambled CSV (self-consistent, so it passes the check)
+│   ├── dataset_provenance.json          # stale provenance for an older scrambled CSV (checksum mismatch → rejected)
 │   ├── tests/                   # 21 dataset-free pytest tests
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
@@ -248,15 +248,17 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
 - **Uploads are signature-checked (final-phase item 4).** The extension must be in
   `.wav .flac .ogg .mp3 .webm .m4a` and the leading bytes must match that container. Errors are no
   longer swallowed. `/predict-sample` reads dataset files directly and is not validated.
-- **`reorganize_icbhi.py` defaults to the scrambled `patient_diagnosis.csv`.** Always pass
-  `--diagnosis-csv dataset/patient_diagnosis_authentic.csv`. This caused the 27–29%
-  val-accuracy collapse (chronicle §8.5).
+- **ICBHI labels are verified against the published distribution** (final-phase item 6).
+  `load_and_validate_provenance` and `reorganize_icbhi.py` both call
+  `assert_authentic_icbhi_labels`. `reorganize_icbhi.py` defaults to
+  `dataset/patient_diagnosis_authentic.csv` and needs `--force` to rebuild an existing output dir.
+  This prevents a repeat of the 27–29% val-accuracy collapse (chronicle §8.5).
 - **`main.py` CLI defaults override `train_model` defaults.** The CLI has batch 32,
   epochs 50, label_smoothing 0.1. `train_model` defaults are 64 / 75 / 0.08. The learning
   rate is never passed from the CLI, so it is always 3e-4. `--use-focal-loss` is
   `store_true` with `default=True`, so focal loss cannot be disabled from the CLI.
-- **`submit.sh` regenerates `dataset_provenance.json`** from whatever CSV is present,
-  which makes the ICBHI provenance check meaningless on the cluster.
+- **`submit.sh` no longer generates provenance.** It trains the merged folder cohort
+  (`--dataset-format folder` + ICBHI class folders, `--epochs 80 --batch-size 64`).
 - **The Gemini API key is sent in the `x-goog-api-key` header** (final-phase item 5), never in the
   URL, so URL-printing error diagnostics can't leak it. Keep it that way.
 - **`frontend/dist/` is committed.** Source changes leave it stale until you rebuild.

@@ -2,7 +2,8 @@
 
 The standard ICBHI download places all 920 WAV files in a single flat
 directory with patient-ID-prefixed filenames.  This script reads the
-authorized ``patient_diagnosis.csv`` and creates a class-subfolder
+authentic per-patient diagnoses CSV (it rejects label sets that differ from the
+published ICBHI distribution) and creates a class-subfolder
 structure compatible with ``build_manifest_from_folders()`` so that
 the ICBHI dataset can be combined with folder-based datasets (e.g.
 Kaggle Asthma Detection V2) via ``--extra-dataset-dir``.
@@ -24,7 +25,7 @@ Usage
 -----
   python reorganize_icbhi.py \\
       --dataset-dir  dataset/ICBHI_final_dataset \\
-      --diagnosis-csv patient_diagnosis.csv \\
+      --diagnosis-csv dataset/patient_diagnosis_authentic.csv \\
       --output-dir   dataset/ICBHI_as_folders
 
   # Then train with merged datasets:
@@ -42,6 +43,8 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
+
+from dataset_provenance import assert_authentic_icbhi_labels
 
 
 # ---------------------------------------------------------------------------
@@ -66,6 +69,7 @@ def reorganize(
     output_dir: Path,
     *,
     copy: bool = False,
+    force: bool = False,
 ) -> None:
     if not dataset_dir.is_dir():
         raise FileNotFoundError(f"Dataset directory not found: {dataset_dir}")
@@ -75,6 +79,8 @@ def reorganize(
     df = pd.read_csv(diagnosis_csv)
     if not {"patient_id", "disease"}.issubset(df.columns):
         raise ValueError("diagnosis CSV must have 'patient_id' and 'disease' columns")
+    # Sorting audio with wrong labels silently corrupts every downstream run (chronicle §8.5).
+    assert_authentic_icbhi_labels(df)
 
     diagnosis_map: dict[int, str] = (
         df.dropna(subset=["patient_id", "disease"])
@@ -84,9 +90,17 @@ def reorganize(
         .to_dict()
     )
 
-    # Create output class subdirectories
+    # Never merge into a previous run's folders: stale files would keep their old labels.
     classes = sorted(set(ICBHI_TO_5CLASS.values()))
+    existing = [path for cls in classes for path in (output_dir / cls).glob("*")]
+    if existing and not force:
+        raise FileExistsError(
+            f"{output_dir} already contains {len(existing)} files from a previous run. "
+            "Pass --force to rebuild it from the authentic labels."
+        )
     for cls in classes:
+        if (output_dir / cls).exists():
+            shutil.rmtree(output_dir / cls)
         (output_dir / cls).mkdir(parents=True, exist_ok=True)
 
     placed = skipped = unmapped = 0
@@ -111,10 +125,6 @@ def reorganize(
             continue
 
         dest = output_dir / mapped / wav_path.name
-        if dest.exists():
-            placed += 1
-            continue
-
         if copy:
             shutil.copy2(wav_path, dest)
         else:
@@ -139,8 +149,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--diagnosis-csv",
-        default="patient_diagnosis.csv",
-        help="Path to patient_diagnosis.csv",
+        default="dataset/patient_diagnosis_authentic.csv",
+        help="Authentic ICBHI per-patient diagnoses (the repo's patient_diagnosis.csv is scrambled)",
     )
     parser.add_argument(
         "--output-dir",
@@ -152,12 +162,18 @@ def main() -> None:
         action="store_true",
         help="Copy files instead of creating symlinks (use on cross-filesystem setups)",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Delete and rebuild existing class folders in --output-dir",
+    )
     args = parser.parse_args()
     reorganize(
         Path(args.dataset_dir),
         Path(args.diagnosis_csv),
         Path(args.output_dir),
         copy=args.copy,
+        force=args.force,
     )
 
 

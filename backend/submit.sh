@@ -67,29 +67,8 @@ if [ -n "$NVIDIA_LIBS" ]; then
     echo "       $NVIDIA_LIBS"
 fi
 
-# Ensure dataset_provenance.json exists and matches patient_diagnosis.csv checksum
-python - <<'PYEOF'
-import hashlib, json
-from collections import Counter
-import pandas as pd
-from pathlib import Path
-
-csv_path = Path("patient_diagnosis.csv")
-if csv_path.exists():
-    digest = hashlib.sha256(csv_path.read_bytes()).hexdigest()
-    df = pd.read_csv(csv_path)
-    counts = dict(sorted(Counter(df["disease"].dropna().astype(str).str.strip()).items()))
-    prov = {
-        "dataset_name": "ICBHI 2017 Respiratory Sound Database",
-        "source_url": "https://bhichallenge.med.auth.gr/ICBHI_2017_Challenge",
-        "download_date": "2026-08-05",
-        "license": "ICBHI 2017 Challenge Terms",
-        "diagnosis_sha256": digest,
-        "label_counts": counts
-    }
-    Path("dataset_provenance.json").write_text(json.dumps(prov, indent=2), encoding="utf-8")
-    print(f"[INFO] Verified dataset_provenance.json (SHA256: {digest[:12]}..., Label Counts: {counts})")
-PYEOF
+# Dataset provenance is NOT generated here. Provenance must describe the authorized source;
+# regenerating it from whatever CSV is present would make the check meaningless.
 
 # ---------------------------------------------------------------------------
 # 4. Verify GPU is visible
@@ -115,41 +94,42 @@ if not gpus:
 PYEOF
 
 # ---------------------------------------------------------------------------
-# 5. Run training
-#    Adjust --dataset-dir to wherever you have placed the ICBHI dataset.
-#    All other defaults from main.py are used unless overridden here.
+# 5. Run training on the merged Kaggle Asthma V2 + ICBHI 2017 cohort (5 classes)
+#    ICBHI is merged as class folders built from the AUTHENTIC diagnoses
+#    (reorganize_icbhi.py refuses any other label distribution).
 # ---------------------------------------------------------------------------
-# Resolve dataset directory path and format
-KAGGLE_PATH="dataset/Asthma_Detection_V2"
-if [ -d "$KAGGLE_PATH" ]; then
-    DATASET_PATH="$KAGGLE_PATH"
-    DATASET_FORMAT="folder"
-    echo "[INFO] Using folder-structured dataset: $DATASET_PATH"
-elif [ -d "$HOME/dataset/Asthma_Detection_V2" ]; then
-    DATASET_PATH="$HOME/dataset/Asthma_Detection_V2"
-    DATASET_FORMAT="folder"
-    echo "[INFO] Using folder-structured dataset from home directory: $DATASET_PATH"
-else
-    DATASET_PATH="dataset/ICBHI_final_dataset"
-    if [ ! -d "$DATASET_PATH" ] && [ -d "$HOME/dataset/ICBHI_final_dataset" ]; then
-        DATASET_PATH="$HOME/dataset/ICBHI_final_dataset"
-        echo "[INFO] Using dataset from home directory: $DATASET_PATH"
-    fi
-    DATASET_FORMAT="icbhi"
+DATASET_ROOT="dataset"
+if [ ! -d "$DATASET_ROOT/Asthma_Detection_V2" ] && [ -d "$HOME/dataset/Asthma_Detection_V2" ]; then
+    DATASET_ROOT="$HOME/dataset"
+fi
+echo "[INFO] Using dataset root: $DATASET_ROOT"
+
+if [ ! -d "$DATASET_ROOT/ICBHI_as_folders" ] \
+   && [ -d "$DATASET_ROOT/ICBHI_final_dataset" ] \
+   && [ -f "$DATASET_ROOT/patient_diagnosis_authentic.csv" ]; then
+    echo "[INFO] Building ICBHI class folders from the authentic diagnoses..."
+    python reorganize_icbhi.py \
+        --dataset-dir   "$DATASET_ROOT/ICBHI_final_dataset" \
+        --diagnosis-csv "$DATASET_ROOT/patient_diagnosis_authentic.csv" \
+        --output-dir    "$DATASET_ROOT/ICBHI_as_folders" \
+        --copy || exit 1
 fi
 
-echo "[5/5] Starting RespiNet training (Format: $DATASET_FORMAT)..."
+EXTRA_ARGS=()
+if [ -d "$DATASET_ROOT/ICBHI_as_folders" ]; then
+    EXTRA_ARGS+=(--extra-dataset-dir "$DATASET_ROOT/ICBHI_as_folders")
+else
+    echo "[WARN] $DATASET_ROOT/ICBHI_as_folders not found; training on Kaggle Asthma V2 only."
+fi
+
+echo "[5/5] Starting RespiNet training (merged folder cohort)..."
 python main.py \
-    --dataset-dir        "$DATASET_PATH" \
-    --dataset-format     "$DATASET_FORMAT" \
-    --diagnosis-csv      "patient_diagnosis.csv" \
-    --dataset-provenance "dataset_provenance.json" \
+    --dataset-dir        "$DATASET_ROOT/Asthma_Detection_V2" \
+    --dataset-format     folder \
+    "${EXTRA_ARGS[@]}" \
     --output-dir         "artifacts/run_${SLURM_JOB_ID}" \
-    --group-classes      "4-class" \
-    --use-focal-loss \
-    --label-smoothing    0.1 \
-    --epochs             50 \
-    --batch-size         32 \
+    --epochs             80 \
+    --batch-size         64 \
     --seed               42
 
 echo "===================================="
