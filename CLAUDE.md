@@ -220,8 +220,7 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
    The config is persisted into `model_metadata.json["preprocessing"]` and re-read by the
    server. If you change a default, you must retrain. Old artifacts carry their own config.
 4. **Class order comes from metadata.** `LabelEncoder` sorts the class names alphabetically.
-   The server must use `metadata["classes"]`, never a CSV-derived or hardcoded list
-   (except the legacy fallback, which is a known defect).
+   The server must use `metadata["classes"]`, never a CSV-derived or hardcoded list.
 5. **Custom layers must stay registered.** Classes in `model.py` and `CategoricalFocalLoss`
    use `@register_keras_serializable(package="respinet")` and are listed in
    `server.py:load_model_once` `custom_objects`. If you rename or remove one, saved
@@ -237,10 +236,11 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
 
 ## 8. Top gotchas (details in subdirectory CLAUDE.md files)
 
-- **The server is not truly fail-closed.** If the contract fails, it falls back to
-  `best_model.h5` with 8 hardcoded ICBHI classes, no calibration and no abstention, and
-  `/predict` still serves (`server.py:126-146`, `158`). The frontend treats
-  `model_contract == "legacy"` as ready (`AnalyzePage.tsx:89`).
+- **Serving is fail-closed (since branch `final-phase-improvements`).** Without a verified
+  contract the status is `"unverified"`, `CLASSES` is empty, and `/predict`, `/explain`,
+  `/predict-sample` and `/summarize` return 503. There is no `best_model.h5` fallback any more.
+  The UI only accepts `model_contract == "verified-metadata"`. A fresh clone without
+  `backend/artifacts/latest/` therefore **cannot** run inference until a model is trained.
 - **Inference denoising defaults to ON** (`RESPINET_ALLOW_INFERENCE_DENOISING` defaults
   to `"1"`), even though it is not part of the training contract. The README says it is
   disabled.

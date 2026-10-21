@@ -86,7 +86,7 @@ export default function AnalyzePage() {
   const [reportStatus, setReportStatus] = useState<"idle" | "loading" | "error">("idle");
   const [reportError, setReportError] = useState<string | null>(null);
 
-  const contractVerified = server.modelContract === "verified-metadata" || server.modelContract === "legacy";
+  const contractVerified = server.modelContract === "verified-metadata";
   const modelReady = server.online && server.modelLoaded && contractVerified;
   const hasSource = Boolean(file || sample);
   const currentStep = result ? 3 : status === "running" ? 2 : 1;
@@ -575,16 +575,16 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
               <div><strong>Backend unavailable</strong><p>Start the Flask server, then this page will reconnect automatically.</p></div>
             </div>
           )}
-          {!result && server.online && !server.modelLoaded && (
+          {!result && server.online && contractVerified && !server.modelLoaded && (
             <div className="inline-alert alert-error" role="alert">
               <AlertTriangle aria-hidden="true" />
               <div><strong>Model artifact unavailable</strong><p>The server is online, but inference cannot run until a compatible model is loaded.</p></div>
             </div>
           )}
-          {!result && server.online && server.modelLoaded && !contractVerified && (
+          {!result && server.online && !contractVerified && (
             <div className="inline-alert alert-warning" role="alert">
               <ShieldCheck aria-hidden="true" />
-              <div><strong>Model contract is not verified</strong><p>Analysis is paused because the model’s class order and preprocessing metadata cannot be confirmed.</p></div>
+              <div><strong>Model contract is not verified</strong><p>Analysis is disabled until the server finds a model whose hash, class order, preprocessing, calibration and evaluation files all verify. Train a model or check <code>backend/artifacts/latest/</code>.</p></div>
             </div>
           )}
           {error && (

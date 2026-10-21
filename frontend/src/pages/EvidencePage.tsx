@@ -37,7 +37,7 @@ const METHOD_STEPS = [
 
 export default function EvidencePage() {
   const server = useServerStatus();
-  const contractVerified = server.modelContract === "verified-metadata" || server.modelContract === "legacy";
+  const contractVerified = server.modelContract === "verified-metadata";
 
   return (
     <div className="editorial-page evidence-page">

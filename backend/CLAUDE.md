@@ -213,7 +213,7 @@ itself loads lazily (`load_model_once`, thread-locked) or eagerly under `__main_
 |---|---|---|
 | `/live` | GET | always `{"status":"ok"}` |
 | `/ready` | GET | 503 unless `CONTRACT` is set and the model loads. Returns classes and output dim |
-| `/health` | GET | **loads the model as a side effect**. Returns `model`, `model_file`, `dataset`, `classes`, `model_contract` (`verified-metadata` or `legacy`), `ready`, `contract_error`. Polled by the UI every 5 s |
+| `/health` | GET | cheap status; **never loads the model** (it is loaded eagerly at startup by `server.py __main__` and `wsgi.py`). Returns `model` (loaded?), `model_file`, `dataset`, `classes`, `model_contract` (`verified-metadata` or `unverified`), `ready`, `contract_error`. Polled by the UI every 5 s |
 | `/predict` | POST multipart `file`, optional `denoise` | returns the payload below |
 | `/predict-sample/<disease>` | GET `?denoise=` | finds the **first** audio file whose parent folder name matches the class (recursive glob over `dataset/Asthma_Detection_V2`, `dataset/`, `DATASET_DIR`), falls back to the ICBHI CSV lookup, then predicts. Always returns the same file |
 | `/explain` | POST multipart `file`, `denoise`, `payload` JSON (`include_reason`, `patient_info`, `external_llm_consent`) | prediction + gradient saliency for the **single window** with the highest predicted-class probability, rendered over that window's 128-mel spectrogram (PNG data URIs), + optional LLM reasoning |
@@ -264,7 +264,7 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 
 | # | Where | Issue |
 |---|---|---|
-| 1 | `server.py:126-146,158` | Contract failure → `legacy` mode: hardcoded 8 ICBHI classes, falls back to `best_model.h5`, uncalibrated (T=1), empty abstention policy, and `/predict` still serves. `test_server_readiness.py` monkeypatches the status to `"not-ready"`, so it never exercises this path |
+| 1 | ~~`server.py` legacy fallback~~ | **Fixed (final-phase item 2):** contract failure → status `unverified`, empty `CLASSES`, inference endpoints 503, no `best_model.h5` fallback. Covered by `tests/test_server_fail_closed.py` |
 | 2 | `server.py:94` | Denoising is allowed by default. Spectral-subtraction denoise is not in the training contract (train/serve drift if the user ticks the box) |
 | 3 | `audio_validation.py:26-38`, `server.py:241-253` | Any file of at least 128 bytes passes the signature check, and `_read_audio_upload` also accepts unsupported extensions of at least 128 bytes. In practice validation is only "librosa can decode it" |
 | 4 | `server.py:450,490` | Gemini key in the query string. `URLError` diagnostics print the full URL |
@@ -294,6 +294,7 @@ the evidence trail, so make it its own change and record it in the chronicle.
 `test_splitting` (no patient overlap; rejects <3-patient classes), `test_windowing` (tail
 coverage; short-recording padding).
 
-There is no test for the model graph, `build_manifest_from_folders`, the server's legacy path,
-`/predict`, or the LLM sanitizers. If you add one, keep it dataset-free and build tiny models
+`test_server_fail_closed` covers the no-contract path (503s, no fallback, `/health` side-effect free).
+There is no test for the model graph, `build_manifest_from_folders`, a successful `/predict`,
+or the LLM sanitizers. If you add one, keep it dataset-free and build tiny models
 with `instantiate_model` on small shapes.

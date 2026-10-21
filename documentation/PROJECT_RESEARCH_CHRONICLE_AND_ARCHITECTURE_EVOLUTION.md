@@ -670,6 +670,11 @@ weaker than documented. Changes, in commit order:
 1. **Repo hygiene:** `pythonpath = ["."]` in `pyproject.toml` (plain `pytest` now finds the
    backend modules), 4 ruff findings fixed, `nvidia-cuda-nvcc-cu12` added to `requirements.txt`
    (ptxas/libdevice for TensorFlow GPU JIT).
+2. **Fail-closed serving (`server.py`, `wsgi.py`, `AnalyzePage.tsx`, `EvidencePage.tsx`):** the
+   `legacy` fallback to `best_model.h5` with 8 hardcoded classes is removed. Without a verified
+   contract the status is `unverified`, and `/predict`, `/explain`, `/predict-sample` and
+   `/summarize` return 503. `/health` no longer loads the model (eager load at startup instead).
+   The UI accepts only `verified-metadata`.
 
 ---
 

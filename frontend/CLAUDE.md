@@ -61,11 +61,10 @@ Navbar links: Analyze, Evidence library, Learn (+ utility links `/learn#glossary
 - **Server status:** `hooks/useServerStatus.ts` polls `GET /health` every 5 s (2.5 s
   timeout) and exposes `{online, datasetOnline, classes, modelLoaded, modelContract}`.
 - **Readiness gate** (`AnalyzePage.tsx:89-90`):
-  `contractVerified = modelContract === "verified-metadata" || modelContract === "legacy"`, and
-  `modelReady = online && modelLoaded && contractVerified`.
-  → The UI **accepts the legacy (unverified, 8-class) model as ready**. See the backend
-  defect #1. If you tighten this, also update the copy that explains the not-ready state
-  (`AnalyzePage.tsx:584`).
+  `contractVerified = modelContract === "verified-metadata"` (the same check is in
+  `EvidencePage.tsx`), and `modelReady = online && modelLoaded && contractVerified`. When the
+  contract is unverified, the page shows the "Model contract is not verified" alert and analysis
+  stays disabled.
 - **Global store** (`store/reportStore.ts`, Zustand, in-memory only, lost on reload):
   `analysis {audioFile, modelResult, patientInfo, capturedAt}`, `report {summary, model,
   modelResult, patientInfo, createdAt}`, `history` (last 5 `HistoryEntry`, newest first).

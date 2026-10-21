@@ -124,21 +124,18 @@ logging.basicConfig(level=os.getenv("RESPINET_LOG_LEVEL", "INFO").upper(), forma
 
 
 def load_model_contract() -> list[str]:
-    """Load a full evidence contract; legacy models are never inferred from."""
-    global CONTRACT, MODEL_METADATA, PREPROCESSING, MODEL_CONTRACT_STATUS, MODEL_CONTRACT_ERROR, MODEL_PATH
+    """Load a full evidence contract; without one, inference stays disabled (fail closed)."""
+    global CONTRACT, MODEL_METADATA, PREPROCESSING, MODEL_CONTRACT_STATUS, MODEL_CONTRACT_ERROR
     try:
         CONTRACT = load_verified_contract(MODEL_PATH, MODEL_METADATA_PATH)
     except Exception as error:
-        print("[RespiNet] WARNING: model metadata is missing; using legacy CSV labels. Do not deploy this configuration.")
+        print(f"[RespiNet] ERROR: model contract not verified; inference is disabled: {error}")
         CONTRACT = None
         MODEL_METADATA = None
         PREPROCESSING = DEFAULT_PREPROCESSING
-        MODEL_CONTRACT_STATUS = "legacy"
+        MODEL_CONTRACT_STATUS = "unverified"
         MODEL_CONTRACT_ERROR = str(error)
-        fallback_path = os.path.join(BASE_DIR, "best_model.h5")
-        if not os.path.exists(MODEL_PATH) and os.path.exists(fallback_path):
-            MODEL_PATH = fallback_path
-        return ["Asthma", "Bronchiectasis", "Bronchiolitis", "COPD", "Healthy", "LRTI", "Pneumonia", "URTI"]
+        return []
     MODEL_METADATA = CONTRACT.metadata
     PREPROCESSING = CONTRACT.preprocessing
     MODEL_CONTRACT_STATUS = "verified-metadata"
@@ -155,8 +152,8 @@ def load_model_once():
         with _MODEL_LOCK:
             if model is not None:
                 return model
-            if CONTRACT is None and MODEL_CONTRACT_STATUS != "legacy":
-                raise RuntimeError(MODEL_CONTRACT_ERROR or "Model artifact is not ready")
+            if CONTRACT is None:
+                raise RuntimeError(MODEL_CONTRACT_ERROR or "Model artifact is not verified")
 
             print(f"[RespiNet] Loading model from {MODEL_PATH} …")
             custom_objects = {
@@ -626,15 +623,8 @@ def ready():
 
 @app.route("/health", methods=["GET"])
 def health():
-    """Simple liveness check the frontend polls to decide whether to use real or mock mode."""
-    model_output = None
-    if os.path.exists(MODEL_PATH):
-        try:
-            m = load_model_once()
-            model_output = int(m.output_shape[-1])
-        except Exception:
-            model_output = None
-
+    """Cheap diagnostic status polled by the frontend; it never loads the model itself."""
+    model_output = int(model.output_shape[-1]) if model is not None else None
     model_file_exists = os.path.exists(MODEL_PATH)
     return jsonify({
         "status":  "ok",
@@ -662,6 +652,11 @@ def predict_sample(disease):
     or ICBHI datasets, runs inference, and returns the prediction payload.
     """
     denoise = _parse_bool(request.args.get("denoise"))
+
+    try:
+        m = load_model_once()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 503
 
     # Validate disease name against current active model classes
     valid = [c.lower() for c in CLASSES]
@@ -714,11 +709,6 @@ def predict_sample(disease):
         }), 404
 
     # Extract features and predict
-    try:
-        m = load_model_once()
-    except Exception as e:
-        return jsonify({"error": str(e)}), 503
-
     try:
         with open(chosen_file, "rb") as f:
             audio_bytes = f.read()
@@ -929,6 +919,8 @@ def explain():
 
 @app.route("/summarize", methods=["POST"])
 def summarize():
+    if CONTRACT is None:
+        return jsonify({"error": MODEL_CONTRACT_ERROR or "Model artifact is not verified"}), 503
     if not request.is_json:
         return jsonify({"error": "Expected JSON body"}), 400
 

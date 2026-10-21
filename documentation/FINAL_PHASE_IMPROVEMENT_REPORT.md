@@ -34,7 +34,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | # | Improvement | Benefit type | Status |
 |---|---|---|---|
 | 1 | Repo hygiene: plain `pytest` works, lint clean, GPU deps complete | Reproducibility / CI | ✅ done |
-| 2 | Fail-closed serving (no legacy fallback) | Safety | planned |
+| 2 | Fail-closed serving (no legacy fallback) | Safety | ✅ done |
 | 3 | Denoising off by default (no train/serve drift) | Correctness | planned |
 | 4 | Real upload signature validation | Security | planned |
 | 5 | API key no longer in URL or logs | Security | planned |
@@ -64,7 +64,26 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Status:** ✅ done
 
 ### 2. Fail-closed serving
-_planned_
+- **Problem:** The README and model card said the legacy model is "blocked". In code, a failed
+  contract check set status `legacy`, swapped in `backend/best_model.h5` (the 2021 model trained on
+  a leaky split), and returned 8 hardcoded ICBHI class names. Calibration and abstention were
+  silently disabled, and `/predict` kept serving. The UI treated `legacy` as ready. `/health` also
+  loaded the model as a side effect on every 5-second poll.
+- **Change:** `server.py:load_model_contract` sets status `unverified` with no classes and no
+  fallback. `load_model_once` refuses without a contract. `/predict-sample` checks the model before
+  anything else, and `/summarize` returns 503 without a contract. `/health` reports state without
+  loading. `wsgi.py` loads the model eagerly, as `python server.py` already did. In the UI,
+  `AnalyzePage` and `EvidencePage` accept only `verified-metadata`, with an explicit alert.
+- **Benefit:** No prediction can ever be served from an unverified artifact. Every served number
+  is backed by a hashed model, an ordered class list, calibration, and an evaluation record.
+- **Verification:** New `tests/test_server_fail_closed.py` (3 tests: no fallback, inference
+  endpoints → 503, `/health` never loads the model). Live run with the real artifact:
+  `verified-metadata`, `/predict` 200. With `RESPINET_MODEL_METADATA=/nonexistent.json`:
+  `unverified`, `classes: []`, `/predict` 503, `/ready` 503, and no `best_model.h5` load. Backend:
+  24 tests pass, ruff clean. Frontend: `tsc -b` clean.
+- **Trade-off:** A fresh clone or container without `backend/artifacts/latest/` can no longer
+  demo predictions until a model is trained. That is intended.
+- **Status:** ✅ done
 
 ### 3. Denoising off by default
 _planned_
