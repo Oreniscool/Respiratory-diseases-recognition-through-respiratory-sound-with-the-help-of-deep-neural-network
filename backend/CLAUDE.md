@@ -1,0 +1,299 @@
+# backend/CLAUDE.md — training pipeline & inference API
+
+Loaded when working inside `backend/`. Read the root [`../CLAUDE.md`](../CLAUDE.md) first.
+That file covers the doc-sync rule, invariants and the source-of-truth order.
+Verified against source on 2026-10-21.
+
+---
+
+## 1. End-to-end training flow (`main.py:run_training`)
+
+```text
+parse_args → resolve_dataset_paths (auto Kaggle path, --merge-icbhi)
+  → build manifest
+       folder format: build_manifest_from_folders(dataset_dir)        → list[AudioRecord]
+       icbhi format : load_and_validate_provenance → map_disease_labels(4-class) → build_manifest
+  → + build_manifest_from_folders(each --extra-dataset-dir)            (merged BEFORE splitting)
+  → split_by_patient (stratified on patient label; 2 × train_test_split)
+  → write split_manifest.csv (+ sha256), dataset_audit.json, split_summary.json
+  → [--prepare-only stops here; TensorFlow is never imported]
+  → TF GPU memory growth, set_random_seed
+  → extract_manifest(train, augment=True)   val/test: augment=False
+  → LabelEncoder over sorted class names → one-hot
+  → train_model(...) → best_model.keras (checkpoint on val_accuracy)
+  → predict val windows → mean per recording → fit_temperature → fit_abstention_policy → calibration.json
+  → predict test windows → mean per recording → apply_temperature
+  → evaluate_model (recording) + evaluate_patient_level + bootstrap CIs → test_metrics.json
+  → model_metadata.json (schema_version 2, sha256, classes, preprocessing, training, provenance, uncertainty)
+```
+
+Output directory contents: `best_model.keras`, `model_summary.txt`, `training_history.{csv,json}`,
+`accuracy_plot.png`, `loss_plot.png`, `split_manifest.csv`, `split_summary.json`,
+`dataset_audit.json`, `calibration.json`, `test_metrics.json`, `model_metadata.json`.
+
+---
+
+## 2. Module reference
+
+### `preprocessing.py`: the shared train/serve contract
+`PreprocessingConfig` (frozen dataclass, persisted via `to_dict()` and restored via
+`from_dict()`, which silently drops unknown keys and lets missing keys take the
+current defaults):
+
+| field | default | meaning |
+|---|---|---|
+| `sample_rate` | 22050 | `librosa.load(sr=…, mono=True)` |
+| `res_type` | `kaiser_fast` | resampler; falls back to the librosa default on error |
+| `use_bandpass`, `lowcut`, `highcut` | True, 100, 2000 | 4th-order Butterworth, `sosfiltfilt` (zero-phase); skipped if `data.size < 16` |
+| `n_mfcc`, `n_fft`, `hop_length` | 40, 2048, 512 | `librosa.feature.mfcc` |
+| `use_deltas` | True | stacks MFCC + Δ + Δ² → `feature_dim = 120` |
+| `use_cmvn` | True | per-**recording** mean/std over time (applied to the full sequence *before* windowing) |
+| `max_len`, `window_hop` | 200, 100 | window frames (~4.64 s) and hop (50% overlap) |
+
+- `extract_feature_sequence(data, sr, config)` → `(T, 120)` float32, raises on non-finite values.
+- `window_feature_sequence(features, config)` → `(windows[N,200,120], valid_lengths[N], starts[N])`.
+  If T ≤ 200: one window, zero-padded at the tail. Otherwise starts are `0, 100, 200, …`
+  plus a final window anchored at `T-200`, so the tail is always covered.
+- `extract_features()` and `pad_or_truncate()` are **legacy** helpers (first window only). Don't use them in new code.
+
+### `featureExtraction.py`
+- `AudioRecord(path, patient_id:int, disease:str)`. `ExtractedDataset` holds per-window
+  arrays `X, y, patient_ids, source_paths, variants, window_starts, valid_lengths`.
+- `build_manifest(dir, diagnoses_df)`: ICBHI flat dir. Patient ID is the filename prefix
+  before `_` (e.g. `101_1b1_Al_sc_Meditron.wav` → 101). Raises on conflicting labels,
+  missing labels or an empty result.
+- `build_manifest_from_folders(dir)`: recursive search over
+  `{.wav,.mp3,.flac,.m4a,.ogg,.aac}`. The label is the **lowercased parent folder name**.
+  The pseudo patient ID is derived like this:
+  `key = f"{disease}_P{digits}"` if the filename matches `^[pP]?(\d+)`, otherwise
+  `f"{disease}_{relative_path}"`. Then `100000 + int(sha256(key)[:12],16) % 800000`.
+  - Kaggle files look like `P54WheezingIE_269.wav`, so all `P54` files in one class folder
+    share a patient. The key includes the class, so the same `P54` in two folders becomes
+    two "patients".
+  - ICBHI files (`101_…wav`) group by the real patient number.
+  - Collisions are possible in principle (800k buckets) but unlikely at 331 patients.
+- `_variants()`: original + `noise_20db`, `shift_right_1600` (zero-filled, not wrapped),
+  `stretch_1.2`, `stretch_0.8` → up to 5 waveform variants. `--max-waveform-variants N`
+  randomly keeps N of the 4 augmentations.
+- `extract_manifest()` accumulates one 3-D chunk per recording, runs one `np.concatenate`,
+  and calls `gc.collect()` every 100 recordings. This was the fix for the OOM problem
+  (chronicle §8.4). Optional **offline** SpecAugment duplicates every window (doubling RAM).
+
+### `Augmentation.py`
+`add_noise` (SNR-relative Gaussian), `shift`, `stretch` (librosa time_stretch),
+`spec_augment` (numpy; time masks stay within `valid_length`), `spec_augment_tf`
+(vectorized). Note that `train.py` re-implements the TF version inline instead of calling
+`spec_augment_tf`.
+
+### `model.py`: RespiNet-Attention v3 (`instantiate_model(input, num_classes)`)
+```text
+Input (200,120) ─► FeatureValidityMask (bool (B,200): any feature ≠ 0)
+      └► LayerNorm ─► MultiScaleConvBlock(96 = 3×32 ch; k=3,5,11; GELU; SE(r=4); SpatialDropout 0.2; L2 1e-4)
+            ├► BiGRU(128, return_sequences, activation=None, L2) [mask] ─► GELU ─► Dropout 0.3 ─┐
+            └► Conv1D(256,k=1,L2) "skip_proj" ─► LayerNorm ──────────────────────────────────── Add "residual_add"
+                 ─► BiGRU(64, activation=None, L2) [mask] ─► GELU                       (B,200,128)
+                 ─► MaskedDualTemporalPooling1D(attn_units=128): [softmax-attention ctx ‖ masked max] → (B,256)
+                 ─► Dense 128 + GELU + Dropout 0.3 ─► Dense 64 + GELU + Dropout 0.4 ─► Dense C softmax (L2)
+```
+- GRUs use `activation=None` (a linear candidate state) followed by GELU outside the GRU.
+  This is unusual. Keep it unless you are deliberately re-architecting.
+- There is **no** `recurrent_dropout` and no 0.4/0.5 dense dropout, despite the chronicle's
+  Phase 7 "Option C" text.
+- `MaskedGlobalAveragePooling1D` is defined and registered but **unused** in v3. It is kept
+  for loading older artifacts. Don't delete it.
+- Every custom layer is `@register_keras_serializable(package="respinet")` and must also
+  appear in `server.py` `custom_objects`.
+
+### `train.py`
+- `CategoricalFocalLoss(gamma=2.0, alpha=0.25, label_smoothing)`: smooths targets, clips
+  predictions, computes `alpha * y * (1-p)^γ * -y*log p`. Note that `y_true` appears
+  **twice** (in the weight and in the CE term), so the smoothed off-target mass is
+  effectively squared. That is a quirk, not textbook focal loss.
+- `train_model(...)` defaults: `batch_size=64, epochs=75, learning_rate=3e-4,
+  label_smoothing=0.08`. **`main.py` always passes its own CLI values** (batch 32, epochs 50,
+  smoothing 0.1 by default) but never passes `learning_rate`.
+- Optimizer: `Adamax(CosineDecay(lr, decay_steps=steps_per_epoch*epochs, alpha=5e-3))`.
+- Class weights: sklearn `"balanced"` over **window** labels, optionally multiplied for
+  class `"Healthy"`. That multiplier is a no-op for folder datasets, whose label is the
+  lowercase `"healthy"`.
+- Callbacks: `ModelCheckpoint` and `EarlyStopping(patience=18, min_delta=0.003,
+  restore_best_weights)`, both on **`val_accuracy`, mode=max** (window-level). Plus
+  `CSVLogger`. `ReduceLROnPlateau` is intentionally absent: it raises `TypeError` with a
+  schedule-based LR.
+- `tf.data`: shuffle (buffer ≤10k, seeded) → batch → optional online SpecAugment `map` →
+  prefetch. The online SpecAugment draws **one mask per batch** (shared across samples) and
+  time masks can land in padding. A time-masked frame becomes all zeros, so
+  `FeatureValidityMask` then treats it as padding.
+
+### `calibration.py`
+- `apply_temperature(probs, T)` = `p^(1/T)` renormalized. This is equivalent to logit
+  scaling, done on probabilities. T < 1 sharpens and T > 1 softens.
+- `fit_temperature`: grid search over 161 log-spaced T in [0.25, 5] minimizing NLL. It is
+  fit on **recording-level** mean validation probabilities.
+- `fit_abstention_policy(probs, target_coverage=0.8)` sets `min_confidence` to the
+  20th-percentile max-prob and `max_normalized_entropy` to the 80th-percentile normalized
+  entropy.
+- `is_uncertain` returns True if `conf < min_confidence OR entropy > max_entropy`. With an
+  empty policy it is never uncertain.
+
+### `evaluate.py`
+`aggregate_probabilities_by_group` (mean over windows per recording), `evaluate_model`
+(accuracy, balanced acc, macro P/R/F1, weighted F1, κ, MCC, log loss, Brier, 10-bin ECE,
+calibration curve, confusion matrix, classification report, per-class sens/spec, macro OvR
+AUROC or `None`), `evaluate_patient_level` (mean per patient), and
+`bootstrap_patient_confidence_intervals` (≥100 samples; re-indexes duplicate draws).
+
+### `artifact_contract.py`
+`load_verified_contract(model_path, metadata_path)` requires these metadata keys:
+`schema_version≥2, model_filename (== basename), model_sha256 (64 hex, must match file),
+classes (non-empty unique strings), preprocessing (dict), evaluation_file,
+calibration_file (both must exist and parse as JSON), data_provenance.dataset_audit_file
+(must exist), source_revision`. It returns a `ModelContract`. It does **not** check the
+input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
+
+### `dataset_provenance.py`
+- `ICBHI_2017_PATIENT_COUNTS` is the authentic per-patient label distribution (COPD 64,
+  Healthy 26, URTI 14, Bronchiectasis 7, Bronchiolitis 6, Pneumonia 6, LRTI 2, Asthma 1).
+- `load_and_validate_provenance` checks that the required fields are present,
+  `dataset_name == "ICBHI 2017 Respiratory Sound Database"`, the ISO date, and the CSV sha256.
+  **The label-count check is self-referential:** the CSV passes if its counts equal *either*
+  the provenance file's own `label_counts` *or* the authentic ones. The repo's
+  `dataset_provenance.json` declares the scrambled counts, so the scrambled CSV passes.
+- `LABEL_MAPPING_4CLASS` (only used for `--dataset-format icbhi --group-classes 4-class`):
+  COPD, Healthy, Non_COPD_Chronic (Bronchiectasis, Asthma), Acute_Infection (URTI,
+  Pneumonia, Bronchiolitis, LRTI). This is **different** from the 5-class mapping in
+  `reorganize_icbhi.py`.
+- `assert_three_way_class_support` raises if any class has fewer than 3 patients.
+
+### `reorganize_icbhi.py`
+ICBHI → 5 class folders: COPD→copd, Healthy→healthy, Pneumonia→pneumonia, Asthma→asthma,
+URTI/Bronchiectasis/Bronchiolitis/LRTI→bronchial. Symlinks by default, `--copy` for hard
+copies. Existing destination files are left alone, so **delete the output dir before
+re-running with different labels.** **The default `--diagnosis-csv` is the scrambled file.**
+
+---
+
+## 3. `main.py` CLI (real defaults)
+
+| flag | default | notes |
+|---|---|---|
+| `--dataset-dir` | `dataset/ICBHI_final_dataset` | auto-replaced by the Kaggle path in folder mode |
+| `--dataset-format` | `icbhi` | `icbhi` or `folder`; the current model used `folder` |
+| `--diagnosis-csv` / `--dataset-provenance` | `patient_diagnosis.csv` / `dataset_provenance.json` | icbhi format only |
+| `--group-classes` | `4-class` | icbhi format only |
+| `--extra-dataset-dir DIR` (repeatable), `--merge-icbhi` | – | merged before the split |
+| `--test-size`, `--validation-size` | 0.20, 0.20 | total patient fractions |
+| `--seed` | 42 | python/numpy/TF seeds, split seed, aug RNG |
+| `--batch-size`, `--epochs` | **32, 50** | pass `--batch-size 64 --epochs 80` to match the current run |
+| `--label-smoothing` | 0.1 | |
+| `--use-focal-loss` | True (cannot be disabled) | |
+| `--no-augmentation`, `--max-waveform-variants` | off, all 4 | |
+| `--no-spec-augment`, `--offline-spec-augment` | online SpecAugment on | |
+| `--num-freq-masks/--max-freq-mask/--num-time-masks/--max-time-mask` | 2/15/2/25 | |
+| `--healthy-class-multiplier` | 1.0 | no-op for lowercase folder labels |
+| `--bootstrap-samples`, `--abstention-coverage` | 1000, 0.80 | |
+| `--exclude-patient ID` (repeatable) | [] | |
+| `--source-revision` | `$RESPINET_SOURCE_REVISION` or `"unknown"` | the current artifact says `unknown` |
+| `--prepare-only` | off | split files only |
+
+Metadata quirks: in folder mode, `dataset_audit.json` is built **before** extra datasets are
+merged (the current one says 1,211 recordings / 205 patients, not 2,131 / 331), and it records
+`"folder_based"` instead of real hashes and a hardcoded download date `2026-08-05`.
+`limitations` always says "configured ICBHI patient split". `split_manifest.csv` stores
+absolute paths, so its hash depends on the machine.
+
+---
+
+## 4. Inference API (`server.py`)
+
+Import-time behavior: `load_dotenv()`, then `CLASSES = load_model_contract()`. The model
+itself loads lazily (`load_model_once`, thread-locked) or eagerly under `__main__`.
+
+| Route | Method | Behavior |
+|---|---|---|
+| `/live` | GET | always `{"status":"ok"}` |
+| `/ready` | GET | 503 unless `CONTRACT` is set and the model loads. Returns classes and output dim |
+| `/health` | GET | **loads the model as a side effect**. Returns `model`, `model_file`, `dataset`, `classes`, `model_contract` (`verified-metadata` or `legacy`), `ready`, `contract_error`. Polled by the UI every 5 s |
+| `/predict` | POST multipart `file`, optional `denoise` | returns the payload below |
+| `/predict-sample/<disease>` | GET `?denoise=` | finds the **first** audio file whose parent folder name matches the class (recursive glob over `dataset/Asthma_Detection_V2`, `dataset/`, `DATASET_DIR`), falls back to the ICBHI CSV lookup, then predicts. Always returns the same file |
+| `/explain` | POST multipart `file`, `denoise`, `payload` JSON (`include_reason`, `patient_info`, `external_llm_consent`) | prediction + gradient saliency for the **single window** with the highest predicted-class probability, rendered over that window's 128-mel spectrogram (PNG data URIs), + optional LLM reasoning |
+| `/summarize` | POST JSON `model_result`, `patient_info`, `external_llm_consent` | sanitizes inputs and returns `{summary, model}` from the LLM |
+
+Prediction payload: `prediction` (class or `"uncertain"`), `model_prediction`, `confidence`
+(%), `probabilities` {class: %}, `uncertain`, `uncertainty{normalized_entropy, min_confidence,
+max_normalized_entropy}`, `mfcc_preview` (10 values), `duration_s`, `sample_rate`,
+`windows_analyzed`, `valid_frames`, `noise_cancellation`, `research_only: true`.
+
+Inference math: per-window softmax, renormalized → **mean over windows** → `apply_temperature(T
+from calibration.json)` → abstention via `metadata["uncertainty"]`. (Metadata says "mean
+calibrated probability across all windows", but the code calibrates the mean. It matches how
+calibration was fit, so the behavior is correct and only the label is misleading.)
+
+Request controls (`before_request`): optional bearer token `RESPINET_API_TOKEN` (the frontend
+never sends one), and an in-memory per-IP rate limit of `RESPINET_RATE_LIMIT_PER_MINUTE` (30),
+kept per process, so per gunicorn worker. Health routes are exempt. Response headers:
+`X-Request-ID`, `Cache-Control: no-store`, `nosniff`, `X-Frame-Options: DENY`. JSON request
+log line on every response.
+
+Audio limits: `MAX_CONTENT_LENGTH = RESPINET_MAX_UPLOAD_MB` (25) → 413. Decoded duration has to
+be between 1 s and `RESPINET_MAX_AUDIO_SECONDS` (120). The limit is checked *after* the full
+decode.
+
+LLM: `call_llm` prefers Gemini (`GEMINI_API_KEY`, `GEMINI_MODEL`=gemini-2.5-flash, REST
+`generateContent`, **key in the URL query string**) and falls back to Groq (`GROQ_*`,
+llama-3.1-8b-instant, OpenAI-compatible). Consent is enforced server-side.
+`_sanitize_patient_info` allowlists `age, sex, bmi, smoker_status, pack_years, symptom_days,
+cough_type, sputum_color, temperature_c, spo2, respiratory_rate, heart_rate, capture_mode`
+(strings capped at 80 chars) and the lists `symptoms, exposures` (≤20 items). `patient_id`
+and `notes`, which the UI does send, are dropped.
+
+### Environment variables
+`RESPINET_HOST` (127.0.0.1), `RESPINET_PORT` (5001), `RESPINET_MODEL_PATH`
+(artifacts/latest/best_model.keras), `RESPINET_MODEL_METADATA` (alongside the model),
+`RESPINET_DATASET_DIR`, `RESPINET_DIAGNOSIS_CSV`, `RESPINET_MAX_UPLOAD_MB` (25),
+`RESPINET_MAX_AUDIO_SECONDS` (120), `RESPINET_CORS_ORIGINS` (localhost/127.0.0.1:5173),
+`RESPINET_ALLOW_INFERENCE_DENOISING` (**"1"**), `RESPINET_API_TOKEN`,
+`RESPINET_RATE_LIMIT_PER_MINUTE` (30), `RESPINET_LOG_LEVEL`, `RESPINET_SOURCE_REVISION` (used by
+main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GROQ_MODEL`,
+`GROQ_DEBUG` (read, unused), `GROQ_USER_AGENT`. `RESPINET_REQUIRE_METADATA` is documented but
+**not read anywhere**.
+
+---
+
+## 5. Known defects & sharp edges (verified in code)
+
+| # | Where | Issue |
+|---|---|---|
+| 1 | `server.py:126-146,158` | Contract failure → `legacy` mode: hardcoded 8 ICBHI classes, falls back to `best_model.h5`, uncalibrated (T=1), empty abstention policy, and `/predict` still serves. `test_server_readiness.py` monkeypatches the status to `"not-ready"`, so it never exercises this path |
+| 2 | `server.py:94` | Denoising is allowed by default. Spectral-subtraction denoise is not in the training contract (train/serve drift if the user ticks the box) |
+| 3 | `audio_validation.py:26-38`, `server.py:241-253` | Any file of at least 128 bytes passes the signature check, and `_read_audio_upload` also accepts unsupported extensions of at least 128 bytes. In practice validation is only "librosa can decode it" |
+| 4 | `server.py:450,490` | Gemini key in the query string. `URLError` diagnostics print the full URL |
+| 5 | `dataset_provenance.py:74-84`, `submit.sh` | The provenance label check is self-referential, and `submit.sh` rewrites the provenance file from the present CSV |
+| 6 | `reorganize_icbhi.py` | Defaults to the scrambled CSV. Skips existing destination files instead of overwriting them |
+| 7 | `main.py:136-139` | `--use-focal-loss` cannot be turned off. LR is not exposed on the CLI |
+| 8 | `main.py:392` | Healthy multiplier looks up `"Healthy"` while folder labels are lowercase |
+| 9 | `main.py:270-284` | Folder-mode audit undercounts merged data and stores placeholder hashes. `source_revision` defaults to `unknown` |
+| 10 | `server.py:627-650` | `/health` triggers the full model load. Polled every 5 s by the UI |
+| 11 | `train.py` SpecAugment | One mask per batch. Time masks can hit padding, and masked frames turn into "padding" for the validity mask |
+| 12 | `server.py:197` | `NamedTemporaryFile(delete=False)`: the temp upload is left behind if the process dies mid-request |
+| 13 | `server.py:686` | `/predict-sample` does a recursive glob over the whole dataset tree on every request |
+| 14 | `scaler.pkl` | Unused pickle. Never load it (arbitrary-code risk) |
+
+Do not "fix" these silently as a side effect of another change. Each one alters behavior or
+the evidence trail, so make it its own change and record it in the chronicle.
+
+---
+
+## 6. Tests (`tests/`, 21 tests, dataset-free)
+
+`test_artifact_contract` (class order kept; tampered hash rejected), `test_audio_validation`,
+`test_augmentation` (shift zero-fill, seeded noise, numpy and TF SpecAugment),
+`test_calibration`, `test_evaluate` (perfect metrics; window→recording aggregation),
+`test_evaluate_patient`, `test_preprocessing` (feature_dim=120, pad/truncate),
+`test_server_readiness` (imports `server`, so TF and the module import side effects run),
+`test_splitting` (no patient overlap; rejects <3-patient classes), `test_windowing` (tail
+coverage; short-recording padding).
+
+There is no test for the model graph, `build_manifest_from_folders`, the server's legacy path,
+`/predict`, or the LLM sanitizers. If you add one, keep it dataset-free and build tiny models
+with `instantiate_model` on small shapes.
