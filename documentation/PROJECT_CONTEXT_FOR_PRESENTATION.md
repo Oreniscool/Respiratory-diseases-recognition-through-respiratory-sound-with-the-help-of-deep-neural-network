@@ -1,217 +1,228 @@
 # RespiNet: Master Project Context & Prompt Dossier for Presentation Generation
 
 > **Usage Guide:**  
-> Copy and paste this entire document into any LLM (ChatGPT, Claude 3.5 Sonnet, Gemini 1.5 Pro, DeepSeek, etc.) alongside your desired prompt instruction (e.g., *"Generate a 10-slide PowerPoint deck with speaking notes and slide layout directives based on this context"*).
+> Copy and paste this entire document into any LLM alongside your desired prompt instruction
+> (e.g., *"Generate a 10-slide deck with speaking notes and slide layout directives based on this
+> context"*).
+>
+> **Revised 2026-10-22 (final phase).** Every number below is traced to
+> `backend/artifacts/latest/*.json` (the leakage-free retrain) or to
+> `documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md`. Earlier versions of this dossier quoted
+> 80.81% / 82.09% accuracy, T ≈ 1.54, a 442K-parameter LeakyReLU architecture, and Grad-CAM;
+> those figures were contaminated by data leakage or simply wrong. **Do not use them.**
 
 ---
 
 ## 1. System Prompt to Give the External LLM
 
 ```text
-You are an elite Biomedical AI systems engineer and scientific presentation designer. 
-You are tasked with generating a high-impact, technically rigorous academic and clinical presentation based on the comprehensive project dossier provided below.
+You are a biomedical AI engineer and scientific presentation designer.
+Generate a technically rigorous academic presentation from the project dossier below.
 
 When generating the presentation:
-1. Emphasize the real-world clinical problem and why automated auscultation matters.
-2. Clearly contrast the flawed baseline prototype with the rigorous, modernized architecture.
-3. Detail the signal processing pipeline, deep neural network architecture, and loss/optimization mechanics.
-4. Highlight the empirical results (accuracy, macro F1, calibration error, and clinical sensitivities).
-5. Explain how explainability (Grad-CAM saliency) and selective abstention bridge the gap from research to clinical bedside practice.
-6. Provide slide titles, bullet points, visual layout recommendations, and verbatim speaker notes with estimated timings.
+1. Explain the clinical problem and why automated analysis of lung sounds is a research question.
+2. Contrast the flawed baseline prototype with the corrected pipeline.
+3. Detail the signal processing pipeline, the neural network, and the loss/optimization mechanics.
+4. Present the leakage-free results honestly, including confidence intervals, per-class and
+   per-source results, and the weakest classes. Explain that removing data leakage lowered the
+   headline accuracy, and why that makes the result more trustworthy.
+5. Describe explainability (time-only gradient saliency) and selective abstention as research
+   aids, never as clinical evidence.
+6. Never describe the system as diagnostic, screening-grade, clinically validated, or suitable for
+   clinical decisions. It is a research prototype.
+7. Provide slide titles, bullet points, visual layout recommendations, and verbatim speaker notes
+   with estimated timings. Use only numbers stated in this dossier.
 ```
 
 ---
 
-## 2. Core Project Identity & Clinical Use Case
+## 2. Core Project Identity & Use Case
 
-- **Project Name:** RespiNet (also referred to as *Respiratory Atlas*).
-- **Domain:** Acoustic Biomedical Signal Processing, Deep Learning for Healthcare, Computer-Aided Auscultation (CAA), Clinical Decision Support Systems (CDSS).
-- **Core Technology Stack:** 
-  - *Deep Learning:* TensorFlow 2.16+, Keras 3, Librosa, SciPy Signal, NumPy.
-  - *Backend API:* Python Flask WSGI REST API (port 5001) with cryptographic SHA-256 artifact validation.
-  - *Frontend:* React 19, Vite, TypeScript, Tailwind CSS, Lucide Icons, Canvas API, Web Audio API, Recharts.
-  - *Clinical Explainability:* Gradient-based Saliency Maps / Grad-CAM spectrogram attribution, Post-hoc Temperature Scaling calibration, Google Gemini / Groq LLaMA-3.1 clinical summarization.
+- **Project Name:** RespiNet (product UI: *Respiratory Atlas*).
+- **Domain:** acoustic biomedical signal processing, deep learning, computer-aided auscultation
+  research.
+- **Technology stack:**
+  - *Deep learning:* TensorFlow 2.21 / Keras 3, librosa, SciPy, NumPy, scikit-learn (Python 3.11).
+  - *Backend:* Flask REST API (gunicorn in Docker) with a fail-closed SHA-256 artifact contract.
+  - *Frontend:* React 19, Vite, TypeScript, Zustand, Recharts, framer-motion, Lucide icons, Web
+    Audio API.
+  - *Interpretability & reporting:* time-only gradient saliency over spectrograms; temperature
+    scaling with abstention; optional consented LLM summaries (Google Gemini, Groq fallback).
 
-### The Clinical Problem
-Pulmonary auscultation with a stethoscope has been the standard of care for over 200 years. However, conventional auscultation suffers from:
-1. **High Inter-Observer Variability:** Different physicians interpret breath sounds differently based on training and hearing acuity.
-2. **Subjective Human Auditory Limits:** Faint or high-frequency adventitious sounds (fine crackles, mild expiratory wheezes) are easily missed.
-3. **Environmental Interference:** Ambient clinic/hospital noise obscures respiratory acoustic signatures.
-4. **Physician Shortage & Access:** High-resource pulmonary specialists are scarce in rural and primary-care triage settings.
+### The clinical problem
+Stethoscope auscultation is cheap and ubiquitous but subjective: interpretation varies between
+listeners, faint adventitious sounds (fine crackles, mild wheezes) are easy to miss, ambient
+noise interferes, and specialists are scarce in many settings. That motivates research into
+objective, reproducible acoustic analysis.
 
-### The RespiNet Solution (Use Case)
-RespiNet is an AI-assisted computer-aided auscultation screening platform. It:
-1. Ingests auscultation audio recorded via digital stethoscopes or smartphone microphones.
-2. Filters out acoustic artifacts (heartbeats, chest friction, electrical hum).
-3. Extracts dynamic time-frequency acoustic representations (120-dimensional $\text{MFCC} + \Delta + \Delta^2$).
-4. Classifies the recording across **five target categories:**
-   - **COPD** (Chronic Obstructive Pulmonary Disease)
-   - **Asthma**
-   - **Pneumonia**
-   - **Bronchial Conditions** (URTI, Bronchiectasis, Bronchiolitis)
-   - **Healthy Controls**
-5. Evaluates prediction confidence using **calibrated probabilities (Temperature Scaling)** and **selectively abstains** when prediction entropy is high.
-6. Generates a **time-frequency Grad-CAM saliency overlay** on the audio spectrogram so doctors can visually verify the acoustic evidence before clinical decision-making.
+### What RespiNet does (research use only)
+1. Takes a lung-sound recording (uploaded file or browser microphone).
+2. Band-pass filters it (100–2,000 Hz) to suppress heartbeat, friction, and hiss.
+3. Extracts 120-dimensional MFCC + Δ + Δ² features over overlapping windows covering the full
+   recording.
+4. Scores five labels: **asthma, bronchial** (grouped: URTI, bronchiectasis, bronchiolitis,
+   LRTI), **COPD, healthy, pneumonia**.
+5. Calibrates the scores (temperature scaling) and **abstains** ("uncertain") when confidence is
+   low or the distribution is too flat.
+6. Optionally shows a time-only gradient saliency overlay on the spectrogram, labeled as an
+   experimental sensitivity view rather than causal or clinical evidence.
 
----
-
-## 3. Technical Evolution: Baseline vs. Current Modernized System
-
-### Phase A: The Legacy Prototype & The "Run 1241" Failure
-- **Historical Baseline:** An unverified Keras model trained naively on the ICBHI 2017 Challenge dataset, claiming 85–95% accuracy in literature.
-- **The Empirical GPU Cluster Audit (Run 1241):** When trained on the SPIT HPC GPU cluster with patient-disjoint isolation, the model failed completely:
-  - **Validation Accuracy collapsed to 11.90%** (worse than random guessing).
-  - **Validation Loss exploded to 6.8942**.
-  - Training early-stopped at Epoch 11 and reverted to Epoch 1.
-- **Root Causes Identified in Post-Mortem:**
-  1. *Frame-Level Data Leakage:* Legacy code randomly split audio slices. Slices from the same patient appeared in both train and test partitions, artificially inflating metrics.
-  2. *Naive 4.6-second Truncation:* Recordings were truncated at the first 200 frames, discarding up to 75% of longer clinical recordings.
-  3. *Unmasked Zero-Padding:* Short files were padded with zeros without validity masking, training the GRU layers to fit padding artifacts.
-  4. *Hardware Confounding:* ICBHI used 4 different microphone/stethoscope brands. Without normalization, the model learned stethoscope sensor signatures rather than lung sounds.
-  5. *Mathematical Impossibility of 8-Class Stratification:* ICBHI had 64 COPD patients (>70% of dataset), but only 1 Asthma patient and 2 LRTI patients. A 3-way patient-disjoint split could not populate all sets, triggering mathematical divergence in cross-entropy.
+It is **not a medical device** and has no clinical validation.
 
 ---
 
-### Phase B: Modernized Backend & Signal Processing Overhaul
+## 3. Technical Evolution: Baseline vs. Corrected System
 
-1. **4th-Order Butterworth Bandpass Filter (100 Hz – 2000 Hz):**
-   - Implemented via second-order sections (`sosfiltfilt`) for zero phase distortion.
-   - Suppresses low-frequency heartbeat thuds and chest friction ($<100$ Hz) and sensor electrical hiss ($>2000$ Hz).
-2. **120-Dimensional Dynamic Acoustic Feature Extraction:**
-   - Standardizes sampling rate to $22,050$ Hz mono.
-   - Short-Time Fourier Transform (STFT): $N_{\text{FFT}} = 2048$, Hop $= 512$ (~$23.2$ ms / ~$43.1$ frames/sec).
-   - Computes **40 static MFCCs + 40 first-order velocity deltas ($\Delta$) + 40 second-order acceleration deltas ($\Delta^2$)** $= 120$ dimensions per time frame.
-   - Velocity and acceleration deltas capture onset, attack, and trajectory of continuous wheezes and discontinuous crackles.
-3. **Hardware Invariance via CMVN:**
-   - Applies Cepstral Mean and Variance Normalization across each feature window.
-   - Eliminates acoustic gain and frequency response differences across stethoscope brands.
-4. **Non-Destructive Sliding Windowing:**
-   - Splits audio into windows of 200 frames (~4.6 seconds) with 50% overlap (hop 100).
-   - The final window is anchored to the exact end of the recording ($T - L$), guaranteeing 100% temporal breath cycle coverage.
+### Phase A: The legacy prototype and the "Run 1241" failure
+- **Legacy model (2021):** Keras Conv1D + BiGRU on ICBHI 2017 with 8 classes. Its best recorded
+  validation accuracy was 75.36%, but on a **sample-level random split**, so recordings of the same
+  patient appeared in training and validation.
+- **Run 1241 (SPIT GPU cluster, as reported at the time; the log is not in the repository):** with
+  a patient-disjoint split on 8 ICBHI classes, validation accuracy collapsed to 11.90% and
+  validation loss reached 6.8942, with early stopping at epoch 11.
+- **Root causes identified:**
+  1. *Patient leakage* from random sample-level splits.
+  2. *Truncation:* only the first 200 frames (~4.6 s) of each recording were used.
+  3. *Unmasked zero padding* entering the GRUs and pooling.
+  4. *Device confounding:* four different stethoscopes/microphones, with no normalization.
+  5. *Infeasible task:* ICBHI has 1 asthma and 2 LRTI patients, too few to appear in train,
+     validation, and test.
 
----
+### Phase B: Signal processing overhaul
+1. **Butterworth band-pass, 4th order, 100–2,000 Hz**, zero-phase (`sosfiltfilt`).
+2. **Features:** 22,050 Hz mono; STFT n_fft = 2,048, hop = 512 (≈23.2 ms); 40 MFCCs + 40 Δ +
+   40 Δ² = **120 dimensions per frame**.
+3. **CMVN:** per-feature mean/variance normalization over each **recording** (before windowing),
+   reducing device gain and response differences.
+4. **Non-destructive windowing:** 200-frame (≈4.6 s) windows with 50% overlap. The last window is
+   anchored to the end of the recording, so nothing is discarded. Short recordings are padded and
+   masked.
 
-### Phase C: Deep Neural Network Architecture (RespiNet Sequence Model)
+### Phase C: Neural network (RespiNet-Attention v3, 458,701 parameters, ≈1.75 MB)
+1. **Input** `(batch, 200, 120)` → **`FeatureValidityMask`** (marks real frames) → **LayerNorm**.
+2. **`MultiScaleConvBlock`:** parallel Conv1D with kernels 3 / 5 / 11 (32 channels each, GELU),
+   squeeze-excitation channel re-weighting, `SpatialDropout1D(0.2)`.
+3. **BiGRU (128 units)** + GELU + Dropout 0.3, with a **residual 1×1 Conv1D(256)** skip from the
+   conv block added before the second GRU.
+4. **BiGRU (64 units)** + GELU; both GRUs receive the validity mask.
+5. **`MaskedDualTemporalPooling1D`:** attention pooling (sustained sounds) concatenated with masked
+   max-pooling (short transients) → 256 dims.
+6. **Head:** Dense 128 + GELU + Dropout 0.3 → Dense 64 + GELU + Dropout 0.4 → Dense 5 softmax;
+   L2 = 1e-4 on all kernels.
 
-A hybrid Convolutional-Recurrent sequence network (~442K parameters, ~1.7 MB footprint):
+### Phase D: Training pipeline and memory engineering
+1. **Categorical focal loss** (γ = 2.0, α = 0.25) with **label smoothing 0.1**, plus balanced class
+   weights.
+2. **Adamax** with **cosine decay** from 3 × 10⁻⁴ to 1.5 × 10⁻⁶. Batch 64, up to 80 epochs, early
+   stopping on validation accuracy (patience 18).
+3. **Augmentation, training split only:** 20 dB SNR noise, time shift, time stretch ×0.8 / ×1.2,
+   and online SpecAugment (2 frequency masks ≤ 15, 2 time masks ≤ 25).
+4. **OOM fix:** the old pipeline kept more than 60,000 window arrays in Python lists and hit a
+   ~22–26 GB peak. Chunked extraction plus a streaming `tf.data` pipeline keeps it under ~4.8 GB.
 
-1. **Input Representation:** `(Batch, 200 timesteps, 120 features)`.
-2. **`FeatureValidityMask` (Custom Keras Layer):** Dynamically computes a boolean mask of non-padded frames from raw input and passes it forward.
-3. **`LayerNormalization`:** Batch-size-invariant normalization for stable recurrent sequence processing.
-4. **Convolutional Spectral Blocks:**
-   - `Conv1D (64 filters, kernel=5) + LeakyReLU(0.2) + SpatialDropout1D(0.2) + L2(1e-4)`
-   - `Conv1D (64 filters, kernel=3) + LeakyReLU(0.2) + SpatialDropout1D(0.2) + L2(1e-4)`
-   - *SpatialDropout1D* drops entire feature channels simultaneously, preventing co-adaptation of adjacent Mel frequencies.
-5. **Recurrent Stack & Recurrent Dropout:**
-   - Stacked `Bidirectional(GRU)` (128 units and 64 units).
-   - Incorporates `recurrent_dropout=0.15` directly into the recurrent hidden transition matrices to prevent sequence memorization.
-6. **Pointwise Residual Skip:**
-   - $1\times 1$ pointwise convolution (`Conv1D(256, k=1)`) projects conv-block features directly to the second GRU input, preserving high-frequency acoustic details.
-7. **`MaskedDualTemporalPooling1D` (Custom Layer):**
-   - Combines **(a) Soft Attentive Pooling** (captures sustained wheezes and rhonchi) and **(b) Masked Max-Pooling** (captures sharp, explosive crackle transients).
-   - Multiplies pooling weights by the validity mask so zero-padded frames contribute nothing.
-8. **Dense Regularization & Output Head:**
-   - `Dense(64) + LeakyReLU(0.2) + Dropout(0.5) + L2(1e-4)`
-   - `Dense(5, activation="softmax")`
-
----
-
-### Phase D: Training Pipeline, Loss Function & Memory Optimization
-
-1. **Categorical Focal Loss with Label Smoothing:**
-   - Replaced uncalibrated cross-entropy with `CategoricalFocalLoss` (focusing parameter $\gamma=2.0$, $\alpha=0.25$):
-     $$\mathcal{L}_{\text{Focal}} = -\sum_{k=1}^K \alpha_k y_k^{\text{smooth}} (1 - p_k)^\gamma \log(p_k + 10^{-7})$$
-   - Suppresses gradient contributions from easy majority classes to zero; focuses backprop on hard examples.
-   - Combined with **Label Smoothing ($\epsilon=0.08$)**: prevents logit saturation and prevents validation loss spikes.
-2. **Cosine Annealing Optimizer Schedule:**
-   - Adamax optimizer with Cosine Annealing decay down to $\eta_{\min}=10^{-5}$.
-   - Early stopping monitors `val_accuracy` (mode=max, patience=18 epochs) rather than oscillating focal loss.
-3. **Solving the 26 GB Out-Of-Memory (OOM) Bottleneck:**
-   - *Old Pipeline:* 5 waveform variants $\times$ sliding windows $\times$ 2x offline SpecAugment stored >60,000 NumPy arrays in Python lists $\rightarrow$ **26 GB peak RAM $\rightarrow$ Linux OOM Killer**.
-   - *RespiNet v3.1 Streaming Engine:* Chunked pre-allocation with periodic garbage collection, feeding a streaming `tf.data.Dataset`.
-   - **Vectorized Online SpecAugment:** Frequency ($F \le 15$ channels) and time ($T \le 25$ frames) masking are generated on-the-fly inside TensorFlow per batch.
-   - **RAM slashed by 80% to < 4.8 GB**, with flat memory usage and infinite dynamic augmentations.
-
----
-
-### Phase E: Dataset Transformation & Authentic Diagnosis Audit
-
-1. **Pivoted to Kaggle Asthma Detection V2:**
-   - 1,211 recordings cleanly balanced into disease subfolders.
-2. **ICBHI 2017 Integration & Diagnosis Label Audit:**
-   - Found that repository`patient_diagnosis.csv` contained scrambled labels from a historical test harness, stalling validation accuracy at 28%.
-   - Sourced and verified authentic clinical ground truth: `patient_diagnosis_authentic.csv`.
-   - Reorganized ICBHI into a unified 5-class target mapping:
-     - `COPD` $\rightarrow$ `copd`
-     - `Asthma` $\rightarrow$ `asthma`
-     - `Pneumonia` $\rightarrow$ `pneumonia`
-     - `Healthy` $\rightarrow$ `healthy`
-     - `URTI`, `Bronchiectasis`, `Bronchiolitis`, `LRTI` $\rightarrow$ `bronchial`
-3. **Combined Multi-Cohort Scale:**
-   - **Total Cohort: 2,131 recordings from 331 unique patients.**
-   - Total Breakdown: COPD (1,194), Pneumonia (322), Asthma (289), Healthy (168), Bronchial (158).
-   - Stratified Patient-Disjoint Partition:
-     - **Train:** 198 patients (1,248 recordings)
-     - **Validation:** 66 patients (440 recordings)
-     - **Test:** 67 patients (443 recordings)
+### Phase E: Dataset transformation and the leakage audit
+1. **ICBHI label repair:** the repository's `patient_diagnosis.csv` contains deliberately
+   scrambled labels. ICBHI is now sorted into the 5 classes from the **authentic** diagnoses, and
+   any label table that differs from the published distribution is rejected.
+2. **Merge with Kaggle Asthma Detection V2** (1,211 clips, five class folders) to obtain enough
+   asthma and pneumonia patients.
+3. **Audit finding: 631 of the 1,211 Kaggle clips (52%) are verbatim cuts of ICBHI recordings**
+   that were already in the cohort, under different made-up patient IDs:
+   - by class: COPD 401 of 401 (100%), healthy 74 of 133, bronchial 51 of 104, pneumonia 105 of
+     285, asthma 0 of 288;
+   - cut from 187 ICBHI recordings of 60 real patients;
+   - match scores (normalized cross-correlation) ≥ 0.795, against ≤ 0.697 for every other clip;
+   - Kaggle `P`-numbers are not patient IDs (35 of 98 groups mix several ICBHI patients), and 3
+     clips labeled pneumonia come from a Healthy ICBHI patient.
+4. **Fix:** drop the Kaggle copies (the full ICBHI recordings stay, with real patient IDs) and 12
+   byte-identical duplicates. Training refuses to merge the datasets without the evidence file.
+5. **Corrected cohort:** **1,488 recordings / 243 patients** (ICBHI 920 / 126 + Kaggle remainder
+   568 / 117 groups). Patient-disjoint split: train 145 / validation 49 / test 49 patients
+   (864 / 328 / 296 recordings), with no audio shared across splits.
 
 ---
 
-## 4. Quantitative Results & Validation Metrics
+## 4. Quantitative Results (held-out test split, 49 patients / 296 recordings)
 
-| Performance Metric | Baseline Prototype (Run 1241) | Modernized RespiNet Pipeline | Empirical Impact |
-| :--- | :---: | :---: | :--- |
-| **Validation Loss** | **6.8942** (Loss explosion) | **0.1103** (Stable convergence) | **-98.4% loss reduction** |
-| **Validation Accuracy** | **11.90%** (Random guessing) | **80.80%** | **+68.9% absolute gain** |
-| **Test Accuracy (Recording-level)**| N/A (Failed to converge) | **80.81%** | Verified on held-out patients |
-| **Test Accuracy (Patient-level)** | N/A | **82.09%** | Majority voting across recordings |
-| **Macro F1 Score** | 0.084 | **0.7922 (Patient) / 0.7200 (Rec)** | Balanced multi-class recognition |
-| **Balanced Accuracy** | 12.50% | **79.65% (Patient) / 75.03% (Rec)** | Robust minority class performance |
-| **Expected Calibration Error (ECE)**| 0.482 (Severely overconfident) | **0.0333 (Recording) / 0.1030 (Pt)** | **-87.3% error reduction** |
+| Metric | Recording level | Patient level |
+| :--- | ---: | ---: |
+| **Accuracy** | **77.36%** | **75.51%** (95% bootstrap CI 63.3–87.8%) |
+| **Balanced accuracy** | 71.42% | 73.72% |
+| **Macro F1** | 0.690 | 0.737 |
+| **Macro one-vs-rest AUROC** | 0.927 | 0.932 |
+| **Cohen's κ / MCC** | 0.672 / 0.678 | 0.692 / 0.699 |
+| **Expected calibration error** | 0.074 | 0.148 |
 
-### Patient-Level Clinical Sensitivities & Specificities
-- **COPD:** Sensitivity **91.30%** | Specificity **97.73%** (Support: 23 patients)
-- **Asthma:** Sensitivity **83.33%** | Specificity **98.18%** (Support: 12 patients)
-- **Pneumonia:** Sensitivity **100.00%** | Specificity **89.29%** (Support: 11 patients)
-- **Healthy:** Sensitivity **63.64%** | Specificity **94.64%** (Support: 11 patients)
-- **Bronchial:** Sensitivity **60.00%** | Specificity **98.25%** (Support: 10 patients)
+**Effect of removing the leakage** (identical model and settings, only the data changed):
+patient-level accuracy 82.09% → **75.51%**, recording-level 80.81% → **77.36%**. The earlier
+numbers were inflated and must not be presented as performance.
+
+### Patient-level sensitivity and specificity
+- **Asthma:** sensitivity 91.7%, specificity 97.3% (12 patients)
+- **COPD:** 76.9% / 97.2% (13)
+- **Healthy:** 75.0% / 82.9% (8)
+- **Pneumonia:** 75.0% / 95.1% (8)
+- **Bronchial (grouped):** 50.0% / 97.6% (8). This is the weakest class, mostly confused with healthy.
+
+### By data source
+- **ICBHI test patients (26, reliable identities):** 75.8% recording / 65.4% patient accuracy.
+  Only 1 asthma and 1 pneumonia patient, so per-class figures here are unstable.
+- **Kaggle test groups (23, identities unverified):** 79.8% / 87.0%. Likely optimistic, because
+  Kaggle has no reliable patient identifiers and part of it derives from another database (KAUH)
+  that was not checked for overlap.
+
+### Training run
+Early stopping at epoch 69, with weights restored from epoch 51 (validation accuracy 73.5%,
+training accuracy 81.7%). Temperature T = 0.713, so the raw model was slightly under-confident.
+The model abstains when the top calibrated score is below 0.573 or the normalized entropy is above
+0.583 (80% validation coverage).
 
 ---
 
-## 5. Deployment, Clinical Explainability & User Experience Suite
+## 5. Deployment, Interpretability & User Experience
 
-1. **Cryptographic Artifact Contract:**
-   - Every model checkpoint is validated by `artifact_contract.py` via SHA-256 hash checksums, training metadata, and preprocessing parameter constraints before being served.
-2. **Post-Hoc Probability Calibration:**
-   - Fits optimal temperature scaling parameter ($T \approx 1.54$) on validation logits.
-   - Dual-criterion selective abstention: flags predictions as *"Uncertain / Recommend Clinical Review"* if $\max p < \tau_{\text{conf}}$ or prediction entropy $\mathcal{H} > \tau_{\text{entropy}}$.
-3. **Explainability & Saliency Attribution:**
-   - Computes gradient-based class activation (Grad-CAM / Saliency) across input MFCC frames:
-     $$\mathbf{S}(t, d) = \left| \frac{\partial z_{\hat{c}}}{\partial \mathbf{X}(t, d)} \right|$$
-   - Interpolates normalized saliency gradients over a high-resolution Mel spectrogram canvas in the UI.
-4. **React 19 / TypeScript Frontend Interface:**
-   - Real-time Web Audio API microphone recording with live VU volume level meter.
-   - Drag-and-drop audio uploader supporting `.wav`, `.mp3`, and `.flac`.
-   - Recharts radial confidence gauge color-coded by certainty (Green $>70\%$, Amber $40-70\%$, Terracotta $<40\%$).
-   - High-uncertainty warning banners when prediction entropy is elevated.
-   - Privacy-sanitized Gemini 2.5 Flash REST client for natural-language clinical summary drafts.
+1. **Fail-closed artifact contract:** the server serves a model only if its SHA-256 hash, ordered
+   classes, preprocessing settings, calibration, evaluation, and dataset-audit files all verify.
+   Otherwise inference returns 503. Run metadata records all hyperparameters, library versions, and
+   the git revision.
+2. **Calibration and abstention:** temperature scaling fit on validation recordings, with the
+   dual-threshold abstention rule above.
+3. **Interpretability (experimental):** the gradient of the predicted class score with respect to
+   the input, averaged over features, for the most confident window, shown over that window's
+   mel spectrogram. It is time-only and explicitly labeled as not causal or clinical evidence.
+4. **Input safety:** strict audio container signature checks; inference-time denoising is off by
+   default because it is not part of training.
+5. **React 19 interface:** upload (WAV, MP3, WebM, OGG, M4A, FLAC) or microphone recording with a
+   live level meter, a calibrated score ring, an entropy bar and uncertainty banner, a 5-run
+   history, and consented LLM research summaries (Gemini or Groq) with identifiers and free text
+   stripped.
 
 ---
 
 ## 6. Future Research Roadmap
 
-1. **Log-Mel Spectrogram Tensors:** Transitioning from 40 MFCCs to 3-channel Log-Mel Spectrogram tensors `[Log-Mel, Δ-Mel, Δ²-Mel]` (128 Mel bands) for overtone representation.
-2. **Continuous Wavelet Transform (CWT):** Morlet wavelet analysis to capture explosive sub-20ms crackles without Fourier frequency smearing.
-3. **Self-Supervised Audio Foundation Models:** Fine-tuning Audio Spectrogram Transformer (AST), BEATs, or wav2vec 2.0 with LoRA adapters.
-4. **Multimodal Clinical Fusion:** Late-fusion network combining acoustic sequence embeddings with electronic health records ($	ext{SpO}_2$, patient age, temperature, smoking history).
-5. **Embedded Edge Inference:** INT8 quantization via TensorFlow Lite for sub-100ms inference on ARM Cortex-M / Raspberry Pi digital stethoscopes in rural clinics.
+1. **External validation** on independent data (e.g. SPRSound, HF_Lung), plus an overlap check of
+   the remaining Kaggle data against its KAUH source.
+2. **Self-supervised audio foundation models** (AST, BEATs, wav2vec 2.0) fine-tuned with LoRA.
+3. **Richer short-event features:** log-mel tensors and continuous wavelet transforms for
+   sub-20 ms crackles.
+4. **Multimodal fusion** of acoustics with vitals (SpO₂, temperature, age, smoking history).
+5. **Edge inference:** INT8 TensorFlow Lite on low-cost hardware.
 
 ---
 
 ## 7. Recommended Presentation Generation Directives for Other LLMs
 
-You can give this file to another LLM with any of these sample instructions:
-
-- **Option 1 (Academic Slide Deck):** *"Using the provided RespiNet project context, create an 8-to-10 slide PowerPoint presentation outline. For each slide, provide a slide title, 3–4 concise bullet points, a visual diagram description, and 60–90 seconds of word-for-word speaker notes."*
-- **Option 2 (Executive 5-Minute Pitch):** *"Synthesize this project context into a 5-minute technical pitch for healthcare and engineering executives focusing on the clinical problem, why prior methods failed, our 80%+ verified accuracy, and our path to edge deployment."*
-- **Option 3 (Q&A Defense Script):** *"Act as a tough academic defense panelist reviewing this project. Generate the 8 most challenging technical and clinical questions about our methodology (e.g., patient-disjoint splitting, focal loss vs CCE, hardware bias via CMVN, OOM streaming) and provide rigorous, authoritative answers based on this context."*
+- **Option 1 (academic slide deck):** *"Using the provided RespiNet context, create an 8-to-10
+  slide presentation outline. For each slide, give a title, 3–4 bullets, a visual description, and
+  60–90 seconds of speaker notes. Use only the numbers in the dossier and present them as research
+  results, not clinical performance."*
+- **Option 2 (5-minute technical pitch):** *"Summarize this context into a 5-minute talk for an
+  engineering and research audience: the clinical problem, why the baseline failed, how a data
+  audit found and removed cross-dataset leakage, the leakage-free result (75.5% patient-level
+  accuracy, 95% CI 63–88%), and the roadmap to external validation."*
+- **Option 3 (Q&A defense):** *"Act as a tough academic panelist. Generate the 8 hardest questions
+  about this methodology (patient- and audio-disjoint splitting, the Kaggle–ICBHI overlap,
+  unverified Kaggle patient IDs, focal loss vs. cross-entropy, CMVN and device bias, calibration
+  with a small validation set, why accuracy fell after the fix) and give rigorous answers based
+  only on this context."*

@@ -68,9 +68,9 @@ When sources disagree, trust them in this order:
 3. `documentation/PROJECT_CONTEXT.md` (verified 2026-10-21)
 4. Everything else in `documentation/`. Much of it is historical, aspirational, or stale.
 
-Note: `artifacts/latest/` at the **repo root** is tracked in git but is a **stale** split
-from an earlier run with scrambled labels. It is *not* the current model's split. The
-real one is `backend/artifacts/latest/`.
+Note: the stale root-level `artifacts/latest/` (a split from the scrambled-label run) was deleted
+in the final phase. Run artifacts live only in `backend/artifacts/` (gitignored): `latest/` is the
+current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 
 ---
 
@@ -80,11 +80,10 @@ real one is `backend/artifacts/latest/`.
 .
 ├── AGENTS.md / GEMINI.md        # doc-sync rule (identical apart from the title)
 ├── CLAUDE.md                    # this file
-├── README.md                    # user-facing overview (partly stale, see §6)
+├── README.md                    # user-facing overview (updated 2026-10-22)
 ├── Dockerfile                   # all-in-one image: nginx + `python server.py` (Flask dev server)
 ├── docker-compose.yml           # backend (gunicorn, :5000) + frontend (nginx, :80/:8080)
 ├── .github/workflows/checks.yml # CI: ruff + pytest (backend), npm ci + build (frontend)
-├── artifacts/latest/            # STALE tracked split files from an older run, do not trust
 ├── backend/
 │   ├── main.py                  # training orchestrator CLI (split → features → train → calibrate → eval → metadata)
 │   ├── preprocessing.py         # PreprocessingConfig + bandpass/MFCC/Δ/Δ²/CMVN + windowing (shared train/serve)
@@ -106,7 +105,7 @@ real one is `backend/artifacts/latest/`.
 │   ├── best_model.h5, scaler.pkl        # LEGACY 2021 artifacts (8-class, no contract; do not load scaler.pkl)
 │   ├── patient_diagnosis.csv            # DELIBERATELY SCRAMBLED historical labels; never train on it
 │   ├── dataset_provenance.json          # stale provenance for an older scrambled CSV (checksum mismatch → rejected)
-│   ├── tests/                   # 21 dataset-free pytest tests
+│   ├── tests/                   # 70 dataset-free pytest tests
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
 │                                #   patient_diagnosis_authentic.csv  ← the REAL ICBHI labels
@@ -129,8 +128,8 @@ All backend commands run from `backend/`. Python version is pinned in
 
 > **Local environment (rebuilt 2026-10-21):** `backend/venv/` was created from pyenv
 > `~/.pyenv/versions/3.11.9` (the system Python is 3.14, which TensorFlow does not support). It has
-> TF 2.21.0, Keras 3.15.1, NumPy 2.4.6 and librosa 0.11.0, plus `nvidia-cuda-nvcc-cu12`, which is
-> **not** in requirements.txt but is needed for GPU JIT (`ptxas`/`libdevice`). Its `activate` and
+> TF 2.21.0, Keras 3.15.1, NumPy 2.4.6 and librosa 0.11.0, plus `nvidia-cuda-nvcc-cu12` (now in
+> requirements.txt), which is needed for GPU JIT (`ptxas`/`libdevice`). Its `activate` and
 > `activate.fish` were extended to export `LD_LIBRARY_PATH` (pip CUDA libs), `PATH` (ptxas) and
 > `XLA_FLAGS` (libdevice). Without these, TF either skips the GPU or fails with
 > `JIT compilation failed [Op:Sign]`. Venvs aren't relocatable: if the drive moves again (it used to
@@ -141,13 +140,12 @@ All backend commands run from `backend/`. Python version is pinned in
 # --- backend setup ---
 cd backend
 ~/.pyenv/versions/3.11.9/bin/python -m venv venv && source venv/bin/activate   # fish: activate.fish
-pip install -r requirements-dev.txt nvidia-cuda-nvcc-cu12
+pip install -r requirements-dev.txt   # includes nvidia-cuda-nvcc-cu12 (ptxas/libdevice)
 # then add the LD_LIBRARY_PATH / PATH / XLA_FLAGS exports to the activate scripts (see note above)
 
 # --- static checks (what CI runs; no dataset or model needed) ---
-ruff check .                # currently 4 pre-existing findings (Augmentation.py F821×2, model.py F401, wsgi.py F401)
-python -m pytest            # NOT bare `pytest`: tests `import preprocessing`, so backend/ must be on
-                            # sys.path, which only `python -m` adds (21 tests pass)
+ruff check .                # clean
+pytest                      # 70 tests pass (pyproject sets pythonpath=["."], so bare pytest works)
 
 # --- datasets (into backend/dataset/) ---
 ./download_dataset.sh all   # Kaggle CLI or curl; also runs under sbatch
@@ -179,8 +177,8 @@ npm run build               # tsc -b && vite build → dist/ (dist is committed)
 `dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2`.
 `--merge-icbhi` appends `dataset/ICBHI_as_folders` if it exists.
 
-**Ports:** local dev is **5001** (server default, `.env`, Vite proxy). Docker images and
-`backend/.env.example` use **5000**. Keep them consistent when you change one.
+**Ports:** local dev is **5001** (server default, `.env`, `backend/.env.example`, Vite proxy).
+Docker images use **5000**. Keep them consistent when you change one.
 
 ---
 
@@ -208,12 +206,12 @@ cross-dataset leakage and must not be cited as performance.**
 | By source, accuracy rec. / patient | ICBHI (26 real patients) 75.82% / 65.38%; Kaggle (23 pseudo-patients, IDs unverified) 79.82% / 86.96% | `test_metrics.json["by_source"]` |
 | Code revision | trained at `1a03f37` (metadata records `0bed762`, docs-only difference) | `model_metadata.json` |
 
-**Known-wrong numbers in existing docs:** "T ≈ 1.54" (chronicle, CHANGELOG, assessment,
-presentation dossiers; the real value is 0.844), the chronicle's §7.1 "refactored" table
-(val acc 82.5–88.1%, macro-F1 0.842, ECE 0.061: no artifact supports these), the
-chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landing page stat
-"82.9%" (real value 82.09%), and "Option C" dropout/recurrent_dropout values (never landed in
-`model.py`). The full list is in `documentation/PROJECT_CONTEXT.md` §14.
+**Historical numbers in docs:** The chronicle keeps superseded figures (T ≈ 1.54, the §7.1
+"refactored" table, the ~136K-parameter layer table, the never-merged "Option C" dropout values,
+the leakage-contaminated §8.6 metrics) for the record, each marked with a dated
+correction/superseded callout. Other docs were corrected in final-phase item 10. When citing
+results, use only the table above or `backend/artifacts/latest/*.json`. See
+`documentation/PROJECT_CONTEXT.md` §14 for the per-item status.
 
 ---
 

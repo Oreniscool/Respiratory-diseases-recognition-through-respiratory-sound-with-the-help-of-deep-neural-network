@@ -306,7 +306,12 @@ the evidence trail, so make it its own change and record it in the chronicle.
 
 ---
 
-## 6. Tests (`tests/`, 21 tests, dataset-free)
+## 6. Tests (`tests/`, 70 tests, dataset-free)
+
+Final-phase additions: `test_server_fail_closed`, `test_server_denoise`, `test_llm_key_handling`,
+`test_dataset_provenance`, `test_cohort_integrity`, `test_cross_dataset_overlap`,
+`test_run_metadata`, a strict-JSON test in `test_evaluate`, and 16 new upload-signature cases in
+`test_audio_validation`. The original 21 are:
 
 `test_artifact_contract` (class order kept; tampered hash rejected), `test_audio_validation`,
 `test_augmentation` (shift zero-fill, seeded noise, numpy and TF SpecAugment),

@@ -100,7 +100,7 @@ Neutral surfaces should occupy at least 80% of the visible screen. Data color is
 ## Content principles
 
 - Say **Analyze recording**, not Diagnose.
-- Say **Model score — uncalibrated**, not confidence or certainty.
+- Say **Model score — calibrated research estimate**, not confidence, certainty, or probability of disease. (Until 2026-10-22 the scores were uncalibrated, and this rule said so.)
 - Say **No adventitious sound label**, not healthy patient.
 - Separate recorded data, model output, interpretation, and known limitations.
 - Disease pages explain what authoritative sources say; they do not prescribe treatment or infer a condition from a sound.

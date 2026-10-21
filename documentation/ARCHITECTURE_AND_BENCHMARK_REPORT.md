@@ -1,5 +1,12 @@
 # RespiNet Architecture, Quality, and Benchmark Assessment
 
+> [!CAUTION]
+> **Partly superseded (2026-10-22).** The 2026-07-31 findings in this report are a valuable
+> historical audit. The 2026-08-14 "all resolved" updates overstate the state at the time:
+> fail-closed serving, signature validation, provenance checks, and leakage-free evaluation were
+> only completed in the final phase. See
+> [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md).
+
 | Audit field | Value |
 |---|---|
 | Assessment date | 2026-07-31 |

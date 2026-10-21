@@ -39,7 +39,7 @@ Rebuild the existing React application as a coherent, responsive research-and-le
 - All primary navigation and legacy entry URLs work.
 - Upload, demo-sample analysis, microphone capture, result reading, report generation consent, and explainability routes remain functional.
 - The model is never described as diagnosing, screening, clinically validating, or ruling out disease.
-- Percentages are consistently described as uncalibrated model scores.
+- Percentages are consistently described as model scores (uncalibrated at the time; since 2026-10-22, "calibrated research estimates").
 - Clinical/reference content is linked to authoritative sources.
 - Desktop, tablet, and mobile layouts remain usable with visible focus and reduced-motion support.
 - Production build passes and `design-qa.md` ends with `final result: passed`.

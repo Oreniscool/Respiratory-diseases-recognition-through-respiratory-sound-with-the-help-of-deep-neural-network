@@ -1,5 +1,13 @@
 # Backend and Model Assessment Report
 
+> [!CAUTION]
+> **Superseded (2026-10-22).** This assessment rates the 2026-08-14 model, whose cohort was later
+> found to contain 631 Kaggle clips that are verbatim copies of ICBHI recordings, so its 82.09%
+> accuracy is inflated by leakage. Its temperature was 0.844, not 1.54. Several "resolved" items
+> were not actually resolved in code until the final phase (fail-closed serving, upload
+> validation, provenance). See [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md)
+> for the current state.
+
 Assessment date: 2026-08-03 (Updated: 2026-08-14 after retrain, dataset combination, and verification)
 
 ## Executive rating

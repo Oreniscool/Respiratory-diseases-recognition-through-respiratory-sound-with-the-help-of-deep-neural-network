@@ -32,12 +32,13 @@
 
 | Route | View Component | Status | Notes |
 |---|---|:---:|---|
-| `/` | `AnalyzePage` | PASS | Primary recording upload, sample, record & analysis workspace |
+| `/` | `LandingPage` | PASS | Overview page (added after this QA; the Analyze workspace moved to `/analyze`) |
+| `/analyze` | `AnalyzePage` | PASS | Primary recording upload, sample, record & analysis workspace |
 | `/evidence` | `EvidencePage` | PASS | Model methodology, ICBHI dataset facts, responsible use guidelines |
 | `/learn` | `LearnPage` | PASS | Searchable 8-disease reference guide & glossary |
 | `/report` | `ReportPage` | PASS | Generated research summary view with print & text download |
 | `/explainability` | `ExplainabilityPage` | PASS | Experimental saliency, spectrogram & attribution view |
-| `/diagnose` | Redirect to `/` | PASS | Legacy route preserved with clean redirect |
+| `/diagnose` | Redirect to `/analyze` | PASS | Legacy route preserved with clean redirect |
 | `/diseases` | Redirect to `/learn` | PASS | Legacy route preserved with clean redirect |
 | `/chat` | Redirect to `/learn` | PASS | Legacy route preserved with clean redirect |
 | `/how-it-works` | Redirect to `/evidence` | PASS | Legacy route preserved with clean redirect |

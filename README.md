@@ -11,35 +11,55 @@ evaluation utilities, and optional externally generated narrative summaries.
 
 ## Current evidence status
 
-The repository contains a legacy `best_model.h5` and historical plots. That
-artifact predates the corrected patient-level split and has no metadata file.
-The server will not load or serve it.
+The current model (`backend/artifacts/latest/`, trained 2026-10-22) is a 5-class classifier
+(asthma, bronchial, COPD, healthy, pneumonia) trained on **ICBHI 2017 merged with the Kaggle
+Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
 
-The captured historical run reached 82.12% final training accuracy, 73.44%
-final validation accuracy, and 75.36% best validation accuracy at epoch 48.
-Those numbers came from the previous sample-level split after augmentation and
-are **not a valid estimate of patient-level or clinical performance**. Replace
-all historical values after running the corrected pipeline.
+- **631 of the 1,211 Kaggle clips (52%, including every Kaggle COPD clip) are verbatim cuts of
+  ICBHI recordings.** In the earlier merged cohort they sat under different patient IDs, so test
+  patients' audio also appeared in training. These copies, plus 12 byte-identical files, are now
+  removed (evidence: `backend/data/kaggle_icbhi_overlap.csv`).
+- Leakage-free cohort: 1,488 recordings / 243 patients; patient-disjoint split 145 / 49 / 49.
+
+| Held-out test (49 patients) | Recording level | Patient level |
+|---|---:|---:|
+| Accuracy | 77.36% | 75.51% (95% CI 63.3–87.8%) |
+| Balanced accuracy | 71.42% | 73.72% |
+| Macro F1 | 0.690 | 0.737 |
+| Macro one-vs-rest AUROC | 0.927 | 0.932 |
+
+By source, patient-level accuracy is 65.4% on the 26 ICBHI test patients (reliable identities,
+few non-COPD cases) and 87.0% on 23 Kaggle patient groups (identities unverified, likely
+optimistic). The **82.09% reported for the 2026-08-14 model was inflated by the overlap** and
+must not be cited. That model is archived in `backend/artifacts/v3-2026-08-14/`. Full evidence:
+[`documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md`](documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md).
+
+The legacy `backend/best_model.h5` (2021, 8 classes, leakage-prone split) is never loaded or
+served.
 
 ## Corrected experiment flow
 
-1. `main.py` verifies an authorized diagnosis CSV against a provenance record
-   and fails closed if its checksum or published ICBHI label distribution differs.
-2. `featureExtraction.py` builds a deterministic recording manifest.
+1. Records are built from class folders (`--dataset-format folder`), with ICBHI sorted into the
+   same 5 classes from its **authentic** diagnoses by `reorganize_icbhi.py`. That script rejects
+   any label table that differs from the published ICBHI distribution. In `icbhi` format,
+   `main.py` verifies the diagnosis CSV against a provenance record the same way.
+2. When ICBHI and Kaggle V2 are merged, Kaggle clips that are cuts of ICBHI recordings are dropped
+   (fail-closed: training refuses to run without the evidence file), and byte-identical
+   duplicates are removed.
 3. Patients are stratified into train, validation, and locked test partitions.
-4. Only training recordings receive augmentation; validation and test audio
-   remain original.
-5. `preprocessing.py` supplies the same explicit audio/MFCC configuration to
-   both training and serving, with overlapping windows over the full recording.
-6. `train.py` selects the checkpoint using validation loss.
-7. `evaluate.py` evaluates the untouched test partition.
-8. The run writes a split manifest, provenance audit, calibrated metrics,
-   model hash, ordered labels, and preprocessing contract under `artifacts/latest/`.
+4. Only training recordings receive augmentation; validation and test audio remain original.
+5. `preprocessing.py` supplies the same explicit audio/MFCC configuration to both training and
+   serving, with overlapping windows over the full recording.
+6. `train.py` selects the checkpoint on validation accuracy.
+7. Calibration (temperature scaling + abstention thresholds) is fit on validation recordings, and
+   `evaluate.py` evaluates the untouched test partition overall and per data source.
+8. The run writes a split manifest, a dataset audit (content hashes, removed overlaps and
+   duplicates), calibrated metrics, the model hash, ordered labels, all hyperparameters, library
+   versions, the git revision, and the preprocessing contract under the output directory.
 
-The default split is 60% train, 20% validation, and 20% test by patient.
-Augmentation uses 20 dB SNR noise, zero-filled time shift, and two time-stretch
-rates. It is deterministic from the configured seed and is applied equally to
-all training classes.
+The default split is 60% train, 20% validation, and 20% test by patient. Augmentation uses 20 dB
+SNR noise, zero-filled time shift, two time-stretch rates, and online SpecAugment. It is
+deterministic from the configured seed and is applied equally to all training classes.
 
 ## Directory Structure
 
@@ -53,22 +73,27 @@ all training classes.
 
 ## Dataset
 
-Download the ICBHI 2017 Respiratory Sound Database separately:
+Datasets are not redistributed. `backend/download_dataset.sh all` fetches both into
+`backend/dataset/`:
 
 ```text
+backend/dataset/Asthma_Detection_V2/…/{asthma,Bronchial,copd,healthy,pneumonia}/*.wav
 backend/dataset/ICBHI_final_dataset/*.wav
-backend/patient_diagnosis.csv  # authorized source only
-backend/dataset_provenance.json
+backend/dataset/patient_diagnosis_authentic.csv   # authentic ICBHI per-patient diagnoses
 ```
 
-The repository intentionally ignores the audio dataset. See
-[`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md) before interpreting results. Patient
-exclusions are disabled by default; any explicit exclusion must be supplied on
-the command line and documented in the resulting experiment. Create the
-provenance record from
-[`documentation/dataset_provenance.example.json`](documentation/dataset_provenance.example.json)
-using the authorized source; the historical CSV in this repository deliberately
-does not pass this check.
+Then sort ICBHI into class folders:
+
+```bash
+cd backend
+python reorganize_icbhi.py --copy      # defaults to dataset/patient_diagnosis_authentic.csv
+```
+
+`backend/patient_diagnosis.csv` in the repository is **deliberately scrambled** and is rejected by
+the label check. `backend/data/kaggle_icbhi_overlap.csv` (tracked) lists which Kaggle clips are
+cuts of ICBHI recordings. Regenerate it with `python cross_dataset_overlap.py …` if either dataset
+changes. See [`documentation/DATASET_CARD.md`](documentation/DATASET_CARD.md) before
+interpreting results.
 
 ## Environment
 
@@ -88,34 +113,31 @@ API keys.
 
 ## Training
 
-Training is explicit and has no import-time side effects:
+Training is explicit and has no import-time side effects. To reproduce the current model:
 
 ```bash
 cd backend
-python main.py \
-  --dataset-dir dataset/ICBHI_final_dataset \
-  --diagnosis-csv patient_diagnosis.csv \
-  --dataset-provenance dataset_provenance.json \
-  --output-dir artifacts/latest \
-  --seed 42
+python main.py --dataset-format folder --merge-icbhi \
+  --output-dir artifacts/latest --epochs 80 --batch-size 64 --seed 42
 ```
 
 Useful options:
 
 - `--test-size` and `--validation-size`: total patient fractions.
-- `--no-augmentation`: disable all training augmentation.
-- `--healthy-class-multiplier`: optional additional weighting; defaults to 1.
+- `--learning-rate` (default 3e-4) and `--no-use-focal-loss`: optimization controls.
+- `--no-augmentation`, `--no-spec-augment`, `--max-waveform-variants`: augmentation controls.
+- `--overlap-csv` / `--no-overlap-exclusion`: cross-dataset overlap evidence (disabling it
+  reintroduces leakage).
 - `--bootstrap-samples`: patient-bootstrap samples for 95% confidence intervals.
 - `--exclude-patient ID`: explicit exclusion, repeatable.
-- `--epochs` and `--batch-size`: training controls.
-- `--prepare-only`: validate and write patient splits without extracting audio
-  features or training a model.
+- `--source-revision`: defaults to the current git commit.
+- `--prepare-only`: validate and write patient splits without extracting features or training.
 
 To inspect the corrected split safely before training:
 
 ```bash
 cd backend
-python main.py --prepare-only --output-dir artifacts/split-check
+python main.py --dataset-format folder --merge-icbhi --prepare-only --output-dir artifacts/split-check
 ```
 
 Expected run artifacts:
@@ -137,10 +159,10 @@ backend/artifacts/latest/
 ```
 
 `test_metrics.json` includes window-aggregated recording-level and patient-aggregated accuracy,
-balanced accuracy, macro/weighted F1,
-macro precision/recall, kappa, MCC, log loss, multiclass Brier score,
-calibration error, confusion matrix, classification report, and macro one-vs-
-rest AUROC when it is defined.
+balanced accuracy, macro/weighted F1, macro precision/recall, kappa, MCC, log loss, multiclass
+Brier score, calibration error, confusion matrix, classification report, macro one-vs-rest AUROC
+when it is defined, patient-bootstrap confidence intervals, and the same metrics per data source
+(`by_source`).
 
 ## Inference API
 
@@ -175,7 +197,8 @@ of the verified training contract.
 
 ### External LLM privacy
 
-LLM endpoints require `external_llm_consent=true`. The server removes patient
+LLM endpoints use Google Gemini when `GEMINI_API_KEY` is set (the key is sent as a request
+header, never in a URL) and Groq otherwise. They require `external_llm_consent=true`. The server removes patient
 ID, occupation, notes, medications, comorbidities, and other free text before
 sending structured context to the configured provider. This is a technical
 minimum, not a complete privacy/compliance program. Do not use real patient

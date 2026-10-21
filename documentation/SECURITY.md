@@ -8,7 +8,8 @@ public issue. The owner should add a monitored contact before public release.
 
 ## Deployment baseline
 
-- Require model metadata with `RESPINET_REQUIRE_METADATA=1`.
+- Serve only a verified artifact. The server is fail-closed: without a valid `model_metadata.json` contract, inference endpoints return 503 (there is no switch to disable this).
+- Keep `RESPINET_ALLOW_INFERENCE_DENOISING=0` (the default) unless you are deliberately experimenting.
 - Run behind TLS and a production WSGI server.
 - Restrict CORS to known origins.
 - Add authentication, authorization, rate limiting, request IDs, and audit

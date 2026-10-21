@@ -8,6 +8,23 @@
 | Selection rule | Only changes with a **material, verifiable** benefit: correctness, safety, validity of evidence, reproducibility. Every item has a test or a measurement |
 | Companion | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) (§14 discrepancy register, §15 defect list) |
 
+## Outcome at a glance
+
+| | Before (2026-08-14 model) | After (2026-10-22 model) |
+|---|---|---|
+| Training cohort | 2,131 recordings, of which **631 were copies of ICBHI audio** under other IDs | **1,488 recordings / 243 patients, no audio shared across splits** |
+| Test accuracy, patient level | 82.09% (inflated by leakage) | **75.51%** (95% CI 63.3–87.8%) on 49 held-out patients |
+| Test accuracy, recording level | 80.81% | **77.36%** |
+| Serving without a verified model | served the 2021 8-class model, uncalibrated | **refuses (503)** |
+| Upload checking | any file ≥ 128 bytes accepted | **container signature required** |
+| ICBHI label provenance | self-declared counts accepted | **must match the published distribution** |
+| Run reproducibility | batch size, LR, versions, git revision missing | **all recorded** |
+| Backend tests | 21 (plain `pytest` failed to import modules) | **70, all passing; lint clean** |
+
+The single most important finding is that the Kaggle dataset used to fix ICBHI's class imbalance
+is largely made of ICBHI audio. Without the audit, every headline number in the project would
+have overstated performance.
+
 ## Why a final-phase pass was needed
 
 The project's headline result (82.09% patient-level test accuracy) and its safety claims
@@ -43,7 +60,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 7 | Leakage-free cohort: drop Kaggle clips cut from ICBHI, dedup, full audit, per-source metrics | Evidence validity (leakage) | ✅ done |
 | 8 | Complete run metadata (per-source metrics moved to item 7) | Reproducibility | ✅ done |
 | 9 | Retrain on the corrected pipeline | Evidence validity | ✅ done |
-| 10 | Truthful UI and documentation | Integrity | planned |
+| 10 | Truthful UI and documentation | Integrity | ✅ done |
 
 ---
 
@@ -218,8 +235,8 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Benefit:** The patient-disjoint guarantee now holds at the audio level for every ICBHI patient,
   and the ICBHI test subset (`by_source.icbhi`) is a leakage-free estimate. The Kaggle subset is
   reported separately with its caveat (below).
-- **Remaining limitation (decided: report, not fix):** The Kaggle remainder (asthma 288, pneumonia
-  ~180, healthy ~59, bronchial 53) partly derives from the KAUH database
+- **Remaining limitation (decided: report, not fix):** The Kaggle remainder (after dedup: asthma
+  288, pneumonia 174, healthy 53, bronchial 53, per `dataset_audit.json`) partly derives from the KAUH database
   (DOI 10.1016/j.bbe.2020.11.003) and from the dataset authors' own patients, with no reliable
   subject IDs. Segments of one KAUH recording can still sit under different `P`-numbers. This
   was not checked against KAUH (it would need that dataset's download). Kaggle-subset metrics are
@@ -339,7 +356,41 @@ at recording level, copd → pneumonia (18 of 157 recordings).
 - **Status:** ✅ done
 
 ### 10. Truthful UI and documentation
-_planned_
+- **Problem:** The UI and docs stated results that were wrong or contaminated: 82.9% / 82.09%
+  accuracy, T ≈ 1.54, a 442K LeakyReLU architecture with recurrent dropout, "uncalibrated" scores
+  (the server calibrates), 8 labels, "no calibration study run". They also made claims the system
+  doesn't meet: "in-browser processing" (audio goes to the server), "Grad-CAM" (it is time-only
+  gradient saliency), a demo result that looked like real output, a broken `/documentation`
+  link, and a presentation dossier instructing LLMs to frame the tool as "bridging to clinical
+  bedside practice" and a "screening platform". The presentation documents matter most here,
+  because they are pasted into other LLMs to generate slides.
+- **Change:**
+  - *UI* (`LandingPage`, `EvidencePage`, `AnalyzePage`, `ReportPage`, `LearnPage`,
+    `referenceContent`): leakage-free results with CIs and per-source caveats, the audited cohort,
+    an accurate pipeline description, and "calibrated research estimate" wording. Each hard-coded
+    figure carries a comment naming its artifact file. `dist/` was rebuilt.
+  - *Docs:* README (evidence status, merged-cohort training, dataset steps), MODEL_CARD and
+    DATASET_CARD (rewritten for the 5-class merged cohort and the overlap),
+    PROJECT_CONTEXT_FOR_PRESENTATION (rewritten; its system prompt now forbids clinical framing
+    and unlisted numbers), PRESENTATION_SCRIPT (slides 4, 6, 7, 8 and the quick-card rewritten;
+    "screening", "clinical validity", "Grad-CAM", the 85–95% claim, ε and η_min fixed), CHANGELOG
+    (new entry, corrected T), SECURITY (fail-closed baseline replaces the unimplemented
+    `RESPINET_REQUIRE_METADATA`), `.env.example` (that variable removed, Gemini documented, port
+    5001), design.md / PLAN.md / design-qa.md (wording and routes), and banners on the two
+    superseded assessments.
+  - *Chronicle:* dated correction callouts on every wrong passage (history preserved), plus §8.7
+    with the final phase.
+  - *Context files:* `PROJECT_CONTEXT.md` (§0 summary, statuses on all discrepancies and defects)
+    and the three `CLAUDE.md` files.
+- **Benefit:** Everything a reader, examiner or downstream LLM sees now matches the code and the
+  artifacts.
+- **Verification:** `tsc -b` and `vite build` clean. Headless Chromium rendering of `/analyze`
+  ("Verified model contract ready") and `/evidence` (new content). The rendered landing-page DOM
+  contains every new string and none of 82.9 / "In-browser processing" / Grad-CAM /
+  "uncalibrated". `grep` finds no "uncalibrated" claims left in `frontend/src`. In the
+  presentation docs, all remaining old numbers appear only in explicitly labeled
+  "inflated / do not cite" context.
+- **Status:** ✅ done
 
 ---
 

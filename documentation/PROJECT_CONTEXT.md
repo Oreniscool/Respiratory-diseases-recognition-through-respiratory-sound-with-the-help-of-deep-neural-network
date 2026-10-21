@@ -7,14 +7,36 @@ disagrees with the code or the run artifacts, this document says so explicitly (
 
 | Field | Value |
 |---|---|
-| Verified on | 2026-10-21 |
-| Repository HEAD | `1b81cff` ("newest", 2026-09-09) |
+| Verified on | 2026-10-21; **updated 2026-10-22** for the final phase (see §0) |
+| Repository revision | `1b81cff` originally; final-phase updates on branch `final-phase-improvements` |
 | Verification method | Full read of `backend/*.py`, `frontend/src/**`, infra/CI files and all `documentation/*.md`; numbers re-computed from `backend/artifacts/latest/*.json` |
-| Not verified | Test suite execution (the local `backend/venv` interpreter target `~/.pyenv/versions/3.11.9` is missing); live server behavior; Run 1241 (its log is not in the repo) |
+| Not verified | Run 1241 (its log is not in the repo). Test suite (70 tests) and live server behavior were verified on 2026-10-22 after the venv was rebuilt |
 | Companion files | [`../CLAUDE.md`](../CLAUDE.md), [`../backend/CLAUDE.md`](../backend/CLAUDE.md), [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md), [`PROJECT_RESEARCH_CHRONICLE_AND_ARCHITECTURE_EVOLUTION.md`](PROJECT_RESEARCH_CHRONICLE_AND_ARCHITECTURE_EVOLUTION.md) (the mandatory living chronicle) |
 
 > **Safety framing.** RespiNet is a research and education prototype. It is not clinically
 > validated and must not be used to diagnose, screen for, rule out, or treat disease.
+
+---
+
+## 0. Final-phase update (2026-10-22) — read first
+
+Full details: [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md).
+
+- **Cross-dataset leakage found and removed.** 631 of the 1,211 Kaggle V2 clips (52%, including all
+  401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort, under
+  different pseudo-patient IDs. Kaggle `P`-numbers are not subject IDs. These clips and 12 byte
+  duplicates are now dropped (evidence: `backend/data/kaggle_icbhi_overlap.csv`). **Corrected
+  cohort: 1,488 recordings / 243 patients.**
+- **Retrained, same model and settings:** test accuracy **77.36% recording / 75.51% patient**
+  (95% CI 63.3–87.8%), balanced accuracy 71.42% / 73.72%, macro AUROC 0.927 / 0.932, T = 0.713.
+  By source: ICBHI 65.4%, Kaggle 87.0% (patient level). The 2026-08-14 model's 82.09% (§9) was
+  inflated by the leakage.
+- **Fixed in code:** fail-closed serving (no legacy fallback), denoising off by default, strict
+  upload signatures, Gemini key in a header, ICBHI labels checked against the published
+  distribution, complete run metadata, a real dataset audit, portable manifests, per-source
+  metrics, and strict-JSON metrics.
+- Sections 4.6, 7–9 and 10/12 below describe the **pre-audit** state where marked. The
+  discrepancy register (§14) and defect list (§15) carry per-item status.
 
 ---
 
@@ -171,7 +193,13 @@ label space.
 - Result for the current cohort: Kaggle 1,211 recordings → 205 pseudo-patients, and ICBHI 920
   → 126 patients, for **331 patients** in total.
 
-### 4.6 Current cohort composition (recordings)
+### 4.6 Cohort composition (recordings)
+
+> **Superseded (2026-10-22):** the table below is the *pre-audit* merged cohort. 631 of its Kaggle
+> rows are copies of ICBHI recordings. The leakage-free cohort is ICBHI 920 + Kaggle remainder 568
+> = **1,488 recordings** after overlap removal and the 12-file dedup: asthma 289, bronchial 107, copd
+> 793, healthy 88, pneumonia 211. ICBHI contributes 1 / 54 / 793 / 35 / 37 and the Kaggle remainder
+> 288 / 53 / 0 / 53 / 174 (`backend/artifacts/latest/dataset_audit.json`).
 
 | Class | Kaggle V2 | ICBHI (5-class) | Total |
 |---|---:|---:|---:|
@@ -379,12 +407,13 @@ Recording level                     Patient level
 ## 10. Inference API
 
 Base: `backend/server.py` (Flask). Local default `127.0.0.1:5001`. Docker uses `0.0.0.0:5000`.
+Fail-closed: without a verified contract every inference endpoint, and `/summarize`, returns 503.
 
 | Endpoint | Purpose | Notes |
 |---|---|---|
 | `GET /live` | liveness | always 200 |
 | `GET /ready` | strict readiness | 503 unless the verified contract loaded |
-| `GET /health` | diagnostics (UI polls it) | loads the model; reports `model_contract` = `verified-metadata` or `legacy` |
+| `GET /health` | diagnostics (UI polls it) | never loads the model; reports `model_contract` = `verified-metadata` or `unverified`, plus `denoise_allowed` |
 | `POST /predict` | multipart `file` (+`denoise`) | full-recording windowed, calibrated, with abstention |
 | `GET /predict-sample/<class>` | demo using the first matching dataset file | no patient IDs returned |
 | `POST /explain` | prediction + time-only gradient saliency for the best window, spectrogram/saliency/overlay PNGs, optional LLM reasoning | the attribution is explicitly labeled experimental |
@@ -424,8 +453,8 @@ WCAG AA) is specified in `design.md`. Details and stale-content list:
 | Node | 20 (CI / Docker) |
 | `docker-compose.yml` | `backend` (backend/Dockerfile → gunicorn 2 workers × 4 threads, non-root uid 10001, port 5000, mounts `./backend/dataset`) + `frontend` (nginx, ports 80 and 8080, proxies to `backend:5000`) |
 | Root `Dockerfile` | single image: builds the frontend, installs nginx, runs **`python server.py`** (Flask dev server) behind nginx :80 |
-| Model in images | `backend/artifacts/latest/` is gitignored, so it is only present if it exists in the build context. Otherwise the server runs in legacy mode |
-| SPIT GPU cluster | SLURM jobs `backend/submit.sh` (1 GPU, 32 CPU, 64 GB, 24 h; `uv venv`; CUDA lib path export; **rewrites `dataset_provenance.json`**) and `download_dataset.sh`. Usage guide: `SPIT_GPU_SERVER_GUIDE.md` |
+| Model in images | `backend/artifacts/latest/` is gitignored, so it is only present if it exists in the build context. Otherwise inference returns 503 (fail-closed) |
+| SPIT GPU cluster | SLURM jobs `backend/submit.sh` (1 GPU, 32 CPU, 64 GB, 24 h; `uv venv`; CUDA lib path export; trains the merged folder cohort and no longer writes provenance) and `download_dataset.sh`. Usage guide: `SPIT_GPU_SERVER_GUIDE.md` |
 | Kaggle notebooks | `KAGGLE_TRAINING_GUIDE.md` (ICBHI path; excludes patients 103, 108, 115) |
 | Local machine | NVIDIA RTX 4060 8 GB. No swap, so the pre-fix pipeline OOM'd at ~22–26 GB (chronicle §8.4) |
 | Secrets | `.env` (root) and `backend/.env` are gitignored and may contain `GEMINI_API_KEY`. `.env.example` documents the variables |
@@ -434,15 +463,17 @@ WCAG AA) is specified in `design.md`. Details and stale-content list:
 
 ## 13. Tests & CI
 
-- `backend/tests/`: 21 pytest tests across 10 files. They cover the artifact contract, upload
-  validation, augmentation, calibration, evaluation aggregation, patient metrics,
-  preprocessing, server readiness, patient splitting, and windowing. All are dataset-free.
+- `backend/tests/`: **70** pytest tests across 17 files (21 before the final phase). Coverage:
+  artifact contract, upload signatures, augmentation, calibration, evaluation (including strict
+  JSON), patient metrics, preprocessing, fail-closed serving, denoise gating, LLM key handling,
+  provenance and reorganization, cohort integrity (dedup, overlap exclusion, audit, per-source
+  metrics), the cross-dataset matcher, run metadata, splitting, and windowing. All are
+  dataset-free.
 - `pyproject.toml`: pytest `testpaths=["tests"]`, `-q`. Ruff targets py310, line length 100,
   rules `E4,E7,E9,F`, and excludes `frontend, artifacts, dataset`.
 - CI (`.github/workflows/checks.yml`, on every push/PR): Python 3.11 → `pip install -r
   requirements-dev.txt` → `ruff check .` → `pytest`; Node 20 → `npm ci` → `npm run build`.
-- Gaps: no model-graph test, no folder-manifest test, no `/predict` or legacy-mode test, and no
-  frontend tests.
+- Gaps: no model-graph test, no successful-`/predict` test with a real model, and no frontend tests.
 
 ---
 
@@ -452,63 +483,62 @@ Each row was checked against code or artifacts on 2026-10-21. "Reality" wins.
 
 | # | Document(s) | Claim | Reality | Evidence |
 |---|---|---|---|---|
-| D1 | Chronicle §8.6, CHANGELOG, BACKEND_MODEL_ASSESSMENT, PROJECT_CONTEXT_FOR_PRESENTATION, PRESENTATION_SCRIPT | Temperature **T ≈ 1.54** | **T = 0.8443** | `calibration.json` |
-| D2 | Chronicle §7.1 + §1 | "Refactored" results: val acc 82.5–88.1%, train acc 89.45%, macro F1 0.842, balanced acc 83.75%, ECE 0.061, stopped at epoch 42/50, epoch-by-epoch log | No artifact matches. Real: val acc 80.80% (ep 58), test macro F1 0.72/0.79, ECE 0.033/0.103, 76 epochs | `training_history.json`, `test_metrics.json` |
-| D3 | Chronicle §7.1, dossier §4 | Run 1241 macro F1 0.084, balanced acc 12.5%, ECE 0.482 | Not verifiable, since no Run 1241 artifacts are in the repo. The dossier's "-87.3% ECE reduction" is computed from the unverified D2/D3 figures | – |
-| D4 | Chronicle §4.1–4.3, §1 diagram, architecture report §4.3 | Conv1D 64→64 + LeakyReLU, BiGRU 64/32, masked GAP, ~136,765 params | v3: MultiScaleConvBlock + SE, GELU, BiGRU 128/64, residual, dual pooling, **458,701** params | `model.py`, `model_summary.txt` |
-| D5 | Chronicle Phase 7 "Option C", dossier Phase C | Dropout 0.4 after BiGRU-1, `recurrent_dropout=0.15`, dense dropout 0.4/0.5 | 0.3 after BiGRU-1, no recurrent dropout, dense 0.3/0.4 | `model.py:271,295,299` |
-| D6 | Dossier Phase C | Conv1D 64 k=5/k=3 + LeakyReLU, Dense(64) + Dropout 0.5 head, ~442K params | See D4/D5 (458,701 params) | `model.py` |
-| D7 | Chronicle Phase 6/7 | ~442K params; v3 batch 64 / epochs 75 / label smoothing 0.08 are "the" settings | `train_model` defaults are 64/75/0.08, but the **CLI defaults (32/50/0.1) override them** unless flags are passed | `main.py:58-59,142-146,393-411` |
-| D8 | Chronicle §5.2 | η₀ = 1e-3, η_min = 1e-5 (α = 0.01) | η₀ = 3e-4, α = 5e-3 (η_min = 1.5e-6) | `train.py` |
+| D1 | Chronicle §8.6, CHANGELOG, BACKEND_MODEL_ASSESSMENT, PROJECT_CONTEXT_FOR_PRESENTATION, PRESENTATION_SCRIPT | Temperature **T ≈ 1.54** | **T = 0.8443** | `calibration.json` — **✅ docs corrected (chronicle, CHANGELOG, assessment, dossiers) (2026-10-22)** |
+| D2 | Chronicle §7.1 + §1 | "Refactored" results: val acc 82.5–88.1%, train acc 89.45%, macro F1 0.842, balanced acc 83.75%, ECE 0.061, stopped at epoch 42/50, epoch-by-epoch log | No artifact matches. Real: val acc 80.80% (ep 58), test macro F1 0.72/0.79, ECE 0.033/0.103, 76 epochs | `training_history.json`, `test_metrics.json` — **✅ chronicle callout added (2026-10-22)** |
+| D3 | Chronicle §7.1, dossier §4 | Run 1241 macro F1 0.084, balanced acc 12.5%, ECE 0.482 | Not verifiable, since no Run 1241 artifacts are in the repo. The dossier's "-87.3% ECE reduction" is computed from the unverified D2/D3 figures | – — **✅ labeled unverifiable (2026-10-22)** |
+| D4 | Chronicle §4.1–4.3, §1 diagram, architecture report §4.3 | Conv1D 64→64 + LeakyReLU, BiGRU 64/32, masked GAP, ~136,765 params | v3: MultiScaleConvBlock + SE, GELU, BiGRU 128/64, residual, dual pooling, **458,701** params | `model.py`, `model_summary.txt` — **✅ chronicle callout added (2026-10-22)** |
+| D5 | Chronicle Phase 7 "Option C", dossier Phase C | Dropout 0.4 after BiGRU-1, `recurrent_dropout=0.15`, dense dropout 0.4/0.5 | 0.3 after BiGRU-1, no recurrent dropout, dense 0.3/0.4 | `model.py:271,295,299` — **✅ chronicle callout added; dossier/script rewritten (2026-10-22)** |
+| D6 | Dossier Phase C | Conv1D 64 k=5/k=3 + LeakyReLU, Dense(64) + Dropout 0.5 head, ~442K params | See D4/D5 (458,701 params) | `model.py` — **✅ dossier rewritten (2026-10-22)** |
+| D7 | Chronicle Phase 6/7 | ~442K params; v3 batch 64 / epochs 75 / label smoothing 0.08 are "the" settings | `train_model` defaults are 64/75/0.08, but the **CLI defaults (32/50/0.1) override them** unless flags are passed | `main.py:58-59,142-146,393-411` — **✅ all values now recorded in metadata (2026-10-22)** |
+| D8 | Chronicle §5.2 | η₀ = 1e-3, η_min = 1e-5 (α = 0.01) | η₀ = 3e-4, α = 5e-3 (η_min = 1.5e-6) | `train.py` — **✅ chronicle callout added (2026-10-22)** |
 | D9 | Chronicle §8.6 | Early stopping "restoring Epoch 58 where validation loss reached its minimum" | Monitors **val_accuracy**. Epoch 58 happens to be best on both | `train.py` callbacks |
-| D10 | Chronicle §6.3 diagram/text | Pseudo patient ID = `100000 + abs(hash(filepath)) % 800000` | SHA-256 of `"{class}_P{digits}"` (or class + relative path), first 12 hex digits | `featureExtraction.py` |
-| D11 | Chronicle §6.4, dossier | CMVN "per window" | Per recording, before windowing | `preprocessing.py` |
-| D12 | Chronicle §6.1/§4.3 table | ICBHI recording counts per class (COPD 793, Healthy 35, URTI 86, Bronchiectasis 34, Bronchiolitis 27, Pneumonia 37, LRTI 2, Asthma 1) | These sum to 1,015, not 920. Authentic counts are URTI 23, Bronchiectasis 16, Bronchiolitis 13 (bronchial group = 54). COPD 793 / Healthy 35 / Pneumonia 37 / LRTI 2 / Asthma 1 are correct | dataset files × `patient_diagnosis_authentic.csv`; `split_summary.json` |
-| D13 | README "Inference API", MODEL_CARD | Legacy H5 is blocked; the server will not load or serve it; fails closed | Contract failure → `legacy` mode serves `best_model.h5` with 8 hardcoded classes; the UI treats legacy as ready | `server.py:126-158`, `AnalyzePage.tsx:89` |
-| D14 | README | "Inference-time denoising is disabled by default" | `RESPINET_ALLOW_INFERENCE_DENOISING` defaults to `"1"` | `server.py:94` |
-| D15 | README, chronicle §8 diagram | "Validates audio container signatures" / "MIME & header sniffing" | Any payload of at least 128 bytes passes, and bad extensions are also accepted at that size | `audio_validation.py`, `server.py:241-253` |
-| D16 | SECURITY.md, `.env.example` | `RESPINET_REQUIRE_METADATA=1` enforces metadata | The variable is not read anywhere | grep |
-| D17 | README "Training", DATASET_CARD | Default ICBHI command; provenance "intentionally blocks the historical CSV" | The repo's provenance file describes an older CSV, so the current one fails on checksum. But the count check accepted self-declared counts, and `submit.sh` regenerated provenance from any CSV, so scrambled labels passed on the cluster. **Fixed in final-phase item 6** | `dataset_provenance.py:74-84`, `submit.sh` |
-| D18 | README "Expected run artifacts" location | `backend/artifacts/latest/` | Correct, but root `artifacts/latest/` (tracked) is a stale scrambled-label split, not the current one | diff of the two `split_summary.json` |
-| D19 | BACKEND_MODEL_ASSESSMENT, ARCHITECTURE report | Model evidence 9/10, data provenance "Pass", "ground truth verified and dataset audit recorded" | `dataset_audit.json` covers only the Kaggle half (1,211/205) with `"folder_based"` placeholder hashes. `source_revision` is `"unknown"` | `dataset_audit.json`, `model_metadata.json` |
-| D20 | Chronicle §8.2 vs §1/§8 diagram/§9 | LLM is "Groq LLaMA-3.1" | Gemini 2.5 Flash is preferred; Groq is the fallback | `server.py:call_llm` |
+| D10 | Chronicle §6.3 diagram/text | Pseudo patient ID = `100000 + abs(hash(filepath)) % 800000` | SHA-256 of `"{class}_P{digits}"` (or class + relative path), first 12 hex digits | `featureExtraction.py` — **✅ chronicle callout added (2026-10-22)** |
+| D11 | Chronicle §6.4, dossier | CMVN "per window" | Per recording, before windowing | `preprocessing.py` — **✅ chronicle callout added; dossier fixed (2026-10-22)** |
+| D12 | Chronicle §6.1/§4.3 table | ICBHI recording counts per class (COPD 793, Healthy 35, URTI 86, Bronchiectasis 34, Bronchiolitis 27, Pneumonia 37, LRTI 2, Asthma 1) | These sum to 1,015, not 920. Authentic counts are URTI 23, Bronchiectasis 16, Bronchiolitis 13 (bronchial group = 54). COPD 793 / Healthy 35 / Pneumonia 37 / LRTI 2 / Asthma 1 are correct | dataset files × `patient_diagnosis_authentic.csv`; `split_summary.json` — **✅ chronicle callout added (2026-10-22)** |
+| D13 | README "Inference API", MODEL_CARD | Legacy H5 is blocked; the server will not load or serve it; fails closed | Contract failure → `legacy` mode serves `best_model.h5` with 8 hardcoded classes; the UI treats legacy as ready | `server.py:126-158`, `AnalyzePage.tsx:89` — **✅ fixed in code (item 2) (2026-10-22)** |
+| D14 | README | "Inference-time denoising is disabled by default" | `RESPINET_ALLOW_INFERENCE_DENOISING` defaults to `"1"` | `server.py:94` — **✅ fixed in code (item 3) (2026-10-22)** |
+| D15 | README, chronicle §8 diagram | "Validates audio container signatures" / "MIME & header sniffing" | Any payload of at least 128 bytes passes, and bad extensions are also accepted at that size | `audio_validation.py`, `server.py:241-253` — **✅ fixed in code (item 4) (2026-10-22)** |
+| D16 | SECURITY.md, `.env.example` | `RESPINET_REQUIRE_METADATA=1` enforces metadata | The variable is not read anywhere | grep — **✅ docs and `.env.example` updated (2026-10-22)** |
+| D17 | README "Training", DATASET_CARD | Default ICBHI command; provenance "intentionally blocks the historical CSV" | The repo's provenance file describes an older CSV, so the current one fails on checksum. But the count check accepted self-declared counts, and `submit.sh` regenerated provenance from any CSV, so scrambled labels passed on the cluster. **Fixed in final-phase item 6** | `dataset_provenance.py:74-84`, `submit.sh` — **✅ fixed in code (item 6) (2026-10-22)** |
+| D18 | README "Expected run artifacts" location | `backend/artifacts/latest/` | Correct, but root `artifacts/latest/` (tracked) is a stale scrambled-label split, not the current one | diff of the two `split_summary.json` — **✅ stale root `artifacts/latest/` deleted (2026-10-22)** |
+| D19 | BACKEND_MODEL_ASSESSMENT, ARCHITECTURE report | Model evidence 9/10, data provenance "Pass", "ground truth verified and dataset audit recorded" | `dataset_audit.json` covers only the Kaggle half (1,211/205) with `"folder_based"` placeholder hashes. `source_revision` is `"unknown"` | `dataset_audit.json`, `model_metadata.json` — **✅ audit rebuilt (item 7); assessment marked superseded (2026-10-22)** |
+| D20 | Chronicle §8.2 vs §1/§8 diagram/§9 | LLM is "Groq LLaMA-3.1" | Gemini 2.5 Flash is preferred; Groq is the fallback | `server.py:call_llm` — **✅ dossier updated (2026-10-22)** |
 | D21 | design-qa.md | `/` → AnalyzePage | `/` → LandingPage, `/analyze` → AnalyzePage | `App.tsx` |
-| D22 | LandingPage | 82.9% patient-level accuracy; "Trained on Kaggle Asthma V2" | 82.09%; Kaggle V2 + ICBHI | `test_metrics.json`, `split_summary.json` |
-| D23 | EvidencePage, PLAN.md, design.md | Scores are "uncalibrated"; calibration "not run"; 8-label task | Temperature scaling + abstention are live; 5 classes | `server.py`, `calibration.json` |
-| D24 | Dossier §3 Phase A | "claiming 85–95% accuracy in literature" | The repo only documents 75.36% best val for the legacy run. The 85–95% figure is the chronicle's characterization, with no source in the repo | README |
-| D25 | Dossier §4 | Patient-level accuracy via "majority voting across recordings" | Mean of recording probabilities per patient, then argmax | `evaluate.py:evaluate_patient_level` |
-| D26 | Dossier §5 | Uploader supports `.wav, .mp3, .flac` | UI `accept` = `audio/*,.wav,.mp3,.webm,.ogg,.m4a`; the server allowlist is `.wav .flac .ogg .mp3 .webm` (not enforced, see D15) | `AnalyzePage.tsx:482`, `audio_validation.py` |
-| D27 | Metadata `limitations` | "Evaluation is limited to the configured ICBHI patient split" | The split is Kaggle + ICBHI | `main.py:489-492` (hardcoded string) |
+| D22 | LandingPage | 82.9% patient-level accuracy; "Trained on Kaggle Asthma V2" | 82.09%; Kaggle V2 + ICBHI | `test_metrics.json`, `split_summary.json` — **✅ UI updated (2026-10-22)** |
+| D23 | EvidencePage, PLAN.md, design.md | Scores are "uncalibrated"; calibration "not run"; 8-label task | Temperature scaling + abstention are live; 5 classes | `server.py`, `calibration.json` — **✅ UI updated (2026-10-22)** |
+| D24 | Dossier §3 Phase A | "claiming 85–95% accuracy in literature" | The repo only documents 75.36% best val for the legacy run. The 85–95% figure is the chronicle's characterization, with no source in the repo | README — **✅ script corrected (2026-10-22)** |
+| D25 | Dossier §4 | Patient-level accuracy via "majority voting across recordings" | Mean of recording probabilities per patient, then argmax | `evaluate.py:evaluate_patient_level` — **✅ dossier corrected (2026-10-22)** |
+| D26 | Dossier §5 | Uploader supports `.wav, .mp3, .flac` | UI `accept` = `audio/*,.wav,.mp3,.webm,.ogg,.m4a`; the server allowlist is `.wav .flac .ogg .mp3 .webm` (not enforced, see D15) | `AnalyzePage.tsx:482`, `audio_validation.py` — **✅ dossier corrected (2026-10-22)** |
+| D27 | Metadata `limitations` | "Evaluation is limited to the configured ICBHI patient split" | The split is Kaggle + ICBHI | `main.py:489-492` (hardcoded string) — **✅ fixed in code (item 8) (2026-10-22)** |
 
 ---
 
 ## 15. Known defects & risks
 
-Ordered by impact. Line anchors and fixes are in `backend/CLAUDE.md` §5.
+Status as of 2026-10-22 (✅ fixed in the final phase, ⚠️ mitigated or open).
 
-1. **Legacy fallback serves an unverified model** (D13). If `backend/artifacts/latest/` is
-   missing (fresh clone, Docker image without artifacts), users get 8-class, uncalibrated
-   predictions from the 2021 leakage-trained H5, and the UI shows it as ready.
-2. **Train/serve drift via denoising** (D14).
-3. **Ineffective upload validation** (D15). Decoding arbitrary bytes with librosa/ffmpeg is a
-   resource and attack surface. The duration limit only applies after a full decode.
-4. **API key exposure:** Gemini key in the URL query string, printed on connection errors.
-5. **Weak provenance:** self-referential label check, `submit.sh` rewrites provenance, and the
-   folder-mode audit has placeholder hashes. `source_revision = "unknown"` and the absolute
-   paths in `split_manifest.csv` make the run hard to reproduce exactly.
-6. **Hyperparameter drift between docs, CLI defaults and `train_model` defaults** (D7). Batch
-   size and label smoothing are not recorded in metadata.
-7. **Possible dataset-source confounding** (§9.4).
-8. **Focal-loss implementation quirk:** `y_true` multiplies both the weight and the CE term, so
-   the smoothed off-target terms scale with ε².
-9. **SpecAugment quirks:** one mask per batch, and time masks turn frames into "padding" for
-   the validity mask.
-10. **`/health` has side effects** (loads the model) and is polled every 5 s per open UI tab.
-    The rate limiter is per process.
-11. **Operational:** the root Dockerfile uses the Flask dev server; nginx doesn't proxy
-    `/ready`; temp uploads use `delete=False`; `/predict-sample` globs the whole dataset on
-    every request; `scaler.pkl` is an unused pickle (never load it).
-12. **Committed build output:** `frontend/dist/` can drift from `src/`.
+1. ✅ **Legacy fallback served an unverified model** (D13). Fixed: fail-closed, 503 without a contract.
+2. ✅ **Train/serve drift via denoising** (D14). Fixed: off by default, and rejected with 400 when disabled.
+3. ✅ **Ineffective upload validation** (D15). Fixed: strict per-extension signatures.
+   ⚠️ The decoded-duration limit still only applies after a full decode.
+4. ✅ **API key exposure.** Fixed: `x-goog-api-key` header.
+5. ✅ **Weak provenance and audit.** Fixed: published-distribution label check, no provenance
+   rewriting, real audit hash, portable manifests, git `source_revision`.
+6. ✅ **Hyperparameter drift** (D7). The CLI defaults still differ from `train_model`'s, but every
+   value used is now recorded in metadata.
+7. ✅/⚠️ **Dataset-source confounding and leakage.** The 631 Kaggle copies of ICBHI are removed and
+   per-source metrics are reported. ⚠️ Kaggle subject IDs remain unverified, and its KAUH-derived
+   part was not checked for overlap.
+8. ⚠️ **Focal-loss implementation quirk:** `y_true` multiplies both the weight and the CE term
+   (not changed, to keep the before/after comparison clean; future work).
+9. ⚠️ **SpecAugment quirks:** one mask per batch; time-masked frames read as padding (future work).
+10. ✅ `/health` no longer loads the model. ⚠️ The rate limiter is still per process.
+11. ⚠️ **Operational:** the root Dockerfile uses the Flask dev server; nginx doesn't proxy `/ready`;
+    temp uploads use `delete=False`; `/predict-sample` globs the dataset on every request;
+    `scaler.pkl` is an unused pickle (never load it).
+12. ✅ `frontend/dist/` was rebuilt to match `src/` (it must still be rebuilt after UI changes).
+13. ✅ **New in the final phase:** scikit-learn returned `NaN` AUROC on subsets missing a class,
+    which produced invalid JSON. Fixed: `finite_or_none` + `allow_nan=False`.
 
 ---
 
