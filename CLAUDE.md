@@ -257,8 +257,8 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
   `store_true` with `default=True`, so focal loss cannot be disabled from the CLI.
 - **`submit.sh` regenerates `dataset_provenance.json`** from whatever CSV is present,
   which makes the ICBHI provenance check meaningless on the cluster.
-- **The Gemini API key goes in the URL query string,** and on `URLError` the full URL is
-  printed to stdout (`server.py:450`, `490`). It can leak into logs.
+- **The Gemini API key is sent in the `x-goog-api-key` header** (final-phase item 5), never in the
+  URL, so URL-printing error diagnostics can't leak it. Keep it that way.
 - **`frontend/dist/` is committed.** Source changes leave it stale until you rebuild.
 - `RESPINET_REQUIRE_METADATA` appears in `.env.example` and `SECURITY.md` but **is not
   implemented** anywhere.

@@ -438,7 +438,8 @@ def call_gemini(system_msg: str, user_msg: str, temperature=0.2, max_tokens=1024
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not set. Add it to your .env file.")
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    # The key travels in a header, never in the URL, so it cannot leak through logs or proxies.
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
     payload = {
         "system_instruction": {
             "parts": [{"text": system_msg}]
@@ -458,7 +459,7 @@ def call_gemini(system_msg: str, user_msg: str, temperature=0.2, max_tokens=1024
     req = urllib.request.Request(
         url,
         data=body,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY},
         method="POST",
     )
 

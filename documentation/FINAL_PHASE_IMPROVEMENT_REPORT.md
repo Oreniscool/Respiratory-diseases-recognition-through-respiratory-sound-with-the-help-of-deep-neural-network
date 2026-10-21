@@ -37,7 +37,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 2 | Fail-closed serving (no legacy fallback) | Safety | ✅ done |
 | 3 | Denoising off by default (no train/serve drift) | Correctness | ✅ done |
 | 4 | Real upload signature validation | Security | ✅ done |
-| 5 | API key no longer in URL or logs | Security | planned |
+| 5 | API key no longer in URL or logs | Security | ✅ done |
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | planned |
 | 7 | Duplicate-free, fully audited dataset | Evidence validity (leakage) | planned |
 | 8 | Complete run metadata + per-source metrics | Reproducibility / evidence | planned |
@@ -124,7 +124,18 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Status:** ✅ done
 
 ### 5. API key handling
-_planned_
+- **Problem:** `call_gemini` put `GEMINI_API_KEY` in the request URL (`?key=…`). URLs are routinely
+  recorded by proxies and access logs, and on a connection error the server printed the full URL
+  to stdout as a diagnostic, so the key was written to the process log.
+- **Change:** The key is sent in the `x-goog-api-key` request header (Google's documented
+  alternative). The URL no longer contains it, so the existing diagnostics are safe.
+- **Benefit:** The key no longer appears in URLs, logs, or error messages.
+- **Verification:** New `tests/test_llm_key_handling.py` (3 tests: the key is in the header and
+  not the URL; `URLError` and `HTTPError` paths never print or return it). With the fix reverted,
+  2 of the 3 tests fail, which shows they detect the original leak. 47 tests pass.
+- **Recommended follow-up (operational):** If the server ever ran with the old code and logs were
+  kept, rotate the Gemini key.
+- **Status:** ✅ done
 
 ### 6. Provenance integrity
 _planned_

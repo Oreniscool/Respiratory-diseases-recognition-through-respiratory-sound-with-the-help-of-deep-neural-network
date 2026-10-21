@@ -683,6 +683,8 @@ weaker than documented. Changes, in commit order:
    allowed extension requires its container signature. The ≥128-byte bypass and the
    error-swallowing fallback are removed. `.m4a` is supported, and the recorder fallback keeps its
    real `.ogg`/`.webm` extension.
+5. **LLM key handling (`server.py`):** the Gemini API key moved from the URL query string to the
+   `x-goog-api-key` header, so it can no longer leak via logged URLs or error diagnostics.
 
 ---
 
