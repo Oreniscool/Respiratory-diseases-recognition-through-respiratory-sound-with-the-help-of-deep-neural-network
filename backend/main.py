@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import random
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -134,9 +135,15 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--use-focal-loss",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="Use Categorical Focal Loss instead of standard cross entropy",
+        help="Categorical focal loss (default) or --no-use-focal-loss for cross entropy",
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=3e-4,
+        help="Initial Adamax learning rate for the cosine-decay schedule (default: 3e-4)",
     )
     parser.add_argument(
         "--label-smoothing",
@@ -389,7 +396,10 @@ def run_training(args: argparse.Namespace) -> None:
     y_test = identity[encoder.transform(test_data.y)]
 
     use_online_spec = (not args.no_spec_augment) and (not args.offline_spec_augment) and (not args.no_augmentation)
-    healthy_index = class_names.index("Healthy") if "Healthy" in class_names else None
+    # Folder datasets use lowercase labels ("healthy"), ICBHI uses "Healthy".
+    healthy_index = next(
+        (index for index, name in enumerate(class_names) if name.lower() == "healthy"), None
+    )
     model, _, model_path, class_weights = train_model(
         train_data.X,
         y_train,
@@ -398,6 +408,7 @@ def run_training(args: argparse.Namespace) -> None:
         output_dir=output_dir,
         batch_size=args.batch_size,
         epochs=args.epochs,
+        learning_rate=args.learning_rate,
         healthy_class_index=healthy_index,
         healthy_class_multiplier=args.healthy_class_multiplier,
         use_focal_loss=args.use_focal_loss,
@@ -451,9 +462,78 @@ def run_training(args: argparse.Namespace) -> None:
     with (output_dir / "test_metrics.json").open("w", encoding="utf-8") as handle:
         json.dump(metrics, handle, indent=2)
 
-    metadata = {
+    metadata = build_model_metadata(
+        args,
+        model_path=model_path,
+        class_names=class_names,
+        class_weights=class_weights,
+        manifest_hash=manifest_hash,
+        dataset_audit=dataset_audit,
+        calibration=calibration,
+        use_online_spec_augment=use_online_spec,
+    )
+    with (output_dir / "model_metadata.json").open("w", encoding="utf-8") as handle:
+        json.dump(metadata, handle, indent=2)
+    print(f"Saved model and evaluation artifacts to {output_dir}")
+
+
+def resolve_source_revision(explicit: str) -> str:
+    """Use the given revision, else the current git commit (suffixed -dirty if modified)."""
+    if explicit and explicit != "unknown":
+        return explicit
+    backend_dir = Path(__file__).resolve().parent
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=backend_dir, capture_output=True,
+            text=True, check=True, timeout=10,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=backend_dir,
+            capture_output=True, text=True, check=True, timeout=10,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
+    return f"{commit}-dirty" if status else commit
+
+
+def _library_versions() -> dict[str, str]:
+    versions = {"python": sys.version, "numpy": np.__version__, "pandas": pd.__version__}
+    for module_name in ("tensorflow", "keras", "librosa", "sklearn", "scipy"):
+        try:
+            versions[module_name] = __import__(module_name).__version__
+        except Exception:  # an optional library is missing or broken
+            versions[module_name] = "unavailable"
+    return versions
+
+
+def build_model_metadata(
+    args: argparse.Namespace,
+    *,
+    model_path: Path,
+    class_names: list[str],
+    class_weights: dict[int, float],
+    manifest_hash: str,
+    dataset_audit: dict[str, object],
+    calibration: dict[str, object],
+    use_online_spec_augment: bool,
+) -> dict[str, object]:
+    """Assemble the schema-2 artifact contract, recording every setting the run depended on."""
+    from train import (
+        COSINE_DECAY_ALPHA,
+        EARLY_STOPPING_MIN_DELTA,
+        EARLY_STOPPING_MONITOR,
+        EARLY_STOPPING_PATIENCE,
+        FOCAL_ALPHA,
+        FOCAL_GAMMA,
+    )
+
+    if args.no_augmentation or args.no_spec_augment:
+        spec_augment_mode = "off"
+    else:
+        spec_augment_mode = "online" if use_online_spec_augment else "offline"
+    return {
         "schema_version": 2,
-        "source_revision": args.source_revision,
+        "source_revision": resolve_source_revision(args.source_revision),
         "model_filename": model_path.name,
         "model_sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
         "classes": class_names,
@@ -466,8 +546,37 @@ def run_training(args: argparse.Namespace) -> None:
             "windowing": {
                 "window_frames": DEFAULT_PREPROCESSING.max_len,
                 "hop_frames": DEFAULT_PREPROCESSING.window_hop,
-                "aggregation": "mean calibrated probability across all windows",
+                # Window probabilities are averaged first; temperature is applied to the mean.
+                "aggregation": "temperature-calibrated mean of window probabilities",
             },
+            "hyperparameters": {
+                "batch_size": args.batch_size,
+                "max_epochs": args.epochs,
+                "optimizer": "Adamax",
+                "learning_rate": args.learning_rate,
+                "lr_schedule": {"name": "CosineDecay", "alpha": COSINE_DECAY_ALPHA},
+                "loss": "categorical_focal" if args.use_focal_loss else "categorical_crossentropy",
+                "focal_gamma": FOCAL_GAMMA if args.use_focal_loss else None,
+                "focal_alpha": FOCAL_ALPHA if args.use_focal_loss else None,
+                "label_smoothing": args.label_smoothing,
+                "early_stopping": {
+                    "monitor": EARLY_STOPPING_MONITOR,
+                    "patience": EARLY_STOPPING_PATIENCE,
+                    "min_delta": EARLY_STOPPING_MIN_DELTA,
+                },
+                "waveform_variants": (
+                    "off" if args.no_augmentation else (args.max_waveform_variants or "all")
+                ),
+                "spec_augment": {
+                    "mode": spec_augment_mode,
+                    "num_freq_masks": args.num_freq_masks,
+                    "max_freq_mask": args.max_freq_mask,
+                    "num_time_masks": args.num_time_masks,
+                    "max_time_mask": args.max_time_mask,
+                },
+            },
+            "dataset_format": args.dataset_format,
+            "dataset_dirs": [str(args.dataset_dir), *map(str, args.extra_dataset_dir)],
             "healthy_class_multiplier": args.healthy_class_multiplier,
             "class_weights": class_weights,
             "split_manifest_sha256": manifest_hash,
@@ -481,19 +590,13 @@ def run_training(args: argparse.Namespace) -> None:
             "audio_inventory_sha256": dataset_audit["audio_inventory_sha256"],
         },
         "uncertainty": calibration["abstention"],
-        "runtime": {
-            "python_version": sys.version,
-            "numpy_version": np.__version__,
-            "platform": sys.platform,
-        },
+        "runtime": {**_library_versions(), "platform": sys.platform},
         "limitations": [
             "Research use only; not clinically validated.",
-            "Evaluation is limited to the configured ICBHI patient split.",
+            "Evaluated on one patient-disjoint test split of the training cohort "
+            "(see dataset_audit.json and split_summary.json); no external validation.",
         ],
     }
-    with (output_dir / "model_metadata.json").open("w", encoding="utf-8") as handle:
-        json.dump(metadata, handle, indent=2)
-    print(f"Saved model and evaluation artifacts to {output_dir}")
 
 
 def main() -> None:

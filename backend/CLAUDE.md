@@ -111,11 +111,12 @@ Input (200,120) ─► FeatureValidityMask (bool (B,200): any feature ≠ 0)
   effectively squared. That is a quirk, not textbook focal loss.
 - `train_model(...)` defaults: `batch_size=64, epochs=75, learning_rate=3e-4,
   label_smoothing=0.08`. **`main.py` always passes its own CLI values** (batch 32, epochs 50,
-  smoothing 0.1 by default) but never passes `learning_rate`.
+  smoothing 0.1, `--learning-rate` 3e-4 by default). Fixed constants (`FOCAL_GAMMA`,
+  `FOCAL_ALPHA`, `COSINE_DECAY_ALPHA`, `EARLY_STOPPING_*`) live at the top of `train.py`, and
+  `main.build_model_metadata` records them.
 - Optimizer: `Adamax(CosineDecay(lr, decay_steps=steps_per_epoch*epochs, alpha=5e-3))`.
-- Class weights: sklearn `"balanced"` over **window** labels, optionally multiplied for
-  class `"Healthy"`. That multiplier is a no-op for folder datasets, whose label is the
-  lowercase `"healthy"`.
+- Class weights: sklearn `"balanced"` over **window** labels, optionally multiplied for the
+  healthy class (matched case-insensitively, so it works for both `Healthy` and `healthy`).
 - Callbacks: `ModelCheckpoint` and `EarlyStopping(patience=18, min_delta=0.003,
   restore_best_weights)`, both on **`val_accuracy`, mode=max** (window-level). Plus
   `CSVLogger`. `ReduceLROnPlateau` is intentionally absent: it raises `TypeError` with a
@@ -188,14 +189,15 @@ holds files is refused unless `--force` is given, which deletes and rebuilds the
 | `--seed` | 42 | python/numpy/TF seeds, split seed, aug RNG |
 | `--batch-size`, `--epochs` | **32, 50** | pass `--batch-size 64 --epochs 80` to match the current run |
 | `--label-smoothing` | 0.1 | |
-| `--use-focal-loss` | True (cannot be disabled) | |
+| `--use-focal-loss` / `--no-use-focal-loss` | focal | `BooleanOptionalAction` |
+| `--learning-rate` | 3e-4 | initial Adamax LR for `CosineDecay` |
 | `--no-augmentation`, `--max-waveform-variants` | off, all 4 | |
 | `--no-spec-augment`, `--offline-spec-augment` | online SpecAugment on | |
 | `--num-freq-masks/--max-freq-mask/--num-time-masks/--max-time-mask` | 2/15/2/25 | |
-| `--healthy-class-multiplier` | 1.0 | no-op for lowercase folder labels |
+| `--healthy-class-multiplier` | 1.0 | applies to `Healthy`/`healthy` |
 | `--bootstrap-samples`, `--abstention-coverage` | 1000, 0.80 | |
 | `--exclude-patient ID` (repeatable) | [] | |
-| `--source-revision` | `$RESPINET_SOURCE_REVISION` or `"unknown"` | the current artifact says `unknown` |
+| `--source-revision` | `$RESPINET_SOURCE_REVISION`, else the git commit (`-dirty` if modified) | the 2026-08-14 artifact says `unknown` |
 | `--prepare-only` | off | split files only |
 
 Metadata quirks: in folder mode, `dataset_audit.json` is built **before** extra datasets are
@@ -272,8 +274,8 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 | 4 | ~~API key in URL~~ | **Fixed (final-phase item 5):** key sent as `x-goog-api-key` header. Covered by `tests/test_llm_key_handling.py` |
 | 5 | ~~self-referential provenance~~ | **Fixed (final-phase item 6):** counts must equal the published ICBHI distribution; `submit.sh` no longer writes provenance. Covered by `tests/test_dataset_provenance.py` |
 | 6 | ~~`reorganize_icbhi.py` defaults~~ | **Fixed (final-phase item 6):** defaults to the authentic CSV, validates labels before writing, rebuilds only with `--force` |
-| 7 | `main.py:136-139` | `--use-focal-loss` cannot be turned off. LR is not exposed on the CLI |
-| 8 | `main.py:392` | Healthy multiplier looks up `"Healthy"` while folder labels are lowercase |
+| 7 | ~~focal loss / LR flags~~ | **Fixed (final-phase item 8):** `--no-use-focal-loss`, `--learning-rate`. Covered by `tests/test_run_metadata.py` |
+| 8 | ~~healthy multiplier case~~ | **Fixed (final-phase item 8):** matched case-insensitively |
 | 9 | `main.py:270-284` | Folder-mode audit undercounts merged data and stores placeholder hashes. `source_revision` defaults to `unknown` |
 | 10 | `server.py:627-650` | `/health` triggers the full model load. Polled every 5 s by the UI |
 | 11 | `train.py` SpecAugment | One mask per batch. Time masks can hit padding, and masked frames turn into "padding" for the validity mask |

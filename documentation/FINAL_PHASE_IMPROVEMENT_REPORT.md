@@ -40,7 +40,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 5 | API key no longer in URL or logs | Security | ✅ done |
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | ✅ done |
 | 7 | Duplicate-free, fully audited dataset | Evidence validity (leakage) | planned |
-| 8 | Complete run metadata + per-source metrics | Reproducibility / evidence | planned |
+| 8 | Complete run metadata (per-source metrics moved to item 7) | Reproducibility | ✅ done |
 | 9 | Retrain on the corrected pipeline | Evidence validity | planned |
 | 10 | Truthful UI and documentation | Integrity | planned |
 
@@ -169,8 +169,30 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 ### 7. Duplicate-free, audited dataset
 _planned_
 
-### 8. Complete metadata + per-source metrics
-_planned_
+### 8. Complete, reproducible run metadata
+- **Problem:** `model_metadata.json` didn't record the batch size, epoch budget, learning rate,
+  label smoothing, loss, or augmentation settings. The CLI defaults (batch 32, epochs 50) differ
+  from the run that produced the model (64, 80), so the artifact couldn't be reproduced from its
+  own metadata. `source_revision` was `"unknown"`. Focal loss couldn't be disabled from the CLI,
+  the learning rate wasn't exposed, and the healthy-class multiplier silently did nothing for
+  lowercase folder labels.
+- **Change:** `main.build_model_metadata()` (a pure, testable function) adds
+  `training.hyperparameters` (batch, max epochs, optimizer, LR + schedule, loss with γ/α, label
+  smoothing, early-stopping monitor/patience/min-delta, waveform variants, SpecAugment
+  mode/params), the dataset format and dirs, and `runtime` library versions (TF, Keras, librosa,
+  scikit-learn, SciPy, NumPy, pandas). `resolve_source_revision()` fills in the git commit
+  (`-dirty` if modified) when none is given. New flags `--learning-rate` and
+  `--no-use-focal-loss`. The healthy multiplier is matched case-insensitively. Training constants
+  were lifted to named values at the top of `train.py`, with **identical values**, so training
+  behavior is unchanged. The windowing `aggregation` text now describes the actual order
+  (average, then temperature).
+- **Benefit:** Each new artifact carries everything needed to re-run it and to audit what it was
+  trained with.
+- **Verification:** New `tests/test_run_metadata.py` (4 tests: CLI flags; explicit and fallback
+  source revision; git revision format; a metadata document with all hyperparameters that passes
+  the real `load_verified_contract`). 56 tests pass.
+- **Status:** ✅ done. Per-source test metrics need the per-record source tag introduced in
+  item 7, so they are implemented there.
 
 ### 9. Retrain and results
 _planned_

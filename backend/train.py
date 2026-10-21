@@ -25,13 +25,21 @@ import tensorflow as tf
 from tensorflow.keras.losses import CategoricalCrossentropy
 from tensorflow.keras.optimizers.schedules import CosineDecay
 
+# Fixed training constants, recorded verbatim in model_metadata.json by main.py.
+FOCAL_GAMMA = 2.0
+FOCAL_ALPHA = 0.25
+COSINE_DECAY_ALPHA = 5e-3
+EARLY_STOPPING_MONITOR = "val_accuracy"
+EARLY_STOPPING_PATIENCE = 18
+EARLY_STOPPING_MIN_DELTA = 0.003
+
 
 @tf.keras.utils.register_keras_serializable(package="respinet")
 class CategoricalFocalLoss(tf.keras.losses.Loss):
     def __init__(
         self,
-        gamma: float = 2.0,
-        alpha: float = 0.25,
+        gamma: float = FOCAL_GAMMA,
+        alpha: float = FOCAL_ALPHA,
         label_smoothing: float = 0.1,
         name: str = "categorical_focal_loss",
     ):
@@ -78,7 +86,7 @@ def train_model(
     healthy_class_multiplier: float = 1.0,
     use_focal_loss: bool = True,
     label_smoothing: float = 0.08,
-    gamma: float = 2.0,
+    gamma: float = FOCAL_GAMMA,
     use_spec_augment: bool = False,
     num_freq_masks: int = 2,
     max_freq_mask: int = 15,
@@ -111,7 +119,7 @@ def train_model(
     lr_schedule = CosineDecay(
         initial_learning_rate=learning_rate,
         decay_steps=total_steps,
-        alpha=5e-3,
+        alpha=COSINE_DECAY_ALPHA,
     )
 
     if use_focal_loss:
@@ -153,15 +161,15 @@ def train_model(
         # smooth LR reduction natively; the secondary guard is not needed.
         ModelCheckpoint(
             model_path,
-            monitor="val_accuracy",
+            monitor=EARLY_STOPPING_MONITOR,
             mode="max",
             save_best_only=True,
             verbose=1,
         ),
         EarlyStopping(
-            monitor="val_accuracy",
-            min_delta=0.003,
-            patience=18,
+            monitor=EARLY_STOPPING_MONITOR,
+            min_delta=EARLY_STOPPING_MIN_DELTA,
+            patience=EARLY_STOPPING_PATIENCE,
             mode="max",
             restore_best_weights=True,
             verbose=1,

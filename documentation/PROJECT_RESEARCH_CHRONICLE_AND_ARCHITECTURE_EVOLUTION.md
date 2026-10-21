@@ -689,6 +689,10 @@ weaker than documented. Changes, in commit order:
    label tables must match the published per-patient distribution (self-declared counts are no
    longer accepted). `reorganize_icbhi.py` defaults to the authentic CSV and validates before
    writing. `submit.sh` no longer regenerates provenance and trains the merged folder cohort.
+7. **Complete run metadata (`main.py`, `train.py`):** `model_metadata.json` now records all
+   training hyperparameters, library versions and the git `source_revision`. New
+   `--learning-rate` and `--no-use-focal-loss` flags. Training constants were moved into named
+   constants with unchanged values (no change to optimization).
 
 ---
 

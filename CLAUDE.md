@@ -254,9 +254,11 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
   `dataset/patient_diagnosis_authentic.csv` and needs `--force` to rebuild an existing output dir.
   This prevents a repeat of the 27–29% val-accuracy collapse (chronicle §8.5).
 - **`main.py` CLI defaults override `train_model` defaults.** The CLI has batch 32,
-  epochs 50, label_smoothing 0.1. `train_model` defaults are 64 / 75 / 0.08. The learning
-  rate is never passed from the CLI, so it is always 3e-4. `--use-focal-loss` is
-  `store_true` with `default=True`, so focal loss cannot be disabled from the CLI.
+  epochs 50, label_smoothing 0.1, `--learning-rate` 3e-4. `train_model`'s own defaults
+  (64 / 75 / 0.08) only apply when it's called directly. Pass `--batch-size 64 --epochs 80` to
+  reproduce the current model. Focal loss can be turned off with `--no-use-focal-loss`. Every
+  setting actually used is recorded in `model_metadata.json["training"]["hyperparameters"]`, and
+  `source_revision` is auto-filled from git (final-phase item 8).
 - **`submit.sh` no longer generates provenance.** It trains the merged folder cohort
   (`--dataset-format folder` + ICBHI class folders, `--epochs 80 --batch-size 64`).
 - **The Gemini API key is sent in the `x-goog-api-key` header** (final-phase item 5), never in the
