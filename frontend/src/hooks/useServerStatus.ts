@@ -8,6 +8,7 @@ export interface ServerStatus {
   classes: string[]
   modelLoaded: boolean
   modelContract: string
+  denoiseAllowed: boolean
 }
 
 export function useServerStatus() {
@@ -17,6 +18,7 @@ export function useServerStatus() {
     classes: [],
     modelLoaded: false,
     modelContract: 'unknown',
+    denoiseAllowed: false,
   })
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -33,6 +35,7 @@ export function useServerStatus() {
         classes: Array.isArray(data.classes) ? data.classes : [],
         modelLoaded: !!data.model,
         modelContract: typeof data.model_contract === 'string' ? data.model_contract : 'unknown',
+        denoiseAllowed: data.denoise_allowed === true,
       })
     } catch {
       setStatus(prev => ({ ...prev, online: false, datasetOnline: false, modelLoaded: false }))

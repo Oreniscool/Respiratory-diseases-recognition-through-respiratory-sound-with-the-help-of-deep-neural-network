@@ -252,7 +252,7 @@ and `notes`, which the UI does send, are dropped.
 (artifacts/latest/best_model.keras), `RESPINET_MODEL_METADATA` (alongside the model),
 `RESPINET_DATASET_DIR`, `RESPINET_DIAGNOSIS_CSV`, `RESPINET_MAX_UPLOAD_MB` (25),
 `RESPINET_MAX_AUDIO_SECONDS` (120), `RESPINET_CORS_ORIGINS` (localhost/127.0.0.1:5173),
-`RESPINET_ALLOW_INFERENCE_DENOISING` (**"1"**), `RESPINET_API_TOKEN`,
+`RESPINET_ALLOW_INFERENCE_DENOISING` (**"0"**, exposed as `/health.denoise_allowed`), `RESPINET_API_TOKEN`,
 `RESPINET_RATE_LIMIT_PER_MINUTE` (30), `RESPINET_LOG_LEVEL`, `RESPINET_SOURCE_REVISION` (used by
 main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GROQ_MODEL`,
 `GROQ_DEBUG` (read, unused), `GROQ_USER_AGENT`. `RESPINET_REQUIRE_METADATA` is documented but
@@ -265,7 +265,7 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 | # | Where | Issue |
 |---|---|---|
 | 1 | ~~`server.py` legacy fallback~~ | **Fixed (final-phase item 2):** contract failure → status `unverified`, empty `CLASSES`, inference endpoints 503, no `best_model.h5` fallback. Covered by `tests/test_server_fail_closed.py` |
-| 2 | `server.py:94` | Denoising is allowed by default. Spectral-subtraction denoise is not in the training contract (train/serve drift if the user ticks the box) |
+| 2 | ~~`server.py` denoise default~~ | **Fixed (final-phase item 3):** default `"0"`. Disabled requests get 400 before decoding. Covered by `tests/test_server_denoise.py` |
 | 3 | `audio_validation.py:26-38`, `server.py:241-253` | Any file of at least 128 bytes passes the signature check, and `_read_audio_upload` also accepts unsupported extensions of at least 128 bytes. In practice validation is only "librosa can decode it" |
 | 4 | `server.py:450,490` | Gemini key in the query string. `URLError` diagnostics print the full URL |
 | 5 | `dataset_provenance.py:74-84`, `submit.sh` | The provenance label check is self-referential, and `submit.sh` rewrites the provenance file from the present CSV |

@@ -315,11 +315,13 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
     setError(null);
     setResult(null);
     setReportError(null);
+    // Denoising is outside the training contract; only send it when the server allows it.
+    const applyDenoise = denoise && server.denoiseAllowed;
     try {
       const nextResult = file
-        ? await predictFile(file, { denoise })
-        : await predictSample(sample!, { denoise });
-      const normalized = { ...nextResult, noise_cancellation: denoise };
+        ? await predictFile(file, { denoise: applyDenoise })
+        : await predictSample(sample!, { denoise: applyDenoise });
+      const normalized = { ...nextResult, noise_cancellation: applyDenoise };
       setResult(normalized);
       setStatus("success");
       // Celebratory confetti on successful analysis
@@ -562,10 +564,12 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
                 Context note
                 <textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={2} placeholder="Recording position, device, environment, or study note" />
               </label>
-              <label className="checkbox-field field-wide">
-                <input type="checkbox" checked={denoise} onChange={(event) => setDenoise(event.target.checked)} />
-                <span><strong>Apply experimental denoising</strong><small>This changes the processed input and is recorded with the result.</small></span>
-              </label>
+              {server.denoiseAllowed && (
+                <label className="checkbox-field field-wide">
+                  <input type="checkbox" checked={denoise} onChange={(event) => setDenoise(event.target.checked)} />
+                  <span><strong>Apply experimental denoising</strong><small>Not part of the model's training preprocessing; results may be less reliable. Recorded with the result.</small></span>
+                </label>
+              )}
             </div>
           </details>}
 

@@ -675,6 +675,10 @@ weaker than documented. Changes, in commit order:
    contract the status is `unverified`, and `/predict`, `/explain`, `/predict-sample` and
    `/summarize` return 503. `/health` no longer loads the model (eager load at startup instead).
    The UI accepts only `verified-metadata`.
+3. **Denoising off by default (`server.py`, `useServerStatus.ts`, `AnalyzePage.tsx`):**
+   inference-time spectral subtraction is not part of the training contract, so
+   `RESPINET_ALLOW_INFERENCE_DENOISING` now defaults to `0`. Disabled requests get 400, and the UI
+   hides the option unless `/health.denoise_allowed`.
 
 ---
 

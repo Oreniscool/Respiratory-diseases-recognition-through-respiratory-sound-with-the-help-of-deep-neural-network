@@ -241,9 +241,10 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
   `/predict-sample` and `/summarize` return 503. There is no `best_model.h5` fallback any more.
   The UI only accepts `model_contract == "verified-metadata"`. A fresh clone without
   `backend/artifacts/latest/` therefore **cannot** run inference until a model is trained.
-- **Inference denoising defaults to ON** (`RESPINET_ALLOW_INFERENCE_DENOISING` defaults
-  to `"1"`), even though it is not part of the training contract. The README says it is
-  disabled.
+- **Inference denoising defaults to OFF** (`RESPINET_ALLOW_INFERENCE_DENOISING` default `"0"`
+  since final-phase item 3), because it is not part of the training contract. A denoise request
+  while disabled → 400. `/health` exposes `denoise_allowed`, and the UI hides the checkbox unless it
+  is true. Note that the local, gitignored `.env` files on the dev machine still set it to `1`.
 - **Upload validation is effectively off.** `_looks_like_audio` accepts any payload of at
   least 128 bytes, and `_read_audio_upload` swallows validation errors for payloads of at
   least 128 bytes, including bad extensions.

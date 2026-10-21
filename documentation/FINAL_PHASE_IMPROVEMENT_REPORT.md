@@ -35,7 +35,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 |---|---|---|---|
 | 1 | Repo hygiene: plain `pytest` works, lint clean, GPU deps complete | Reproducibility / CI | ✅ done |
 | 2 | Fail-closed serving (no legacy fallback) | Safety | ✅ done |
-| 3 | Denoising off by default (no train/serve drift) | Correctness | planned |
+| 3 | Denoising off by default (no train/serve drift) | Correctness | ✅ done |
 | 4 | Real upload signature validation | Security | planned |
 | 5 | API key no longer in URL or logs | Security | planned |
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | planned |
@@ -86,7 +86,20 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Status:** ✅ done
 
 ### 3. Denoising off by default
-_planned_
+- **Problem:** The model was trained on band-passed, CMVN-normalized MFCCs without any spectral
+  subtraction. The server nevertheless allowed optional inference-time denoising by default
+  (`RESPINET_ALLOW_INFERENCE_DENOISING` defaulted to `"1"`), and the UI offered it as a checkbox. A
+  user who ticked it got predictions on inputs whose distribution the model never saw. The README
+  claimed it was disabled.
+- **Change:** The default is now `"0"`. A disabled denoise request on `/predict`, `/explain` or
+  `/predict-sample` returns 400 *before* any decoding. `/health` reports `denoise_allowed`, and the
+  UI shows the checkbox (with a "not part of training preprocessing" warning) only when the server
+  allows it, and only sends the flag then. `.env.example` documents the setting.
+- **Benefit:** By default, every prediction uses exactly the preprocessing the model was trained and
+  calibrated on.
+- **Verification:** New `tests/test_server_denoise.py` (2 tests: 400 without touching the model;
+  `/health` flag). 26 tests pass, ruff clean, `tsc -b` clean.
+- **Status:** ✅ done (note: a local `.env` that explicitly sets `1` still opts in)
 
 ### 4. Real upload validation
 _planned_

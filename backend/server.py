@@ -91,9 +91,12 @@ CORS_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
-ALLOW_INFERENCE_DENOISING = os.getenv("RESPINET_ALLOW_INFERENCE_DENOISING", "1").strip().lower() in {
+ALLOW_INFERENCE_DENOISING = os.getenv("RESPINET_ALLOW_INFERENCE_DENOISING", "0").strip().lower() in {
     "1", "true", "yes"
 }
+DENOISE_DISABLED_MESSAGE = (
+    "Inference denoising is disabled because it is not part of the training preprocessing contract"
+)
 API_TOKEN = os.getenv("RESPINET_API_TOKEN")
 RATE_LIMIT_PER_MINUTE = int(os.getenv("RESPINET_RATE_LIMIT_PER_MINUTE", "30"))
 
@@ -201,9 +204,7 @@ def extract_mfcc(
         os.unlink(tmp_path)
 
     if denoise and not ALLOW_INFERENCE_DENOISING:
-        raise ValueError(
-            "Inference denoising is disabled because it was not verified during training"
-        )
+        raise ValueError(DENOISE_DISABLED_MESSAGE)
     if denoise:
         data_x = _apply_noise_reduction(data_x, sampling_rate)
 
@@ -635,6 +636,7 @@ def health():
         "num_classes": len(CLASSES) if CLASSES else None,
         "model_output_dim": model_output,
         "model_contract": MODEL_CONTRACT_STATUS,
+        "denoise_allowed": ALLOW_INFERENCE_DENOISING,
         "ready": CONTRACT is not None and model_output is not None,
         "contract_error": MODEL_CONTRACT_ERROR,
     })
@@ -652,6 +654,8 @@ def predict_sample(disease):
     or ICBHI datasets, runs inference, and returns the prediction payload.
     """
     denoise = _parse_bool(request.args.get("denoise"))
+    if denoise and not ALLOW_INFERENCE_DENOISING:
+        return jsonify({"error": DENOISE_DISABLED_MESSAGE}), 400
 
     try:
         m = load_model_once()
@@ -745,6 +749,8 @@ def predict():
         return jsonify({"error": str(e)}), 400
 
     denoise = _parse_bool(request.form.get("denoise"))
+    if denoise and not ALLOW_INFERENCE_DENOISING:
+        return jsonify({"error": DENOISE_DISABLED_MESSAGE}), 400
 
     try:
         m = load_model_once()
@@ -782,6 +788,8 @@ def explain():
         return jsonify({"error": str(e)}), 400
 
     denoise = _parse_bool(request.form.get("denoise"))
+    if denoise and not ALLOW_INFERENCE_DENOISING:
+        return jsonify({"error": DENOISE_DISABLED_MESSAGE}), 400
 
     payload_raw = request.form.get("payload") or "{}"
     try:

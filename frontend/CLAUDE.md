@@ -84,7 +84,8 @@ Navbar links: Analyze, Evidence library, Learn (+ utility links `/learn#glossary
 - `AudioVisuals` decodes the chosen audio client-side and draws a waveform plus a coarse
   64-point DFT spectrogram on `<canvas>`. These visuals come from the actual audio, as the
   design policy requires.
-- `runAnalysis()` → `predictFile` / `predictSample` (with an optional `denoise` checkbox) →
+- `runAnalysis()` → `predictFile` / `predictSample` (with an optional `denoise` checkbox, shown
+  only when `/health.denoise_allowed` is true, and only sent when allowed) →
   confetti (decorative; `disableForReducedMotion`) → `setAnalysis` + `addHistory`.
 - Results: an uncertainty banner when `result.uncertain`, a Recharts `RadialBarChart`
   confidence ring (green >70%, amber 40–70%, terracotta <40%), ranked probability bars, and
