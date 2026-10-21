@@ -36,7 +36,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 1 | Repo hygiene: plain `pytest` works, lint clean, GPU deps complete | Reproducibility / CI | ✅ done |
 | 2 | Fail-closed serving (no legacy fallback) | Safety | ✅ done |
 | 3 | Denoising off by default (no train/serve drift) | Correctness | ✅ done |
-| 4 | Real upload signature validation | Security | planned |
+| 4 | Real upload signature validation | Security | ✅ done |
 | 5 | API key no longer in URL or logs | Security | planned |
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | planned |
 | 7 | Duplicate-free, fully audited dataset | Evidence validity (leakage) | planned |
@@ -102,7 +102,26 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 - **Status:** ✅ done (note: a local `.env` that explicitly sets `1` still opts in)
 
 ### 4. Real upload validation
-_planned_
+- **Problem:** The README claimed uploads are signature-checked. In fact
+  `audio_validation._looks_like_audio` returned `True` for **any** payload of 128 bytes or more,
+  and `server._read_audio_upload` caught validation errors and accepted the file anyway, even with
+  an unsupported extension. So arbitrary bytes reached `librosa`/`ffmpeg` decoding, which is the
+  most complex and least trusted code path in the server.
+- **Change:** Each allowed extension now needs its real container signature: WAV `RIFF…WAVE`,
+  FLAC `fLaC`, Ogg `OggS`, WebM/Matroska EBML `1A45DFA3`, MP3 `ID3` or an MPEG frame sync, M4A
+  `ftyp`. `.m4a` was added to the allowlist, since the UI already offered it. Validation errors now
+  propagate as 400. The browser recorder's fallback file now keeps its real container extension
+  (`.ogg` vs `.webm`), so Firefox recordings aren't rejected.
+- **Benefit:** Non-audio and disguised payloads are rejected before any decoding, with no loss of
+  legitimate inputs.
+- **Verification:** `tests/test_audio_validation.py` grew from 2 to 18 test cases (every
+  signature, random 4 KB payloads for every extension, container/extension mismatch, bad
+  extension, path stripping, and `/predict` → 400 without touching the model). There were **0 false
+  rejections across all 2,131 dataset recordings**, and ffmpeg-encoded WAV, FLAC, Ogg/Opus,
+  WebM/Opus, MP3 (with and without ID3) and M4A/AAC were all accepted. Live: a real WAV/WebM → 200;
+  random bytes and Ogg-renamed-as-`.wav` → 400. Side observation: a pure 440 Hz test tone is
+  returned as `"uncertain"`, so abstention behaves sensibly on non-respiratory input.
+- **Status:** ✅ done
 
 ### 5. API key handling
 _planned_

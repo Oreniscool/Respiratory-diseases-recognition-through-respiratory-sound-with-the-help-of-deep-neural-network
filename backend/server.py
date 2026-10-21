@@ -240,14 +240,7 @@ def _read_audio_upload(audio_file) -> tuple[bytes, str]:
     audio_bytes = audio_file.read()
     if not audio_bytes:
         raise ValueError("Uploaded audio file is empty")
-    filename = audio_file.filename or "recording.webm"
-    try:
-        filename = validate_audio_upload(filename, audio_bytes)
-    except ValueError as e:
-        if len(audio_bytes) >= 128:
-            filename = os.path.basename(filename)
-        else:
-            raise e
+    filename = validate_audio_upload(audio_file.filename or "recording.webm", audio_bytes)
     return audio_bytes, filename
 
 

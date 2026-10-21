@@ -96,7 +96,7 @@ real one is `backend/artifacts/latest/`.
 │   ├── evaluate.py              # recording/patient metrics, ECE, bootstrap CIs
 │   ├── artifact_contract.py     # load_verified_contract(): SHA-256 + metadata schema checks
 │   ├── dataset_provenance.py    # ICBHI provenance check, 4-class map, 3-way class-support check
-│   ├── audio_validation.py      # upload extension/signature check (weak, see backend/CLAUDE.md)
+│   ├── audio_validation.py      # upload extension allowlist + strict container signature check
 │   ├── reorganize_icbhi.py      # ICBHI flat dir → 5-class folders (symlink/copy)
 │   ├── server.py                # Flask API
 │   ├── wsgi.py / validate.py    # WSGI entry / standalone predict helper
@@ -245,9 +245,9 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
   since final-phase item 3), because it is not part of the training contract. A denoise request
   while disabled → 400. `/health` exposes `denoise_allowed`, and the UI hides the checkbox unless it
   is true. Note that the local, gitignored `.env` files on the dev machine still set it to `1`.
-- **Upload validation is effectively off.** `_looks_like_audio` accepts any payload of at
-  least 128 bytes, and `_read_audio_upload` swallows validation errors for payloads of at
-  least 128 bytes, including bad extensions.
+- **Uploads are signature-checked (final-phase item 4).** The extension must be in
+  `.wav .flac .ogg .mp3 .webm .m4a` and the leading bytes must match that container. Errors are no
+  longer swallowed. `/predict-sample` reads dataset files directly and is not validated.
 - **`reorganize_icbhi.py` defaults to the scrambled `patient_diagnosis.csv`.** Always pass
   `--diagnosis-csv dataset/patient_diagnosis_authentic.csv`. This caused the 27–29%
   val-accuracy collapse (chronicle §8.5).

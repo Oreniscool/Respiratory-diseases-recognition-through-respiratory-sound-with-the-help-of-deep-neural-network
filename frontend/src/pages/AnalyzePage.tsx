@@ -249,7 +249,9 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
           recordedFile = new File([wavBlob], `recording-${Date.now()}.wav`, { type: "audio/wav" });
           audioCtx.close();
         } catch {
-          recordedFile = new File([rawBlob], `recording-${Date.now()}.webm`, {
+          // Keep the real container: the server checks the signature against the extension.
+          const extension = rawBlob.type.includes("ogg") ? "ogg" : "webm";
+          recordedFile = new File([rawBlob], `recording-${Date.now()}.${extension}`, {
             type: rawBlob.type || "audio/webm",
           });
         }

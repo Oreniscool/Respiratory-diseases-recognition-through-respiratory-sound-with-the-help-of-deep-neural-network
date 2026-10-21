@@ -679,6 +679,10 @@ weaker than documented. Changes, in commit order:
    inference-time spectral subtraction is not part of the training contract, so
    `RESPINET_ALLOW_INFERENCE_DENOISING` now defaults to `0`. Disabled requests get 400, and the UI
    hides the option unless `/health.denoise_allowed`.
+4. **Strict upload validation (`audio_validation.py`, `server.py`, `AnalyzePage.tsx`):** each
+   allowed extension requires its container signature. The ≥128-byte bypass and the
+   error-swallowing fallback are removed. `.m4a` is supported, and the recorder fallback keeps its
+   real `.ogg`/`.webm` extension.
 
 ---
 

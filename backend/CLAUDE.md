@@ -266,7 +266,7 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 |---|---|---|
 | 1 | ~~`server.py` legacy fallback~~ | **Fixed (final-phase item 2):** contract failure → status `unverified`, empty `CLASSES`, inference endpoints 503, no `best_model.h5` fallback. Covered by `tests/test_server_fail_closed.py` |
 | 2 | ~~`server.py` denoise default~~ | **Fixed (final-phase item 3):** default `"0"`. Disabled requests get 400 before decoding. Covered by `tests/test_server_denoise.py` |
-| 3 | `audio_validation.py:26-38`, `server.py:241-253` | Any file of at least 128 bytes passes the signature check, and `_read_audio_upload` also accepts unsupported extensions of at least 128 bytes. In practice validation is only "librosa can decode it" |
+| 3 | ~~upload validation~~ | **Fixed (final-phase item 4):** strict per-extension signatures (RIFF/WAVE, fLaC, OggS, EBML, ID3/MPEG sync, ftyp), `.m4a` allowed, `_read_audio_upload` no longer swallows errors. Verified on all 2,131 dataset WAVs and ffmpeg-encoded samples of every format |
 | 4 | `server.py:450,490` | Gemini key in the query string. `URLError` diagnostics print the full URL |
 | 5 | `dataset_provenance.py:74-84`, `submit.sh` | The provenance label check is self-referential, and `submit.sh` rewrites the provenance file from the present CSV |
 | 6 | `reorganize_icbhi.py` | Defaults to the scrambled CSV. Skips existing destination files instead of overwriting them |
