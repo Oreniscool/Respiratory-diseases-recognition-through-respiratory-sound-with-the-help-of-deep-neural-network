@@ -31,6 +31,7 @@ class AudioRecord:
     path: Path
     patient_id: int
     disease: str
+    source: str = "primary"
 
 
 @dataclass
@@ -66,6 +67,7 @@ def build_manifest(
     directory: str | Path,
     diagnoses: pd.DataFrame,
     excluded_patient_ids: Iterable[int] = (),
+    source: str = "icbhi",
 ) -> list[AudioRecord]:
     directory = Path(directory)
     if not directory.is_dir():
@@ -87,7 +89,9 @@ def build_manifest(
         if disease is None:
             missing_labels.add(patient_id)
             continue
-        records.append(AudioRecord(path=path, patient_id=patient_id, disease=disease))
+        records.append(
+            AudioRecord(path=path, patient_id=patient_id, disease=disease, source=source)
+        )
 
     if missing_labels:
         raise ValueError(
@@ -105,6 +109,7 @@ AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".ogg", ".aac"}
 def build_manifest_from_folders(
     directory: str | Path,
     excluded_patient_ids: Iterable[int] = (),
+    source: str = "primary",
 ) -> list[AudioRecord]:
     """Build a manifest from subdirectories where each class folder contains audio files."""
     directory = Path(directory)
@@ -151,12 +156,46 @@ def build_manifest_from_folders(
         if patient_id in excluded:
             continue
 
-        records.append(AudioRecord(path=path, patient_id=patient_id, disease=disease))
+        records.append(
+            AudioRecord(path=path, patient_id=patient_id, disease=disease, source=source)
+        )
 
     if not records:
         raise ValueError(f"No valid audio records found after exclusions in {directory}")
 
     return records
+
+
+def deduplicate_records(
+    records: Sequence[AudioRecord],
+) -> tuple[list[AudioRecord], list[dict[str, str]]]:
+    """Drop byte-identical audio files so one recording can never sit in two splits.
+
+    The first record of each duplicate group (in path order) is kept. Duplicates that
+    disagree on the label cannot be resolved automatically and stop the pipeline.
+    """
+    from dataset_provenance import sha256_file
+
+    groups: dict[str, list[AudioRecord]] = {}
+    for record in sorted(records, key=lambda item: str(item.path)):
+        groups.setdefault(sha256_file(record.path), []).append(record)
+
+    kept: list[AudioRecord] = []
+    removed: list[dict[str, str]] = []
+    for digest, group in groups.items():
+        labels = {record.disease for record in group}
+        if len(labels) > 1:
+            paths = ", ".join(str(record.path) for record in group)
+            raise ValueError(f"Identical audio files carry different labels {sorted(labels)}: {paths}")
+        keeper, *duplicates = group
+        kept.append(keeper)
+        removed.extend(
+            {"path": str(record.path), "duplicate_of": str(keeper.path), "sha256": digest}
+            for record in duplicates
+        )
+    kept_ids = {id(record) for record in kept}
+    # Preserve the caller's ordering for everything that survives.
+    return [record for record in records if id(record) in kept_ids], removed
 
 
 def _variants(

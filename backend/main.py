@@ -25,19 +25,23 @@ from calibration import apply_temperature, fit_abstention_policy, fit_temperatur
 from dataset_provenance import (
     assert_three_way_class_support,
     build_dataset_audit,
+    build_folder_dataset_audit,
     load_and_validate_provenance,
     map_disease_labels,
 )
 from evaluate import (
     aggregate_probabilities_by_group,
     bootstrap_patient_confidence_intervals,
+    evaluate_by_group,
     evaluate_model,
     evaluate_patient_level,
 )
+from cross_dataset_overlap import load_overlap_evidence, overlap_key
 from featureExtraction import (
     AudioRecord,
     build_manifest,
     build_manifest_from_folders,
+    deduplicate_records,
     extract_manifest,
 )
 from preprocessing import DEFAULT_PREPROCESSING
@@ -165,6 +169,19 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--overlap-csv",
+        default="data/kaggle_icbhi_overlap.csv",
+        help=(
+            "Evidence file from cross_dataset_overlap.py listing Kaggle V2 clips that are cut "
+            "from ICBHI recordings. Required whenever both datasets are merged."
+        ),
+    )
+    parser.add_argument(
+        "--no-overlap-exclusion",
+        action="store_true",
+        help="Keep Kaggle clips that are copies of ICBHI audio (reintroduces split leakage)",
+    )
+    parser.add_argument(
         "--merge-icbhi",
         action="store_true",
         help="Automatically merge the ICBHI dataset (backend/dataset/ICBHI_as_folders) into the training cohort",
@@ -251,6 +268,65 @@ def split_by_patient(
     }
 
 
+def source_name(directory: str | Path) -> str:
+    """Stable short name for a dataset directory, used to tag and report per-source results."""
+    text = str(directory).lower()
+    if "icbhi" in text:
+        return "icbhi"
+    if "asthma_detection" in text or "asthma detection" in text:
+        return "kaggle_asthma_v2"
+    return Path(directory).name.lower() or "primary"
+
+
+def exclude_cross_dataset_overlap(
+    records: list[AudioRecord], overlap_csv: str | Path
+) -> tuple[list[AudioRecord], dict[str, object]]:
+    """Drop Kaggle V2 clips that are verbatim cuts of ICBHI recordings in the same cohort.
+
+    Such a clip and its source recording would otherwise carry different patient IDs and
+    could land in different splits. The evidence file must cover every Kaggle clip, so a
+    stale or partial file fails instead of silently letting copies through.
+    """
+    overlap_csv = Path(overlap_csv)
+    if not overlap_csv.is_absolute() and not overlap_csv.is_file():
+        overlap_csv = Path(__file__).resolve().parent / overlap_csv
+    if not overlap_csv.is_file():
+        raise FileNotFoundError(
+            f"Merging ICBHI with Kaggle Asthma V2 requires the overlap evidence file {overlap_csv}. "
+            "Generate it with cross_dataset_overlap.py, or pass --no-overlap-exclusion knowingly."
+        )
+    covered, overlapping = load_overlap_evidence(overlap_csv)
+    kaggle = [record for record in records if record.source == "kaggle_asthma_v2"]
+    uncovered = [str(record.path) for record in kaggle if overlap_key(record.path) not in covered]
+    if uncovered:
+        raise ValueError(
+            f"Overlap evidence {overlap_csv} does not cover {len(uncovered)} Kaggle clips "
+            f"(e.g. {uncovered[0]}); regenerate it with cross_dataset_overlap.py"
+        )
+    removed = [
+        record for record in kaggle if overlap_key(record.path) in overlapping
+    ]
+    removed_ids = {id(record) for record in removed}
+    from dataset_provenance import sha256_file
+
+    report = {
+        "evidence_file": portable_path(overlap_csv),
+        "evidence_sha256": sha256_file(overlap_csv),
+        "removed_recordings": len(removed),
+        "removed_by_class": dict(sorted(Counter(record.disease for record in removed).items())),
+    }
+    return [record for record in records if id(record) not in removed_ids], report
+
+
+def portable_path(path: str | Path) -> str:
+    """Path relative to backend/ when possible, so manifest hashes don't depend on the machine."""
+    backend_dir = os.path.abspath(Path(__file__).parent)
+    absolute = os.path.abspath(path)
+    if os.path.commonpath([backend_dir, absolute]) == backend_dir:
+        return Path(os.path.relpath(absolute, backend_dir)).as_posix()
+    return Path(absolute).as_posix()
+
+
 def _write_split_manifest(
     splits: dict[str, list[AudioRecord]], output_dir: Path
 ) -> str:
@@ -259,7 +335,8 @@ def _write_split_manifest(
             "split": split,
             "patient_id": record.patient_id,
             "disease": record.disease,
-            "path": str(record.path),
+            "source": record.source,
+            "path": portable_path(record.path),
         }
         for split, records in splits.items()
         for record in records
@@ -276,19 +353,11 @@ def run_training(args: argparse.Namespace) -> None:
 
     if args.dataset_format == "folder":
         records = build_manifest_from_folders(
-            args.dataset_dir, excluded_patient_ids=args.exclude_patient
+            args.dataset_dir,
+            excluded_patient_ids=args.exclude_patient,
+            source=source_name(args.dataset_dir),
         )
-        dataset_audit = {
-            "dataset": "Folder Audio Dataset",
-            "source_url": "local_directory",
-            "download_date": "2026-08-05",
-            "license": "Custom/Kaggle Dataset",
-            "diagnosis_sha256": "folder_based",
-            "recordings": len(records),
-            "patients": len({record.patient_id for record in records}),
-            "recording_label_counts": dict(Counter(record.disease for record in records)),
-            "audio_inventory_sha256": "folder_based",
-        }
+        diagnosis_path = provenance = None
     else:
         diagnosis_path = Path(args.diagnosis_csv)
         if not diagnosis_path.is_file():
@@ -302,21 +371,51 @@ def run_training(args: argparse.Namespace) -> None:
                 lambda d: map_disease_labels(d, group_mode=args.group_classes)
             )
         records = build_manifest(
-            args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient
+            args.dataset_dir, diagnoses, excluded_patient_ids=args.exclude_patient, source="icbhi"
         )
-        dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
 
     # Merge any additional folder-format datasets before splitting.
     # Each extra directory is treated identically to --dataset-format folder.
     for extra_dir in args.extra_dataset_dir:
         extra_records = build_manifest_from_folders(
-            extra_dir, excluded_patient_ids=args.exclude_patient
+            extra_dir, excluded_patient_ids=args.exclude_patient, source=source_name(extra_dir)
         )
         records.extend(extra_records)
         print(
             f"[extra-dataset] Merged {len(extra_records)} recordings "
             f"from {extra_dir}"
         )
+
+    # 52% of Kaggle V2 (incl. all of its COPD class) is cut from ICBHI recordings. When both are
+    # merged, keep the full ICBHI recording (real patient ID) and drop the Kaggle copy.
+    cross_dataset_overlap: dict[str, object] = {"applied": False}
+    sources = {record.source for record in records}
+    if {"icbhi", "kaggle_asthma_v2"} <= sources and not args.no_overlap_exclusion:
+        records, cross_dataset_overlap = exclude_cross_dataset_overlap(records, args.overlap_csv)
+        cross_dataset_overlap["applied"] = True
+        print(
+            f"[overlap] Removed {cross_dataset_overlap['removed_recordings']} Kaggle clips "
+            f"that are cuts of ICBHI recordings: {cross_dataset_overlap['removed_by_class']}"
+        )
+
+    # Byte-identical files under different names would otherwise be able to land in different
+    # splits (12 such groups exist in Kaggle Asthma V2). Remove them before splitting.
+    records, duplicates_removed = deduplicate_records(records)
+    if duplicates_removed:
+        print(f"[dedup] Removed {len(duplicates_removed)} byte-identical duplicate recordings")
+
+    # Audit the cohort that is actually split and trained on (after merging and dedup).
+    if provenance is None:
+        dataset_audit = build_folder_dataset_audit(
+            records, [args.dataset_dir, *args.extra_dataset_dir]
+        )
+    else:
+        dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
+    dataset_audit["cross_dataset_overlap"] = cross_dataset_overlap
+    dataset_audit["duplicates_removed"] = [
+        {**row, "path": portable_path(row["path"]), "duplicate_of": portable_path(row["duplicate_of"])}
+        for row in duplicates_removed
+    ]
 
     splits = split_by_patient(
         records,
@@ -340,6 +439,7 @@ def run_training(args: argparse.Namespace) -> None:
             "recordings": len(split_records),
             "patients": len(patients),
             "class_counts": class_counts,
+            "source_counts": dict(Counter(record.source for record in split_records)),
         }
         print(
             f"  {split}: {len(split_records)} recordings, {len(patients)} patients, "
@@ -445,6 +545,7 @@ def run_training(args: argparse.Namespace) -> None:
         ],
         dtype=np.int64,
     )
+    source_by_path = {str(record.path): record.source for record in records}
     metrics = {
         "recording_level": evaluate_model(test_targets, test_probabilities, class_names),
         "patient_level": evaluate_patient_level(
@@ -457,6 +558,13 @@ def run_training(args: argparse.Namespace) -> None:
             class_names,
             samples=args.bootstrap_samples,
             seed=args.seed,
+        ),
+        "by_source": evaluate_by_group(
+            test_targets,
+            test_probabilities,
+            source_patient_ids,
+            np.asarray([source_by_path[str(source)] for source in test_sources]),
+            class_names,
         ),
     }
     with (output_dir / "test_metrics.json").open("w", encoding="utf-8") as handle:
@@ -576,6 +684,7 @@ def build_model_metadata(
                 },
             },
             "dataset_format": args.dataset_format,
+            "cross_dataset_overlap_exclusion": not args.no_overlap_exclusion,
             "dataset_dirs": [str(args.dataset_dir), *map(str, args.extra_dataset_dir)],
             "healthy_class_multiplier": args.healthy_class_multiplier,
             "class_weights": class_weights,
@@ -595,6 +704,19 @@ def build_model_metadata(
             "Research use only; not clinically validated.",
             "Evaluated on one patient-disjoint test split of the training cohort "
             "(see dataset_audit.json and split_summary.json); no external validation.",
+            *(
+                [
+                    "Kaggle Asthma Detection V2 has no subject identifiers: its patient groups are "
+                    "inferred from filename prefixes and are unverified, and part of it derives "
+                    "from the KAUH database, which was not checked for overlap. Prefer the "
+                    "ICBHI subset in test_metrics.json['by_source'] as the leakage-free estimate."
+                ]
+                if any(
+                    source_name(directory) == "kaggle_asthma_v2"
+                    for directory in [args.dataset_dir, *args.extra_dataset_dir]
+                )
+                else []
+            ),
         ],
     }
 

@@ -103,29 +103,59 @@ def build_dataset_audit(
     records: list[object], diagnosis_path: str | Path, provenance: dict[str, object]
 ) -> dict[str, object]:
     """Capture non-sensitive source, label, and audio inventory evidence for a run."""
-    patients = {int(record.patient_id) for record in records}
-    label_counts = Counter(str(record.disease) for record in records)
-    audio_inventory = []
-    for record in records:
-        path = Path(record.path)
-        audio_inventory.append(
-            {
-                "path": path.name,
-                "sha256": sha256_file(path),
-                "patient_id": int(record.patient_id),
-                "disease": str(record.disease),
-            }
-        )
-    inventory_json = json.dumps(sorted(audio_inventory, key=lambda row: row["path"]), sort_keys=True)
     return {
         "dataset": provenance["dataset_name"],
         "source_url": provenance["source_url"],
         "download_date": provenance["download_date"],
         "license": provenance["license"],
         "diagnosis_sha256": sha256_file(diagnosis_path),
-        "recordings": len(records),
-        "patients": len(patients),
-        "recording_label_counts": dict(sorted(label_counts.items())),
+        **_cohort_summary(records),
+    }
+
+
+def build_folder_dataset_audit(
+    records: list[object], dataset_dirs: list[str | Path]
+) -> dict[str, object]:
+    """Audit evidence for class-folder datasets, which carry no diagnosis CSV of their own."""
+    return {
+        "dataset": "Class-folder audio datasets",
+        "dataset_dirs": [str(directory) for directory in dataset_dirs],
+        "diagnosis_sha256": "not-applicable: labels come from class folder names",
+        **_cohort_summary(records),
+    }
+
+
+def _cohort_summary(records: list[object]) -> dict[str, object]:
+    """Counts plus a content hash of every audio file, so a cohort can be re-identified exactly."""
+    audio_inventory = sorted(
+        (
+            {
+                "source": str(getattr(record, "source", "primary")),
+                "path": Path(record.path).name,
+                "sha256": sha256_file(record.path),
+                "patient_id": int(record.patient_id),
+                "disease": str(record.disease),
+            }
+            for record in records
+        ),
+        key=lambda row: (row["source"], row["path"]),
+    )
+    inventory_json = json.dumps(audio_inventory, sort_keys=True)
+    per_source: dict[str, dict[str, object]] = {}
+    for source in sorted({row["source"] for row in audio_inventory}):
+        rows = [row for row in audio_inventory if row["source"] == source]
+        per_source[source] = {
+            "recordings": len(rows),
+            "patients": len({row["patient_id"] for row in rows}),
+            "recording_label_counts": dict(sorted(Counter(row["disease"] for row in rows).items())),
+        }
+    return {
+        "recordings": len(audio_inventory),
+        "patients": len({row["patient_id"] for row in audio_inventory}),
+        "recording_label_counts": dict(
+            sorted(Counter(row["disease"] for row in audio_inventory).items())
+        ),
+        "per_source": per_source,
         "audio_inventory_sha256": hashlib.sha256(inventory_json.encode("utf-8")).hexdigest(),
     }
 

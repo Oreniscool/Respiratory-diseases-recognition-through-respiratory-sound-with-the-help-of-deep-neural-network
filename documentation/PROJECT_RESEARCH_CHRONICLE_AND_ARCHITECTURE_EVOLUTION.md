@@ -693,6 +693,18 @@ weaker than documented. Changes, in commit order:
    training hyperparameters, library versions and the git `source_revision`. New
    `--learning-rate` and `--no-use-focal-loss` flags. Training constants were moved into named
    constants with unchanged values (no change to optimization).
+8. **Cross-dataset leakage removed (`cross_dataset_overlap.py`, `main.py`, `featureExtraction.py`,
+   `dataset_provenance.py`, `evaluate.py`):** normalized cross-correlation showed that **631 of the
+   1,211 Kaggle Asthma V2 clips (52%; all 401 COPD clips) are verbatim cuts of ICBHI recordings**
+   (60 real ICBHI patients) that were also in the merged cohort under different pseudo-patient IDs.
+   Kaggle `P`-numbers are not subject IDs (35 of 98 groups span several ICBHI patients), and 3
+   clips are labeled pneumonia but come from a Healthy ICBHI patient. The pipeline now drops these
+   copies (evidence: `backend/data/kaggle_icbhi_overlap.csv`, fail-closed), removes 12
+   byte-identical duplicates, audits the cohort actually used (per-source counts, content hash),
+   writes machine-independent manifests, and reports `by_source` test metrics. Corrected cohort:
+   **1,488 recordings / 243 patients** (ICBHI 920 / 126; Kaggle remainder 568). **All metrics of
+   the 2026-08-14 model (§8.6, e.g. 82.09% patient-level accuracy) are contaminated by this
+   leakage and are superseded by the retrain below.**
 
 ---
 

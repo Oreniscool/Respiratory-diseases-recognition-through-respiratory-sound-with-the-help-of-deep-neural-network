@@ -249,4 +249,40 @@ def evaluate_patient_level(
     return metrics
 
 
+def evaluate_by_group(
+    y_true: np.ndarray,
+    probabilities: np.ndarray,
+    patient_ids: np.ndarray,
+    groups: np.ndarray,
+    class_names: list[str],
+) -> dict[str, dict[str, object]]:
+    """Recording- and patient-level metrics separately for each data source.
+
+    Inputs are recording-level (one row per recording). Per-source results expose whether a
+    pooled score is driven by one dataset; metrics undefined on a subset (e.g. AUROC when a
+    class is absent) come back as ``None`` rather than raising.
+    """
+    if y_true.ndim == 2:
+        y_true = np.argmax(y_true, axis=1)
+    y_true = np.asarray(y_true, dtype=int)
+    probabilities = np.asarray(probabilities, dtype=float)
+    patient_ids = np.asarray(patient_ids)
+    groups = np.asarray(groups)
+    if not (len(y_true) == len(probabilities) == len(patient_ids) == len(groups)):
+        raise ValueError("Targets, probabilities, patient IDs and groups must have equal length")
+
+    results: dict[str, dict[str, object]] = {}
+    for group in sorted(np.unique(groups).tolist()):
+        mask = groups == group
+        results[str(group)] = {
+            "recordings": int(np.count_nonzero(mask)),
+            "patients": int(np.unique(patient_ids[mask]).size),
+            "recording_level": evaluate_model(y_true[mask], probabilities[mask], class_names),
+            "patient_level": evaluate_patient_level(
+                y_true[mask], probabilities[mask], patient_ids[mask], class_names
+            ),
+        }
+    return results
+
+
 evalModel = evaluate_model

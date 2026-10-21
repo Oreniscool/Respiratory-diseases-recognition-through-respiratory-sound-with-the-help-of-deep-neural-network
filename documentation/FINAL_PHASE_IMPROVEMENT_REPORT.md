@@ -14,11 +14,12 @@ The project's headline result (82.09% patient-level test accuracy) and its safet
 ("fail-closed serving", "validated uploads", "verified provenance") were audited against the code
 and the data. The audit found:
 
-1. **Measured data leakage.** The Kaggle Asthma V2 half of the cohort contains **12 groups of
-   byte-identical audio files** stored under different `P`-numbers. **8 of those groups straddle
-   the train/validation/test split**, e.g. test `P22Healthy88S.wav` is identical to train
-   `P23Healthy14S.wav`. The `P`-number, used as the patient ID, repeats across all five class
-   folders, so it is not a subject identifier.
+1. **Measured data leakage, on a large scale.** **631 of the 1,211 Kaggle Asthma V2 clips (52%),
+   including all 401 of its COPD clips, are verbatim cuts of ICBHI 2017 recordings** that were
+   *also* in the merged cohort, under different made-up patient IDs, so a recording and its copy
+   could sit on opposite sides of the train/test split (item 7). In addition, 12 groups of
+   byte-identical Kaggle files exist, 8 of which straddle the split. The Kaggle `P`-number, used as
+   the patient ID, is not a subject identifier.
 2. **Safety claims that did not hold in code.** These were the legacy-model fallback, denoising
    on by default, permissive upload checks, and the API key in the URL.
 3. **Provenance that could not catch bad labels.** The label-count check was self-referential,
@@ -39,7 +40,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 4 | Real upload signature validation | Security | ✅ done |
 | 5 | API key no longer in URL or logs | Security | ✅ done |
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | ✅ done |
-| 7 | Duplicate-free, fully audited dataset | Evidence validity (leakage) | planned |
+| 7 | Leakage-free cohort: drop Kaggle clips cut from ICBHI, dedup, full audit, per-source metrics | Evidence validity (leakage) | ✅ done |
 | 8 | Complete run metadata (per-source metrics moved to item 7) | Reproducibility | ✅ done |
 | 9 | Retrain on the corrected pipeline | Evidence validity | planned |
 | 10 | Truthful UI and documentation | Integrity | planned |
@@ -166,8 +167,70 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
   `bash -n submit.sh` passes. 52 tests pass.
 - **Status:** ✅ done
 
-### 7. Duplicate-free, audited dataset
-_planned_
+### 7. Leakage-free, fully audited cohort
+- **Problem:** The merged cohort (Kaggle Asthma V2 + ICBHI 2017) contained the same audio more than
+  once under different patient IDs, so the patient-disjoint split was not actually disjoint at
+  the audio level:
+  1. **Kaggle clips cut from ICBHI.** Kaggle's own description (`Des.txt`) says part of the
+     dataset was segmented from ICBHI and gives 212 clips. Matching every Kaggle clip against every
+     ICBHI recording found **631**. They were cut from 187 ICBHI recordings of **60 real patients**,
+     at offsets that are exact multiples of 6 s, and amplified.
+
+     | Kaggle class | Clips | Cut from ICBHI |
+     |---|---:|---:|
+     | copd | 401 | **401 (100%)** |
+     | healthy | 133 | 74 (56%) |
+     | bronchial | 104 | 51 (49%) |
+     | pneumonia | 285 | 105 (37%) |
+     | asthma | 288 | 0 |
+     | **total** | **1,211** | **631 (52%)** |
+
+  2. **Kaggle `P`-numbers are not patient IDs.** In 35 of 98 Kaggle (class, `P`) groups, the clips
+     come from *several different* ICBHI patients, and the same `P`-numbers recur in all five classes.
+  3. **3 label conflicts.** `P8Pneumonia11O/14Z/23N.wav` are labeled pneumonia but are cut from
+     ICBHI patient 123, whose diagnosis is *Healthy*.
+  4. **12 byte-identical files** under different names, 8 groups across splits.
+  5. The run's `dataset_audit.json` only described the Kaggle half (1,211 recordings / 205
+     patients), with `"folder_based"` placeholder hashes. `split_manifest.csv` stored absolute,
+     machine-specific paths.
+- **Change:**
+  - New tool `cross_dataset_overlap.py`. Audio is band-passed to 100–1000 Hz at 4 kHz, and each clip
+    is slid over every reference recording with gain-invariant normalized cross-correlation. Its
+    output `backend/data/kaggle_icbhi_overlap.csv` (+ `.summary.json`) is **tracked** as evidence.
+  - `main.py`: every record carries a `source`. When ICBHI and Kaggle are merged, Kaggle clips
+    flagged in the evidence file are dropped (`exclude_cross_dataset_overlap`), keeping the full
+    ICBHI recording with its real patient ID and authentic label. This **fails closed** if the file
+    is missing or doesn't cover every Kaggle clip. `deduplicate_records` (`featureExtraction.py`)
+    then removes byte duplicates (a label conflict is an error).
+  - `dataset_audit.json` now describes the cohort actually used (`build_folder_dataset_audit`):
+    per-source counts, a real content hash, the overlap evidence hash, and the removed lists.
+    `split_manifest.csv` gains a `source` column and backend-relative paths. `test_metrics.json`
+    gains `by_source` (`evaluate.evaluate_by_group`).
+- **Evidence quality:** The match scores are cleanly bimodal. All 631 matches score ≥ 0.795 (628 are
+  ≥ 0.95), each matched source has the same label (except the 3 conflicts above), and the
+  second-best score for those clips is ≤ 0.57. All 580 other clips score ≤ 0.697. The threshold
+  (0.75) sits in that gap. Two independent runs (a scratch float32 script and the repo tool)
+  agreed on all 1,211 verdicts and source recordings.
+- **Resulting cohort** (`--prepare-only`): 2,131 → **1,488 recordings / 243 patients** (ICBHI 920 /
+  126 real patients + Kaggle remainder 568 / 117 pseudo-patients after dedup). Split 145 / 49 / 49
+  patients, with every class having ≥ 8 patients in validation and in test. An independent audit
+  of the manifest found **0 ICBHI copies, 0 byte duplicates, 0 patients in more than one split**.
+- **Benefit:** The patient-disjoint guarantee now holds at the audio level for every ICBHI patient,
+  and the ICBHI test subset (`by_source.icbhi`) is a leakage-free estimate. The Kaggle subset is
+  reported separately with its caveat (below).
+- **Remaining limitation (decided: report, not fix):** The Kaggle remainder (asthma 288, pneumonia
+  ~180, healthy ~59, bronchial 53) partly derives from the KAUH database
+  (DOI 10.1016/j.bbe.2020.11.003) and from the dataset authors' own patients, with no reliable
+  subject IDs. Segments of one KAUH recording can still sit under different `P`-numbers. This
+  was not checked against KAUH (it would need that dataset's download). Kaggle-subset metrics are
+  therefore marked "subject IDs unverified".
+- **Verification:** New `tests/test_cross_dataset_overlap.py` (4: an amplified noisy cut is found at
+  its offset; unrelated audio scores low; silence never matches; end-to-end flags only the copied
+  clip) and `tests/test_cohort_integrity.py` (8: dedup keeps one copy; label-conflicting duplicates
+  stop the pipeline; the audit hash changes with content; per-source naming and portable paths;
+  per-source metrics; the overlap exclusion keeps ICBHI and drops the copy; it fails closed on
+  missing or stale evidence). 68 tests pass, ruff clean.
+- **Status:** ✅ done
 
 ### 8. Complete, reproducible run metadata
 - **Problem:** `model_metadata.json` didn't record the batch size, epoch budget, learning rate,

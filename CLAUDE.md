@@ -97,7 +97,9 @@ real one is `backend/artifacts/latest/`.
 │   ├── artifact_contract.py     # load_verified_contract(): SHA-256 + metadata schema checks
 │   ├── dataset_provenance.py    # ICBHI provenance check, 4-class map, 3-way class-support check
 │   ├── audio_validation.py      # upload extension allowlist + strict container signature check
-│   ├── reorganize_icbhi.py      # ICBHI flat dir → 5-class folders (symlink/copy)
+│   ├── reorganize_icbhi.py      # ICBHI flat dir → 5-class folders (symlink/copy), authentic labels only
+│   ├── cross_dataset_overlap.py # finds Kaggle clips cut from ICBHI recordings (NCC) → data/kaggle_icbhi_overlap.csv
+│   ├── data/                    # TRACKED evidence: kaggle_icbhi_overlap.csv (+ .summary.json)
 │   ├── server.py                # Flask API
 │   ├── wsgi.py / validate.py    # WSGI entry / standalone predict helper
 │   ├── submit.sh / download_dataset.sh  # SLURM jobs for the SPIT GPU cluster
@@ -213,7 +215,10 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
 
 1. **Patient-disjoint splits.** `split_by_patient()` splits *patients* (stratified) before
    any feature extraction. It raises on any overlap. Every class needs at least 3 patients
-   (`assert_three_way_class_support`).
+   (`assert_three_way_class_support`). **The same audio must never appear twice:** byte
+   duplicates are removed (`deduplicate_records`), and when ICBHI and Kaggle V2 are merged, the 631
+   Kaggle clips that are cuts of ICBHI recordings are dropped (`exclude_cross_dataset_overlap`,
+   evidence in `backend/data/kaggle_icbhi_overlap.csv`). Kaggle `P`-numbers are **not** patient IDs.
 2. **Augmentation only on the training split.** Validation and test are extracted with
    `augment=False`.
 3. **One preprocessing contract.** Training and serving both use `PreprocessingConfig`.
@@ -235,6 +240,12 @@ chronicle's §4.2 layer table (~136K params, the pre-v3 architecture), the landi
 ---
 
 ## 8. Top gotchas (details in subdirectory CLAUDE.md files)
+
+- **The pre-2026-10-22 metrics are contaminated.** 52% of Kaggle Asthma V2 (631 clips, including
+  all 401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort,
+  under different made-up patient IDs, so copies sat on both sides of the split. The 82.09% of the
+  2026-08-14 model is not a valid estimate. The corrected cohort has 1,488 recordings / 243
+  patients (see `documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md` item 7).
 
 - **Serving is fail-closed (since branch `final-phase-improvements`).** Without a verified
   contract the status is `"unverified"`, `CLASSES` is empty, and `/predict`, `/explain`,

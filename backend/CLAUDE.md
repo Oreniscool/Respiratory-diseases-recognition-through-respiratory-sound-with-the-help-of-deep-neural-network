@@ -14,6 +14,11 @@ parse_args → resolve_dataset_paths (auto Kaggle path, --merge-icbhi)
        folder format: build_manifest_from_folders(dataset_dir)        → list[AudioRecord]
        icbhi format : load_and_validate_provenance → map_disease_labels(4-class) → build_manifest
   → + build_manifest_from_folders(each --extra-dataset-dir)            (merged BEFORE splitting)
+     every AudioRecord carries a `source` tag (source_name(): "icbhi" / "kaggle_asthma_v2")
+  → exclude_cross_dataset_overlap (if icbhi + kaggle are both present; fails closed without
+     data/kaggle_icbhi_overlap.csv): drops the 631 Kaggle clips that are cuts of ICBHI recordings
+  → deduplicate_records (sha256; drops 12 byte-identical Kaggle files; label conflict → error)
+  → dataset_audit over the cohort actually used (per-source counts, real inventory hash)
   → split_by_patient (stratified on patient label; 2 × train_test_split)
   → write split_manifest.csv (+ sha256), dataset_audit.json, split_summary.json
   → [--prepare-only stops here; TensorFlow is never imported]
@@ -167,6 +172,17 @@ input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
   `reorganize_icbhi.py`.
 - `assert_three_way_class_support` raises if any class has fewer than 3 patients.
 
+### `cross_dataset_overlap.py` (evidence tool)
+Finds clips of one dataset that are cut from recordings of another. Audio is band-passed to
+100–1000 Hz at 4 kHz, and each clip is slid over every reference recording with normalized
+cross-correlation, which is gain-invariant. On Kaggle V2 vs ICBHI, the 631 verbatim cuts score
+≥ 0.795 (mostly ≥ 0.99) and every other clip scores ≤ 0.697, so `DEFAULT_THRESHOLD = 0.75`.
+Output: `data/kaggle_icbhi_overlap.csv` (**tracked**, consumed by `main.py`) +
+`.summary.json`. A full run with 14 workers takes ~11 min. Workers are pinned to 1 BLAS/OpenMP
+thread via `threadpoolctl`. Without that, 16 threads × 12 workers thrashed the scheduler and a
+run took over an hour. Regenerate the file if either dataset changes, because `main.py` refuses a
+file that doesn't cover every Kaggle clip.
+
 ### `reorganize_icbhi.py`
 ICBHI → 5 class folders: COPD→copd, Healthy→healthy, Pneumonia→pneumonia, Asthma→asthma,
 URTI/Bronchiectasis/Bronchiolitis/LRTI→bronchial. Symlinks by default, `--copy` for hard
@@ -200,11 +216,13 @@ holds files is refused unless `--force` is given, which deletes and rebuilds the
 | `--source-revision` | `$RESPINET_SOURCE_REVISION`, else the git commit (`-dirty` if modified) | the 2026-08-14 artifact says `unknown` |
 | `--prepare-only` | off | split files only |
 
-Metadata quirks: in folder mode, `dataset_audit.json` is built **before** extra datasets are
-merged (the current one says 1,211 recordings / 205 patients, not 2,131 / 331), and it records
-`"folder_based"` instead of real hashes and a hardcoded download date `2026-08-05`.
-`limitations` always says "configured ICBHI patient split". `split_manifest.csv` stores
-absolute paths, so its hash depends on the machine.
+Audit and manifest (final-phase item 7): `dataset_audit.json` describes the cohort *after*
+merge, overlap exclusion and dedup, with `per_source` counts, a content hash of every file
+(`audio_inventory_sha256`), `cross_dataset_overlap` (evidence file + sha256 + removed counts)
+and `duplicates_removed`. `split_manifest.csv` has a `source` column and backend-relative paths,
+so its hash no longer depends on the machine. `test_metrics.json["by_source"]` has recording- and
+patient-level metrics for each source. `--overlap-csv` (default `data/kaggle_icbhi_overlap.csv`)
+and `--no-overlap-exclusion` (which reintroduces leakage) control the overlap step.
 
 ---
 
@@ -276,7 +294,7 @@ main.py), `GEMINI_API_KEY`, `GEMINI_MODEL`, `GROQ_API_KEY`, `GROQ_API_URL`, `GRO
 | 6 | ~~`reorganize_icbhi.py` defaults~~ | **Fixed (final-phase item 6):** defaults to the authentic CSV, validates labels before writing, rebuilds only with `--force` |
 | 7 | ~~focal loss / LR flags~~ | **Fixed (final-phase item 8):** `--no-use-focal-loss`, `--learning-rate`. Covered by `tests/test_run_metadata.py` |
 | 8 | ~~healthy multiplier case~~ | **Fixed (final-phase item 8):** matched case-insensitively |
-| 9 | `main.py:270-284` | Folder-mode audit undercounts merged data and stores placeholder hashes. `source_revision` defaults to `unknown` |
+| 9 | ~~folder audit / source revision~~ | **Fixed (items 7–8):** audit built after merge with real hashes; `source_revision` from git |
 | 10 | `server.py:627-650` | `/health` triggers the full model load. Polled every 5 s by the UI |
 | 11 | `train.py` SpecAugment | One mask per batch. Time masks can hit padding, and masked frames turn into "padding" for the validity mask |
 | 12 | `server.py:197` | `NamedTemporaryFile(delete=False)`: the temp upload is left behind if the process dies mid-request |
