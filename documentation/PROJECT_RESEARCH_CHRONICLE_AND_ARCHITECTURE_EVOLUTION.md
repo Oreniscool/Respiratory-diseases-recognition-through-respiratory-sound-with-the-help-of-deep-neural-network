@@ -162,6 +162,12 @@ Empirical v3 results revealed a persistent **~19% train/val accuracy gap** (trai
 Two parallel interventions were applied:
 
 #### Option C — Increased Dropout Regularization (`backend/model.py`)
+
+> [!WARNING]
+> **Correction (2026-10-22, verified against `backend/model.py`):** Option C was **never merged**.
+> The code has `Dropout(0.3)` after BiGRU-1, **no** `recurrent_dropout`, and dense dropout
+> 0.3 / 0.4. The table below records the proposal, not the implementation.
+
 | Layer | v3 Dropout | v3+C Dropout | Change |
 | :--- | :---: | :---: | :--- |
 | BiGRU-1 output `Dropout` | 0.3 | **0.4** | +33% dropout rate |
@@ -275,6 +281,15 @@ A feature sequence of length $T$ frames is partitioned into fixed-length windows
 
 ### 4.2 Layer-by-Layer Architectural Specification
 
+> [!WARNING]
+> **Correction (2026-10-22):** This table describes the **pre-v3** architecture (~137K parameters,
+> two plain Conv1D layers, BiGRU 64/32, masked GAP). The trained model is **RespiNet-Attention v3**
+> (`backend/model.py`): MultiScaleConvBlock (k = 3/5/11, 96 ch, squeeze-excitation, GELU) →
+> BiGRU-128 → residual Conv1D(256, k=1) skip → BiGRU-64 → MaskedDualTemporalPooling1D (attention ‖
+> masked max) → Dense 128 → Dense 64 → softmax, **458,701 parameters**. See
+> [`PROJECT_CONTEXT.md` §6](PROJECT_CONTEXT.md) for the verified layer table.
+
+
 ```
 ==================================================================================================
 Layer (type)                        Output Shape              Param #    Connected to
@@ -386,6 +401,13 @@ graph LR
 
 ### 5.2 Cosine Annealing Learning Rate Schedule
 
+> [!WARNING]
+> **Correction (2026-10-22, verified against `backend/train.py` / `main.py`):** The current code
+> uses $\eta_0 = 3 \times 10^{-4}$ (`--learning-rate`) and `alpha = 5e-3`, so
+> $\eta_{\min} = 1.5 \times 10^{-6}$. The values below ($10^{-3}$, $10^{-5}$) are those of an
+> earlier version.
+
+
 To achieve stable optimization without manual step-decay tuning, RespiNet uses a Cosine Decay learning rate scheduler:
 $$\eta_t = \eta_{\min} + \frac{1}{2}(\eta_0 - \eta_{\min})\left(1 + \cos\left(\frac{t}{T_{\text{total}}}\pi\right)\right)$$
 where:
@@ -414,6 +436,14 @@ where $\mathcal{H}(\hat{\mathbf{p}}) = - \sum_{k=1}^K \hat{p}_k \log \hat{p}_k$ 
 The ICBHI 2017 Respiratory Sound Database was historically the standard academic benchmark. However, deep scrutiny reveals severe intrinsic defects:
 
 #### ICBHI 2017 Patient & Class Distribution Table
+
+> [!WARNING]
+> **Correction (2026-10-22, counted from the dataset files × `patient_diagnosis_authentic.csv`):**
+> the recording counts for URTI, Bronchiectasis and Bronchiolitis below are wrong (the column sums
+> to 1,015, not 920). The authentic counts are COPD 793, Pneumonia 37, Healthy 35, **URTI 23,
+> Bronchiectasis 16, Bronchiolitis 13**, LRTI 2, Asthma 1 (total 920). The patient counts are
+> correct.
+
 | Disease Category | Patient Count | Total Audio Files | % of Total Dataset | Stratified 3-Way Split Viability |
 | :--- | :---: | :---: | :---: | :--- |
 | **COPD** | 64 | 793 | **70.5%** | Highly Viable (Dominates Gradient) |
@@ -443,6 +473,14 @@ The ICBHI 2017 Respiratory Sound Database was historically the standard academic
 
 ### 6.3 The Resolution: Migration to Kaggle Asthma Detection Dataset V2
 
+> [!CAUTION]
+> **Correction (2026-10-22):** Kaggle Asthma V2 is **not independent of ICBHI**. 631 of its
+> 1,211 clips (52%, including all 401 COPD clips) are verbatim cuts of ICBHI recordings, and its
+> `P`-numbers are not subject IDs. The pseudo-patient hash shown below is also outdated: the code
+> hashes `"{class}_P{digits}"` with SHA-256, not `abs(hash(filepath))`. See §8.7 and
+> [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md) item 7.
+
+
 To establish a scientifically sound, reproducible, and balanced benchmark, RespiNet pivoted to the **Kaggle Asthma Detection Dataset (Version 2)**:
 
 ```mermaid
@@ -462,6 +500,13 @@ graph TD
 - Unified `--dataset-format folder|icbhi` CLI flags across `main.py`, `download_dataset.sh`, and `submit.sh`.
 
 ### 6.4 Multi-Cohort Dataset Merging (Kaggle Asthma V2 + ICBHI 2017) for Out-of-Distribution Generalization
+
+> [!CAUTION]
+> **Correction (2026-10-22):** Because 631 Kaggle clips are cuts of ICBHI recordings, the
+> "2,131 recordings / 331 patients" below double-counts ICBHI audio. The leakage-free merged cohort
+> is **1,488 recordings / 243 patients** (§8.7). CMVN is applied per **recording** (before
+> windowing), not per window.
+
 To scale training volume and maximize cross-hardware, multi-institutional generalization (ensuring the network generalizes to external stethoscope hardware, microphone responses, and real-world audio):
 1. **Multi-Directory Ingestion:** Integrated `--extra-dataset-dir` in `main.py` allowing simultaneous folder-level manifest merging of Kaggle Asthma V2 (1,211 files) and reorganized ICBHI 2017 (920 files), expanding total volume to **2,131 verified audio recordings across 331 unique patients**.
 2. **Unified 5-Class Target Space:** Mapped both clinical cohorts into the 5 target classes (`asthma`, `bronchial`, `copd`, `healthy`, `pneumonia`), eliminating minority class partition failures ($N \ge 48$ patients per class across the entire cohort).
@@ -475,6 +520,14 @@ To scale training volume and maximize cross-hardware, multi-institutional genera
 ## 7. Experimental Results & Empirical Verification
 
 ### 7.1 Empirical Comparison: ICBHI Baseline (Run 1241) vs. Refactored RespiNet Pipeline
+
+> [!CAUTION]
+> **Correction (2026-10-22):** The "Refactored RespiNet" column and the epoch log below are **not
+> backed by any run artifact** (no `training_history` or `test_metrics` file contains them). They
+> must not be cited. The Run 1241 figures are also unverifiable, since that log is not in the
+> repository. The first artifact-backed results are in §8.6 (since found to be contaminated by
+> leakage), and the leakage-free results are in §8.7.
+
 
 | Metric | ICBHI 2017 Baseline (Run 1241) | Refactored RespiNet Architecture | Empirical Improvement |
 | :--- | :---: | :---: | :--- |
@@ -641,11 +694,18 @@ The run combined the primary Kaggle Asthma V2 dataset and the reorganized ICBHI 
 - **Class Label Counts (Overall):** COPD (1,194), Pneumonia (322), Asthma (289), Healthy (168), Bronchial (158).
 
 ### 3. Quantitative Test Performance (Uncalibrated & Calibrated)
+
+> [!CAUTION]
+> **Superseded (2026-10-22):** The results in this subsection come from a cohort in which 631
+> Kaggle clips were copies of ICBHI recordings under different patient IDs, so test patients'
+> audio was also in training. They are **not valid performance estimates**. See §8.7 for the
+> leakage-free retrain.
+
 The final evaluation on the test patient split yielded promising results:
 - **Accuracy:** **80.81%** (recording-level) and **82.09%** (patient-level).
 - **Macro F1 Score:** **72.00%** (recording-level) and **79.22%** (patient-level).
 - **Balanced Accuracy:** **75.03%** (recording-level) and **79.65%** (patient-level).
-- **Calibration (Expected Calibration Error):** ECE was successfully reduced to **3.33%** (recording-level) and **10.30%** (patient-level) using temperature scaling ($T \approx 1.54$).
+- **Calibration (Expected Calibration Error):** ECE was successfully reduced to **3.33%** (recording-level) and **10.30%** (patient-level) using temperature scaling ($T = 0.844$ per `calibration.json`; the "$T \approx 1.54$" previously written here was incorrect).
 
 #### Patient-Level Sensitivities & Specificities
 - **COPD:** Sensitivity **91.30%**, Specificity **97.73%** (Support: 23 patients)
