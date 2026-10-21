@@ -160,6 +160,6 @@ export const GLOSSARY = [
   { term: "Crackle", definition: "A brief, discontinuous respiratory sound. Crackles can occur in more than one condition." },
   { term: "Wheeze", definition: "A relatively continuous, musical or whistling respiratory sound. It is not specific to one disease." },
   { term: "Spectrogram", definition: "A view of how signal energy is distributed across time and frequency." },
-  { term: "Model score", definition: "A number produced by the classifier. Here it is uncalibrated and must not be read as a clinical probability." },
+  { term: "Model score", definition: "A number produced by the classifier. It is temperature-calibrated on validation recordings, but it is still a research estimate and must not be read as a clinical probability." },
   { term: "Attribution", definition: "An experimental view of where a model was sensitive. It does not establish cause or prove a prediction is correct." },
 ];

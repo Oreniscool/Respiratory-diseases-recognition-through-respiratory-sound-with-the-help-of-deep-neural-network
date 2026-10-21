@@ -21,17 +21,17 @@ const METHOD_STEPS = [
   {
     icon: SlidersHorizontal,
     title: "2. Feature extraction",
-    body: "The pipeline converts the signal to a fixed-length sequence of 40 Mel-frequency cepstral coefficients (MFCCs). Long recordings are truncated and short recordings are padded.",
+    body: "Audio is resampled to 22.05 kHz and band-pass filtered (100–2,000 Hz). Each frame is described by 40 Mel-frequency cepstral coefficients (MFCCs) plus their first and second derivatives—120 values, normalized per recording. Overlapping 200-frame (≈4.6 s) windows cover the whole recording, so nothing is truncated.",
   },
   {
     icon: Layers3,
     title: "3. Sequence model",
-    body: "A Conv1D front end feeds bidirectional GRU layers. The network produces one score for each project label.",
+    body: "A multi-scale Conv1D block with channel attention feeds two bidirectional GRU layers and dual temporal pooling (attention plus max). The network scores the five project labels for every window.",
   },
   {
     icon: Braces,
     title: "4. Ranked output",
-    body: "A softmax layer converts logits into a score distribution. These values are shown as uncalibrated model scores, not clinical probabilities.",
+    body: "Window scores are averaged and temperature-calibrated on validation recordings. When the top score is too low or the distribution too uncertain, the result is reported as uncertain. Calibrated scores are still model output, not clinical probabilities.",
   },
 ];
 
@@ -99,10 +99,10 @@ export default function EvidencePage() {
           <table className="technical-table">
             <caption>Current frontend-facing model contract</caption>
             <tbody>
-              <tr><th scope="row">Input representation</th><td>40 MFCC features across a fixed sequence</td></tr>
-              <tr><th scope="row">Network family</th><td>Conv1D plus bidirectional GRU</td></tr>
-              <tr><th scope="row">Output</th><td>Eight project disease/health labels</td></tr>
-              <tr><th scope="row">Score interpretation</th><td>Uncalibrated model output; not a clinical probability</td></tr>
+              <tr><th scope="row">Input representation</th><td>40 MFCC + Δ + Δ² (120 values per frame) in overlapping 200-frame windows across the whole recording</td></tr>
+              <tr><th scope="row">Network family</th><td>Multi-scale Conv1D plus bidirectional GRU (RespiNet-Attention v3, 458,701 parameters)</td></tr>
+              <tr><th scope="row">Output</th><td>Five labels: asthma, bronchial, COPD, healthy, pneumonia</td></tr>
+              <tr><th scope="row">Score interpretation</th><td>Temperature-calibrated model score with an abstention rule; not a clinical probability</td></tr>
               <tr><th scope="row">Required safeguard</th><td>Verified metadata for preprocessing and class order</td></tr>
             </tbody>
           </table>
@@ -112,16 +112,17 @@ export default function EvidencePage() {
       <section className="editorial-section section-tint" id="dataset">
         <div className="section-intro">
           <p className="eyebrow">Dataset</p>
-          <h2>The ICBHI database is valuable—and limited.</h2>
+          <h2>Two public datasets—and an overlap we removed.</h2>
           <p>
-            The 2017 ICBHI Respiratory Sound Database contains approximately 5.5 hours of audio: 920 recordings from 126 participants, split into 6,898 annotated respiratory cycles. Recordings came from different chest locations and devices.
+            The model is trained on the 2017 ICBHI Respiratory Sound Database (920 recordings from 126 participants, about 5.5 hours, several chest locations and devices) merged with the Kaggle Asthma Detection Dataset V2. An audit found that 631 Kaggle clips—including every Kaggle COPD clip—are cut from ICBHI recordings. They were removed so the same audio can never appear in both training and test data.
           </p>
         </div>
-        <div className="fact-strip" aria-label="ICBHI dataset facts">
-          <Fact value="5.5 h" label="Approximate audio" />
-          <Fact value="920" label="Recordings" />
-          <Fact value="126" label="Participants" />
-          <Fact value="6,898" label="Annotated cycles" />
+        {/* Cohort facts: backend/artifacts/latest/dataset_audit.json (2026-10-22). */}
+        <div className="fact-strip" aria-label="Training cohort facts">
+          <Fact value="1,488" label="Recordings used" />
+          <Fact value="243" label="Patient groups" />
+          <Fact value="631" label="Duplicated ICBHI clips removed" />
+          <Fact value="5" label="Labels" />
         </div>
         <div className="evidence-two-column">
           <article>
@@ -136,9 +137,9 @@ export default function EvidencePage() {
           <article>
             <Scale aria-hidden="true" />
             <div>
-              <h3>Why the project’s eight labels need caution</h3>
+              <h3>Why rare ICBHI labels are grouped</h3>
               <p>
-                Published disease counts are highly imbalanced, including only one asthma subject and two LRTI subjects. A patient-level split can therefore leave some labels absent from validation or test sets.
+                ICBHI includes only one asthma subject and two LRTI subjects, too few for a patient-level train/validation/test split. URTI, bronchiectasis, bronchiolitis and LRTI are therefore grouped as “bronchial”. Kaggle’s file names do not identify patients reliably, so its patient groups are approximate.
               </p>
             </div>
           </article>
@@ -147,7 +148,7 @@ export default function EvidencePage() {
           <AlertTriangle aria-hidden="true" />
           <div>
             <strong>Do not compare unlike benchmarks.</strong>
-            <p>Eight-label disease classification is not the same task as the official four-event ICBHI challenge, so their scores are not directly interchangeable.</p>
+            <p>Five-label disease classification is not the same task as the official four-event ICBHI challenge, so their scores are not directly interchangeable.</p>
           </div>
         </div>
       </section>
@@ -155,20 +156,21 @@ export default function EvidencePage() {
       <section className="editorial-section" id="benchmark">
         <div className="section-intro">
           <p className="eyebrow">Benchmark status</p>
-          <h2>No clinically valid performance claim is available yet.</h2>
+          <h2>Leakage-free results on one held-out split—not a clinical claim.</h2>
           <p>
-            The repository records a historical best validation value of 75.36%, but that run used an earlier leakage-prone split. It has not been reproduced with a feasible patient-level train/validation/test evaluation across all eight labels.
+            On 49 patients held out from training, the model reaches 75.5% patient-level accuracy. An earlier figure of 82% was inflated by the dataset overlap described above. These are research measurements on one split of public data, with no external or clinical validation.
           </p>
         </div>
+        {/* Results: backend/artifacts/latest/test_metrics.json and calibration.json (2026-10-22). */}
         <div className="benchmark-ledger">
-          <div><span>Historical validation value</span><strong>75.36%</strong><small>Not suitable for a current performance claim</small></div>
-          <div><span>Patient-level rerun</span><strong>Pending</strong><small>Required before updated benchmark reporting</small></div>
-          <div><span>Calibration study</span><strong>Not run</strong><small>Scores must remain labeled uncalibrated</small></div>
+          <div><span>Patient-level test accuracy</span><strong>75.5%</strong><small>49 held-out patients; 95% CI 63–88%</small></div>
+          <div><span>Balanced accuracy</span><strong>73.7%</strong><small>Average recall across the five labels</small></div>
+          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (T = 0.71); per-recording calibration error 0.07</small></div>
           <div><span>External clinical validation</span><strong>None</strong><small>Prototype is not screening- or diagnostic-grade</small></div>
         </div>
-        <a className="text-link" href="/documentation/ARCHITECTURE_AND_BENCHMARK_REPORT.md" target="_blank" rel="noreferrer">
-          Read the repository architecture and benchmark report <ArrowUpRight size={16} />
-        </a>
+        <p>
+          By source: 65.4% on the 26 ICBHI test patients, whose identities are reliable but who include few non-COPD cases, and 87.0% on 23 Kaggle patient groups, which is likely optimistic because Kaggle patient identities are unverified. The weakest label is “bronchial” (50% patient-level sensitivity). Full evidence: <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
+        </p>
       </section>
 
       <section className="editorial-section section-tint" id="responsible-use">
@@ -196,6 +198,7 @@ export default function EvidencePage() {
           <SourceLink href="https://bhichallenge.med.auth.gr/ICBHI_2017_Challenge" label="Official ICBHI 2017 Challenge" />
           <SourceLink href="https://doi.org/10.1088/1361-6579/ab03ea" label="Rocha et al.: Respiratory sound database for development of automated classification" />
           <SourceLink href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7795327/" label="Peer-reviewed ICBHI disease-count table and classification study" />
+          <SourceLink href="https://www.kaggle.com/datasets/mohammedtawfikmusaed/asthma-detection-dataset-version-2" label="Kaggle Asthma Detection Dataset Version 2" />
           <SourceLink href="https://proceedings.mlr.press/v70/guo17a.html" label="Guo et al.: On Calibration of Modern Neural Networks" />
           <SourceLink href="https://www.who.int/news/item/28-06-2021-who-issues-first-global-report-on-ai-in-health-and-six-guiding-principles-for-its-design-and-use" label="WHO guidance on ethics and governance of AI for health" />
           <SourceLink href="https://www.fda.gov/medical-devices/software-medical-device-samd/transparency-machine-learning-enabled-medical-devices-guiding-principles" label="FDA transparency principles for machine-learning-enabled medical devices" />

@@ -219,7 +219,7 @@ export const LandingPage = () => {
             { 
               step: 3, 
               title: "Read the evidence", 
-              desc: "Review uncalibrated model scores with full context.",
+              desc: "Review calibrated model scores with their limitations.",
               icon: <BarChart size={32} />
             }
           ].map((item, index) => (
@@ -247,10 +247,10 @@ export const LandingPage = () => {
           {[
             { title: "Real-time audio visualization", desc: "Interactive waveform and spectrogram rendering.", icon: <Activity size={24} /> },
             { title: "5 respiratory condition patterns", desc: "Identify distinctive adventitious sound labels.", icon: <Stethoscope size={24} /> },
-            { title: "Experimental attribution maps", desc: "Saliency/Grad-CAM overlays on spectrograms.", icon: <Eye size={24} /> },
+            { title: "Experimental attribution maps", desc: "Time-only gradient saliency over spectrograms.", icon: <Eye size={24} /> },
             { title: "Research-grade AI summaries", desc: "LLM integration for contextual interpretation.", icon: <FileText size={24} /> },
-            { title: "Kaggle Asthma V2 dataset", desc: "Trained on validated respiratory recordings.", icon: <Database size={24} /> },
-            { title: "Privacy-first design", desc: "In-browser processing. No audio data stored.", icon: <Shield size={24} /> }
+            { title: "ICBHI 2017 + Kaggle Asthma V2", desc: "Public recordings, audited so no audio appears twice.", icon: <Database size={24} /> },
+            { title: "Privacy-first design", desc: "Audio is analyzed by your RespiNet server and not stored.", icon: <Shield size={24} /> }
           ].map((feature, i) => (
             <FadeInWhenVisible key={i} delay={i * 0.1}>
               <motion.div 
@@ -301,8 +301,8 @@ export const LandingPage = () => {
               viewport={{ once: true }}
               transition={{ delay: 0.8 }}
             >
-              <span className="demo-result-label">Result:</span>
-              <span className="demo-result-value">Asthma (87%)</span>
+              <span className="demo-result-label">Example output:</span>
+              <span className="demo-result-value">Asthma (illustrative)</span>
             </motion.div>
           </div>
         </FadeInWhenVisible>
@@ -312,7 +312,8 @@ export const LandingPage = () => {
       <section className="stats-section">
         <div className="stats-grid">
           <StatCard end={5} label="Disease Categories" />
-          <StatCard end={82.9} label="Patient-Level Accuracy" suffix="%" decimals={1} />
+          {/* backend/artifacts/latest/test_metrics.json, 49 held-out patients (2026-10-22) */}
+          <StatCard end={75.5} label="Patient-Level Test Accuracy" suffix="%" decimals={1} />
           <StatCard end={40} label="MFCC Features Extracted" />
           <StatCard end={120} label="Feature Dimensions" />
         </div>
@@ -394,7 +395,7 @@ export const LandingPage = () => {
       <section className="cta-section">
         <FadeInWhenVisible className="cta-content">
           <h2>Begin your research analysis</h2>
-          <p>Upload a stethoscope recording or use the device microphone to evaluate uncalibrated model scores.</p>
+          <p>Upload a stethoscope recording or use the device microphone to see calibrated research model scores.</p>
           <Link to="/analyze" className="btn-primary btn-large">
             <Activity size={20} />
             Analyze recording
@@ -425,7 +426,7 @@ export const LandingPage = () => {
           <div className="footer-col">
             <h4>Project</h4>
             <a href="https://github.com"><GitBranch size={16} /> GitHub</a>
-            <span className="credit">Trained on Kaggle Asthma V2 Dataset</span>
+            <span className="credit">Trained on ICBHI 2017 + Kaggle Asthma V2</span>
           </div>
         </div>
         <div className="footer-bottom">

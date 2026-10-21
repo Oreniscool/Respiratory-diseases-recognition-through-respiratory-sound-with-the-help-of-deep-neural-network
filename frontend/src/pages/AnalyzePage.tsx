@@ -650,7 +650,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
               <div className="score-column">
                 <div className="result-heading-row">
                   <div>
-                    <p className="eyebrow">Model scores — uncalibrated</p>
+                    <p className="eyebrow">Model scores — calibrated research estimates</p>
                     <h3>{safeLabel(result.prediction)}</h3>
                   </div>
                   <div className="confidence-gauge">
@@ -723,7 +723,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
                 </dl>
                 <div className="learning-note">
                   <BookOpenNote />
-                  <div><strong>Why “uncalibrated” matters</strong><p>A high score can still be wrong. Modern neural networks can produce scores that overstate certainty.</p><a href="https://proceedings.mlr.press/v70/guo17a.html" target="_blank" rel="noreferrer">Guo et al., 2017</a></div>
+                  <div><strong>Why a calibrated score can still be wrong</strong><p>Scores are temperature-calibrated on held-out validation recordings, so on similar data they roughly track how often the model is right. A high score can still be wrong, especially for unfamiliar devices, populations, or noise.</p><a href="https://proceedings.mlr.press/v70/guo17a.html" target="_blank" rel="noreferrer">Guo et al., 2017</a></div>
                 </div>
               </div>
             </div>
@@ -788,7 +788,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
           The classifier receives a time–frequency representation derived from the recording. It may respond to short discontinuous sounds, tonal sounds, background noise, or device characteristics.
         </GuideItem>
         <GuideItem icon={<TrendIcon />} title="What the score means">
-          Scores rank how strongly this recording matches patterns learned by the model. They are uncalibrated outputs, not guaranteed probabilities.
+          Scores rank how strongly this recording matches patterns learned by the model. They are calibrated on validation recordings but remain research estimates, not guaranteed or clinical probabilities.
         </GuideItem>
         <GuideItem icon={<AlertTriangle />} title="What it cannot mean" tone="warning">
           <ul>
@@ -802,7 +802,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
           <Info aria-hidden="true" />
           <div>
             <h3>Source & limitations</h3>
-            <p>Project model trained on ICBHI-derived data. The disease-label split is highly imbalanced and differs from the original event-classification challenge.</p>
+            <p>Trained on public ICBHI 2017 and Kaggle Asthma V2 recordings, audited so no audio appears in both training and test data. Five disease labels, evaluated on one held-out patient split; this differs from the original event-classification challenge.</p>
             <a href="/evidence#dataset">View evidence and limitations <ArrowRight size={15} /></a>
           </div>
         </div>

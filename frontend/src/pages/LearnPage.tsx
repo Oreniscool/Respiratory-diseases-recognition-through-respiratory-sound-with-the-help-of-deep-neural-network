@@ -36,7 +36,7 @@ export default function LearnPage() {
           <p className="eyebrow">Respiratory reference</p>
           <h1>Learn what the labels mean—and where they stop.</h1>
           <p className="hero-deck">
-            Plain-language context for the project’s eight labels, grounded in public health and respiratory sources. A sound can be an observation; it is never a diagnosis by itself.
+            Plain-language context for the model’s five labels and the original ICBHI categories behind them, grounded in public health and respiratory sources. A sound can be an observation; it is never a diagnosis by itself.
           </p>
         </div>
         <div className="learn-callout">

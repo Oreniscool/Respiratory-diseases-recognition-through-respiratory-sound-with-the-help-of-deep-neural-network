@@ -777,6 +777,14 @@ weaker than documented. Changes, in commit order:
    (recording) and 6.6 (patient) points. Also: `evaluate.finite_or_none` and `allow_nan=False`
    (scikit-learn returns NaN AUROC for subsets missing a class, which produced invalid JSON), and
    `source_revision` is now captured at run start.
+10. **Truthful UI (`frontend/src`, rebuilt `frontend/dist`):** the Landing and Evidence pages show the
+    leakage-free results (75.5% patient-level accuracy, 95% CI 63–88%; balanced accuracy 73.7%;
+    per-source 65.4% ICBHI / 87.0% Kaggle) and the audited cohort (1,488 recordings, 631 duplicated
+    ICBHI clips removed). They describe the actual pipeline (120-dim MFCC + Δ + Δ², full-recording
+    windowing, v3 network, 5 labels) and call scores "calibrated research estimates" instead of
+    "uncalibrated". Untrue claims were corrected: "in-browser processing" (audio goes to the
+    server), "Grad-CAM" (time-only gradient saliency), a demo result that looked real, and a broken
+    `/documentation` link.
 
 ---
 

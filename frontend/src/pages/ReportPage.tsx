@@ -42,7 +42,7 @@ export default function ReportPage() {
       "",
       report.summary,
       "",
-      "Model scores are uncalibrated outputs, not proof of disease or guaranteed probabilities of correctness.",
+      "Model scores are temperature-calibrated research estimates, not proof of disease or guaranteed probabilities of correctness.",
     ].join("\n");
     const url = URL.createObjectURL(new Blob([body], { type: "text/plain" }));
     const anchor = document.createElement("a");
@@ -85,7 +85,7 @@ export default function ReportPage() {
           <p className="eyebrow">Recorded model output</p>
           <h2>{safeLabel(report.modelResult.prediction)}</h2>
           <strong className="top-score">{report.modelResult.confidence.toFixed(1)}<span>%</span></strong>
-          <p>Top uncalibrated model score</p>
+          <p>Top model score (calibrated research estimate)</p>
           <div className="score-list compact" role="table" aria-label="Model score distribution">
             {sorted.map(([label, value], index) => (
               <div className="score-row" role="row" key={label}>

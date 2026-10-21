@@ -123,20 +123,21 @@ renderer for LLM output (strips code fences, handles headings and bullets, no
 
 ---
 
-## 6. Stale or inconsistent UI content (verified)
+## 6. Numbers shown in the UI (keep them in sync)
 
-| Where | Says | Reality (`backend/artifacts/latest`) |
+Since final-phase item 10 (2026-10-22), every figure in the UI comes from the leakage-free model
+in `backend/artifacts/latest/`. Each hard-coded block carries a comment naming its source file:
+
+| Where | Shows | Source |
 |---|---|---|
-| `LandingPage.tsx:315` | `StatCard end={82.9}` "Patient-Level Accuracy" | 82.09% |
-| `LandingPage.tsx:252,428` | "Trained on Kaggle Asthma V2" | Kaggle V2 **+ ICBHI 2017** merged (2,131 recordings) |
-| `LandingPage.tsx:305` | demo result "Asthma (87%)" | illustrative only, not a model output |
-| `EvidencePage.tsx:34,105,166` | scores are "uncalibrated"; "Calibration study: Not run" | temperature scaling (T=0.844) + abstention are applied server-side |
-| `EvidencePage.tsx:150-164` | 8-label framing, historical 75.36% val | the current model is 5-class with a patient-disjoint test set (see root CLAUDE.md §6) |
-| `referenceContent.ts` | Bronchiectasis, Bronchiolitis, URTI, LRTI marked "inactive model class in RespiNet v3" | correct: they are grouped into `bronchial` |
+| `LandingPage.tsx` stats | 75.5% patient-level test accuracy | `test_metrics.json` |
+| `EvidencePage.tsx` dataset facts | 1,488 recordings, 243 patient groups, 631 duplicated ICBHI clips removed, 5 labels | `dataset_audit.json` |
+| `EvidencePage.tsx` benchmark ledger | 75.5% accuracy (95% CI 63–88%), 73.7% balanced accuracy, T = 0.71, ECE 0.07, per-source 65.4% / 87.0% | `test_metrics.json`, `calibration.json` |
 
-If you update these, follow the doc-sync rule (root CLAUDE.md §2).
-
----
+**After any retrain, update these blocks, then rebuild and commit `dist/`.** Scores are described
+as "calibrated research estimates". Never call them clinical probabilities, and don't call them
+"uncalibrated" any more (temperature scaling is applied server-side). The landing demo result is
+labeled "Example output … (illustrative)".
 
 ## 7. Dead code
 
