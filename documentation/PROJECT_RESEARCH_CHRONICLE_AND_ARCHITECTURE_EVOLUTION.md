@@ -659,6 +659,20 @@ The trained model (`best_model.keras`) and its contract files (`model_metadata.j
 
 ---
 
+## 8.7 Phase 6: Final-Phase Evidence-Validity Hardening (October 2026)
+
+Branch `final-phase-improvements`. Full rationale, evidence, and before/after results are in
+[`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md). An audit on 2026-10-21
+found **12 groups of byte-identical Kaggle recordings stored under different `P`-numbers, 8 of
+which crossed the train/validation/test split**. It also found serving and provenance safeguards
+weaker than documented. Changes, in commit order:
+
+1. **Repo hygiene:** `pythonpath = ["."]` in `pyproject.toml` (plain `pytest` now finds the
+   backend modules), 4 ruff findings fixed, `nvidia-cuda-nvcc-cu12` added to `requirements.txt`
+   (ptxas/libdevice for TensorFlow GPU JIT).
+
+---
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

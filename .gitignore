@@ -16,3 +16,4 @@ venv/
 .venv/
 respinet_env/
 */venv/
+*/venv.old/

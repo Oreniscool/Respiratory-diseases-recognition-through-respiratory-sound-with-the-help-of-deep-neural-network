@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import librosa
 import numpy as np
+
+if TYPE_CHECKING:
+    import tensorflow as tf
 
 
 def add_noise(

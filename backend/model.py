@@ -7,7 +7,6 @@ from tensorflow.keras.layers import (
     Layer,
     LayerNormalization,
     SpatialDropout1D,
-    Activation,
     Add,
 )
 import tensorflow as tf

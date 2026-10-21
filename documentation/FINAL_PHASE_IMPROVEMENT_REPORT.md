@@ -33,7 +33,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 
 | # | Improvement | Benefit type | Status |
 |---|---|---|---|
-| 1 | Repo hygiene: plain `pytest` works, lint clean, GPU deps complete | Reproducibility / CI | planned |
+| 1 | Repo hygiene: plain `pytest` works, lint clean, GPU deps complete | Reproducibility / CI | ✅ done |
 | 2 | Fail-closed serving (no legacy fallback) | Safety | planned |
 | 3 | Denoising off by default (no train/serve drift) | Correctness | planned |
 | 4 | Real upload signature validation | Security | planned |
@@ -51,7 +51,17 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 <!-- Each item: Problem · Evidence · Change · Benefit · Verification · Status -->
 
 ### 1. Repo hygiene
-_planned_
+- **Problem:** Plain `pytest`, which is what CI runs, failed with `ModuleNotFoundError:
+  preprocessing` because nothing put `backend/` on `sys.path`. `ruff check .` reported 4 errors.
+  So CI could not have been green. On GPU machines TensorFlow failed with `JIT compilation failed
+  [Op:Sign]` because `ptxas`/`libdevice` were not among the dependencies.
+- **Change:** `pythonpath = ["."]` in `backend/pyproject.toml`. Fixed `Augmentation.py`
+  (`TYPE_CHECKING` import for the `tf.Tensor` hints), removed an unused import in `model.py`,
+  made `wsgi.py` re-export explicitly (`__all__`). Added `nvidia-cuda-nvcc-cu12` to
+  `requirements.txt`, and ignored `*/venv.old/`.
+- **Benefit:** The CI commands now pass as written. GPU inference works from a fresh install.
+- **Verification:** `ruff check .` → "All checks passed!". `pytest` → 21 passed.
+- **Status:** ✅ done
 
 ### 2. Fail-closed serving
 _planned_

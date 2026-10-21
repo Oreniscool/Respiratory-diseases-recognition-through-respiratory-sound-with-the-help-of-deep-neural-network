@@ -13,6 +13,8 @@ nvidia-curand-cu12
 nvidia-cusolver-cu12
 nvidia-cusparse-cu12
 nvidia-nccl-cu12
+# ptxas + libdevice, required for TensorFlow GPU JIT kernels (e.g. JIT compilation failed [Op:Sign])
+nvidia-cuda-nvcc-cu12
 
 # Audio processing
 librosa>=0.10,<1
