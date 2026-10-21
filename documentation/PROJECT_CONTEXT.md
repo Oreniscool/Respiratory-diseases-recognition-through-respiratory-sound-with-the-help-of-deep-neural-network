@@ -300,6 +300,14 @@ not comparable to cross-entropy.
 
 ## 9. Current model: verified results
 
+> [!CAUTION]
+> **Superseded on 2026-10-22.** The numbers in this section describe the 2026-08-14 model, whose
+> cohort contained 631 Kaggle clips that are verbatim copies of ICBHI recordings, so they are
+> **contaminated by leakage**. The leakage-free retrain (test accuracy 77.36% recording / 75.51%
+> patient, 49 test patients) is reported in
+> [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md) item 9 and in
+> [`../CLAUDE.md`](../CLAUDE.md) §6. This section is kept as a historical record.
+
 Source: `backend/artifacts/latest/test_metrics.json`. Test split: 67 patients / 443
 recordings, never used for selection or calibration. Probabilities are temperature-calibrated.
 

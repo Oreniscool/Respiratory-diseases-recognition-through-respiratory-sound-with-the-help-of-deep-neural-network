@@ -765,6 +765,18 @@ weaker than documented. Changes, in commit order:
    **1,488 recordings / 243 patients** (ICBHI 920 / 126; Kaggle remainder 568). **All metrics of
    the 2026-08-14 model (§8.6, e.g. 82.09% patient-level accuracy) are contaminated by this
    leakage and are superseded by the retrain below.**
+9. **Leakage-free retrain (2026-10-22, `backend/artifacts/latest/`):** identical architecture and
+   hyperparameters (batch 64, max 80 epochs, Adamax 3e-4 + cosine decay, focal loss γ = 2, label
+   smoothing 0.1, online SpecAugment, seed 42) on the corrected cohort. Early stop at epoch 69,
+   best epoch 51 (val accuracy 0.7346). Temperature T = 0.713. **Test (49 patients / 296
+   recordings): accuracy 77.36% recording / 75.51% patient, balanced accuracy 71.42% / 73.72%,
+   macro-F1 0.690 / 0.737, macro AUROC 0.927 / 0.932, ECE 0.074 / 0.148; patient-bootstrap 95% CI
+   for accuracy 63.3–87.8%.** By source: ICBHI (26 real patients) 75.82% / 65.38% accuracy;
+   Kaggle remainder (23 pseudo-patients, IDs unverified) 79.82% / 86.96%. Compared with the
+   contaminated 2026-08-14 model (80.81% / 82.09%), the leakage inflated accuracy by about 3.5
+   (recording) and 6.6 (patient) points. Also: `evaluate.finite_or_none` and `allow_nan=False`
+   (scikit-learn returns NaN AUROC for subsets missing a class, which produced invalid JSON), and
+   `source_revision` is now captured at run start.
 
 ---
 

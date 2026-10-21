@@ -70,3 +70,22 @@ def test_metadata_records_hyperparameters_and_passes_contract(tmp_path, monkeypa
     metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
     contract = load_verified_contract(model_path, metadata_path)
     assert contract.classes == ["asthma", "copd"]
+
+
+def test_source_revision_is_captured_when_the_run_starts(monkeypatch):
+    """A commit made while a long run trains must not be credited to that run."""
+    args = _args(monkeypatch, "--dataset-format", "folder")
+    monkeypatch.setattr(main, "resolve_source_revision", lambda explicit: "rev-at-start")
+
+    class StopAfterResolve(Exception):
+        pass
+
+    def stop(*_args, **_kwargs):
+        raise StopAfterResolve
+
+    monkeypatch.setattr(main, "build_manifest_from_folders", stop)
+    try:
+        main.run_training(args)
+    except StopAfterResolve:
+        pass
+    assert args.source_revision == "rev-at-start"

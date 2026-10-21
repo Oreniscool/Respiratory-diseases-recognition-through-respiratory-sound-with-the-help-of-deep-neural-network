@@ -162,7 +162,22 @@ def evaluate_model(
         )
     except ValueError:
         metrics["macro_ovr_roc_auc"] = None
-    return metrics
+    return finite_or_none(metrics)
+
+
+def finite_or_none(value):
+    """Replace NaN/inf (e.g. AUROC on a subset missing a class) with None, recursively.
+
+    Python's json module would otherwise write the non-standard token ``NaN``, which strict
+    parsers such as JavaScript's ``JSON.parse`` reject.
+    """
+    if isinstance(value, dict):
+        return {key: finite_or_none(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [finite_or_none(item) for item in value]
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    return value
 
 
 def bootstrap_patient_confidence_intervals(

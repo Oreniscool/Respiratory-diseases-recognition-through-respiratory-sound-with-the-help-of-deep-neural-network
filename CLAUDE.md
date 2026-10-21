@@ -6,7 +6,7 @@ hold module-level detail. The full verified reference (history, exact architectu
 verified metrics, discrepancy register) is
 [`documentation/PROJECT_CONTEXT.md`](documentation/PROJECT_CONTEXT.md).
 
-Last verified against source and on-disk artifacts: **2026-10-21** (HEAD `1b81cff`).
+Last verified against source and on-disk artifacts: **2026-10-22** (branch `final-phase-improvements`).
 
 ---
 
@@ -184,23 +184,29 @@ npm run build               # tsc -b && vite build → dist/ (dist is committed)
 
 ---
 
-## 6. Current verified state (from `backend/artifacts/latest/`)
+## 6. Current verified state (from `backend/artifacts/latest/`, trained 2026-10-22)
+
+The leakage-free retrain (final-phase item 9). The previous 2026-08-14 model is archived in
+`backend/artifacts/v3-2026-08-14/`. **Its metrics (e.g. 82.09%) are contaminated by
+cross-dataset leakage and must not be cited as performance.**
 
 | Fact | Value | Source |
 |---|---|---|
 | Classes (ordered) | `asthma, bronchial, copd, healthy, pneumonia` | `model_metadata.json` |
 | Parameters | 458,701 (≈1.75 MB) | `model_summary.txt` |
-| Cohort | 2,131 recordings / 331 patients (Kaggle 1,211 / 205 + ICBHI 920 / 126) | `split_summary.json` |
-| Split (patients) | train 198 / val 66 / test 67; recordings 1,248 / 440 / 443 | `split_summary.json` |
-| Epochs run | 76 (early stop); best epoch 58, val_acc 0.808, val_loss 0.1103 | `training_history.json` |
-| Temperature | **0.8443** (val NLL 0.5531 → 0.5446) | `calibration.json` |
-| Abstention | min_conf 0.6386, max_norm_entropy 0.5276, 80% target coverage | `calibration.json` |
-| Test acc (recording / patient) | 80.81% / 82.09% | `test_metrics.json` |
-| Balanced acc | 75.03% / 79.65% | `test_metrics.json` |
-| Macro F1 | 0.7200 / 0.7922 | `test_metrics.json` |
-| ECE | 0.0333 / 0.1030 | `test_metrics.json` |
-| Macro OvR AUROC | 0.9465 / 0.9672 | `test_metrics.json` |
-| Patient-bootstrap 95% CI (acc) | 73.1% – 91.0% (1,000 samples) | `test_metrics.json` |
+| Cohort | 1,488 recordings / 243 patients (ICBHI 920 / 126 real patients + Kaggle remainder 568 / 117 pseudo-patients), after dropping 631 Kaggle copies of ICBHI audio and 12 byte duplicates | `dataset_audit.json` |
+| Split (patients) | train 145 / val 49 / test 49; recordings 864 / 328 / 296 | `split_summary.json` |
+| Epochs run | 69 (early stop); best epoch 51, val_acc 0.7346, train_acc 0.8174 | `training_history.json` |
+| Temperature | **0.7133** | `calibration.json` |
+| Abstention | min_conf 0.5727, max_norm_entropy 0.5826, 80% target coverage | `calibration.json` |
+| Test acc (recording / patient) | **77.36% / 75.51%** | `test_metrics.json` |
+| Balanced acc | 71.42% / 73.72% | `test_metrics.json` |
+| Macro F1 | 0.6897 / 0.7374 | `test_metrics.json` |
+| ECE | 0.0741 / 0.1479 | `test_metrics.json` |
+| Macro OvR AUROC | 0.9266 / 0.9318 | `test_metrics.json` |
+| Patient-bootstrap 95% CI (acc) | 63.3% – 87.8% (1,000 samples) | `test_metrics.json` |
+| By source, accuracy rec. / patient | ICBHI (26 real patients) 75.82% / 65.38%; Kaggle (23 pseudo-patients, IDs unverified) 79.82% / 86.96% | `test_metrics.json["by_source"]` |
+| Code revision | trained at `1a03f37` (metadata records `0bed762`, docs-only difference) | `model_metadata.json` |
 
 **Known-wrong numbers in existing docs:** "T ≈ 1.54" (chronicle, CHANGELOG, assessment,
 presentation dossiers; the real value is 0.844), the chronicle's §7.1 "refactored" table

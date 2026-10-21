@@ -42,7 +42,7 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
 | 6 | Provenance that actually rejects wrong labels | Evidence validity | ✅ done |
 | 7 | Leakage-free cohort: drop Kaggle clips cut from ICBHI, dedup, full audit, per-source metrics | Evidence validity (leakage) | ✅ done |
 | 8 | Complete run metadata (per-source metrics moved to item 7) | Reproducibility | ✅ done |
-| 9 | Retrain on the corrected pipeline | Evidence validity | planned |
+| 9 | Retrain on the corrected pipeline | Evidence validity | ✅ done |
 | 10 | Truthful UI and documentation | Integrity | planned |
 
 ---
@@ -258,7 +258,85 @@ not to tuning. A lower number after this pass is a *more correct* number, not a 
   item 7, so they are implemented there.
 
 ### 9. Retrain and results
-_planned_
+- **What changed between the two models:** Only the data. Same architecture (RespiNet-Attention v3,
+  458,701 parameters), same loss, optimizer and hyperparameters (batch 64, max 80 epochs, Adamax
+  3e-4 with cosine decay, focal loss γ = 2 with label smoothing 0.1, online SpecAugment, seed 42).
+  The new run excludes the 631 Kaggle copies of ICBHI audio and the 12 byte duplicates (item 7).
+  The old artifact is archived unchanged in `backend/artifacts/v3-2026-08-14/`.
+- **New run:** `backend/artifacts/latest/` (trained 2026-10-22, code at `1a03f37`). The recorded
+  `source_revision` `0bed762` differs from that commit only in the chronicle (verified with
+  `git diff`). That happened because the revision used to be read at the *end* of the run, which
+  is now fixed (see below). Early stopping at epoch 69, best epoch **51** (val accuracy 0.7346, train
+  accuracy 0.8174). Temperature **T = 0.713**. Abstention thresholds: min confidence 0.573, max
+  normalized entropy 0.583 (80% target coverage).
+
+#### Test-set results: contaminated vs leakage-free
+
+Test split: old = 67 patients / 443 recordings; **new = 49 patients / 296 recordings**.
+Probabilities are temperature-calibrated in both cases.
+
+| Metric | Old (contaminated) recording | **New recording** | Old (contaminated) patient | **New patient** |
+|---|---:|---:|---:|---:|
+| Accuracy | 80.81% | **77.36%** | 82.09% | **75.51%** |
+| Balanced accuracy | 75.03% | **71.42%** | 79.65% | **73.72%** |
+| Macro F1 | 0.7200 | **0.6897** | 0.7922 | **0.7374** |
+| Weighted F1 | 0.8112 | 0.7890 | 0.8199 | 0.7618 |
+| Cohen's κ | 0.7035 | 0.6720 | 0.7692 | 0.6915 |
+| MCC | 0.7118 | 0.6784 | 0.7746 | 0.6985 |
+| Macro OvR AUROC | 0.9465 | **0.9266** | 0.9672 | **0.9318** |
+| Log loss | 0.5577 | 0.6383 | 0.5682 | 0.7490 |
+| Multiclass Brier | 0.2902 | 0.3304 | 0.2776 | 0.3648 |
+| ECE (10 bins) | 0.0333 | 0.0741 | 0.1030 | 0.1479 |
+
+New patient-bootstrap 95% CIs (1,000 samples): accuracy **63.3–87.8%**, balanced accuracy
+59.8–86.0%, macro F1 59.3–85.0%.
+
+Per-class, new model (patient level, n = patients): asthma sensitivity 91.7% / specificity 97.3%
+(12) · bronchial 50.0% / 97.6% (8) · copd 76.9% / 97.2% (13) · healthy 75.0% / 82.9% (8) ·
+pneumonia 75.0% / 95.1% (8). The main confusions are bronchial → healthy (4 of 8 patients) and,
+at recording level, copd → pneumonia (18 of 157 recordings).
+
+#### By data source (new model)
+
+| Subset of the test split | Patients | Accuracy rec. / patient | Balanced acc. rec. / patient | Macro-F1 patient |
+|---|---:|---:|---:|---:|
+| **ICBHI** (real patient IDs, leakage-free) | 26 | 75.82% / 65.38% | 45.22% / 58.05% | 0.4956 |
+| Kaggle remainder (subject IDs unverified) | 23 | 79.82% / 86.96% | 75.00% / 84.52% | 0.8481 |
+
+#### Interpretation (what can honestly be claimed)
+
+1. **The leakage inflated the headline by ~3.5 points (recording) and ~6.6 points (patient
+   accuracy).** The corrected model reaches **75.5% patient-level accuracy and 73.7% balanced
+   accuracy on 49 held-out patients** (95% CI 63–88%). This is the number to report.
+2. **Performance is uneven across sources and classes.** On ICBHI's real patients, COPD (13
+   patients, 76.9%) and healthy (5, 80%) are recognized well, but ICBHI's test subset contains only
+   1 asthma and 1 pneumonia patient, so its balanced accuracy (58%) rests on very few patients and
+   must not be over-interpreted. The grouped `bronchial` class is the weakest overall (50% patient
+   sensitivity).
+3. **The Kaggle-subset figure (87%) is likely optimistic.** Its subject IDs are inferred from
+   filename prefixes that are proven unreliable, and part of it derives from KAUH, which was not
+   checked for overlap (item 7, remaining limitation).
+4. **Calibration got worse (ECE 0.033 → 0.074)** with a smaller validation set (49 vs 66 patients)
+   for fitting T. The model is still slightly *under*-confident (T < 1 sharpens it).
+5. This is still a **single patient-disjoint split** of one merged cohort, with no external or
+   prospective validation. The research-only framing stands.
+
+#### Fixes found while producing these results
+- **Invalid JSON:** scikit-learn 1.9 returns `NaN` (with a warning) instead of raising when a
+  class is missing from a subset. That happened here for Kaggle-only AUROC, because Kaggle has no
+  COPD after the overlap removal. Python wrote it as the non-standard token `NaN`, which
+  JavaScript's `JSON.parse` rejects. `evaluate.finite_or_none` now maps every non-finite metric to
+  `null`, and `main.py` writes metrics with `allow_nan=False`. The existing `test_metrics.json` was
+  converted with the same function: 717 values compared, and only the 2 `NaN` AUROC fields changed.
+  A new regression test fails without the fix.
+- **Revision timing:** `source_revision` is now captured when the run starts, so commits made during
+  a long run are not credited to it (new test).
+- Removed the stale tracked root `artifacts/latest/` (a split from the scrambled-label run).
+
+- **Verification:** `load_verified_contract` accepts the new artifact. Live server: `/ready` →
+  `verified-metadata`. Three test-split recordings (ICBHI COPD with 30 windows, ICBHI healthy,
+  Kaggle asthma) were all predicted correctly. 70 tests pass, ruff clean.
+- **Status:** ✅ done
 
 ### 10. Truthful UI and documentation
 _planned_

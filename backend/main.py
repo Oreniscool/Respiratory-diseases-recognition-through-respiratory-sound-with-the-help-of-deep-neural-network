@@ -348,6 +348,8 @@ def _write_split_manifest(
 
 def run_training(args: argparse.Namespace) -> None:
     resolve_dataset_paths(args)
+    # Capture the revision now: commits made while a long run trains must not be credited to it.
+    args.source_revision = resolve_source_revision(args.source_revision)
     random.seed(args.seed)
     np.random.seed(args.seed)
 
@@ -568,7 +570,7 @@ def run_training(args: argparse.Namespace) -> None:
         ),
     }
     with (output_dir / "test_metrics.json").open("w", encoding="utf-8") as handle:
-        json.dump(metrics, handle, indent=2)
+        json.dump(metrics, handle, indent=2, allow_nan=False)
 
     metadata = build_model_metadata(
         args,
