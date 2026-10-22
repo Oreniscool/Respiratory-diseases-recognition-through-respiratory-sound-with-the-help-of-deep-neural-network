@@ -1,0 +1,217 @@
+path,patient_id,filter,diagnosis,label
+"dataset/KAUH/audio/BP100_N,N,P R M,70,F.wav",900100,bell,n,healthy
+"dataset/KAUH/audio/BP102_N,N,P L L,41,M.wav",900102,bell,n,healthy
+"dataset/KAUH/audio/BP103_N,N,P R U,81,F.wav",900103,bell,n,healthy
+"dataset/KAUH/audio/BP105_Lung Fibrosis,Crep,A U R,44,M.wav",900105,bell,lung fibrosis,out_of_label
+"dataset/KAUH/audio/BP108_COPD,E W,P R L ,63,M.wav",900108,bell,copd,copd
+"dataset/KAUH/audio/BP109_N,N,P L M,26,M.wav",900109,bell,n,healthy
+"dataset/KAUH/audio/BP110_COPD,E W,P L L,62,M.wav",900110,bell,copd,copd
+"dataset/KAUH/audio/BP111_COPD,E W,P R L ,51,M.wav",900111,bell,copd,copd
+"dataset/KAUH/audio/BP112_N,N,P L M,30,M.wav",900112,bell,n,healthy
+"dataset/KAUH/audio/BP11_Heart Failure,C,P L L,53,M.wav",900011,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP13_Heart Failure,C,P L L,55,M.wav",900013,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP14_Heart Failure,C,A R M,54,M.wav",900014,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP16_heart failure,C,P R U,56,M.wav",900016,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP17_COPD,E W,A R M,57,M.wav",900017,bell,copd,copd
+"dataset/KAUH/audio/BP19_heart failure,C,P R U,70,F.wav",900019,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP22_BRON,Crep,P R U,24,M.wav",900022,bell,bron,bronchial
+"dataset/KAUH/audio/BP23_Lung Fibrosis,Crep,P R L ,50,M.wav",900023,bell,lung fibrosis,out_of_label
+"dataset/KAUH/audio/BP24_heart failure,Crep,P R L ,76,F.wav",900024,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP25_copd,E W,P L L,76,M.wav",900025,bell,copd,copd
+"dataset/KAUH/audio/BP26_Lung Fibrosis,Crep,P,90,F.wav",900026,bell,lung fibrosis,out_of_label
+"dataset/KAUH/audio/BP29_heart failure,Crep,P L L,57,M.wav",900029,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP30_N,N,P R M,18,F.wav",900030,bell,n,healthy
+"dataset/KAUH/audio/BP31_N,N,P L M,27,F.wav",900031,bell,n,healthy
+"dataset/KAUH/audio/BP32_N,N,A R L,30,M.wav",900032,bell,n,healthy
+"dataset/KAUH/audio/BP34_heart failure,Crep,P R M,78,F.wav",900034,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP39_heart failure,Crep,P R L ,67,M.wav",900039,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP40_heart failure,Crep,A R M,26,M.wav",900040,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP42_heart failure,Crep,P L L,56,M.wav",900042,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP45_heart failure,Crep,P R L ,30,M.wav",900045,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP48_N,N,P L U,31,M.wav",900048,bell,n,healthy
+"dataset/KAUH/audio/BP49_N,N,P R M,21,M.wav",900049,bell,n,healthy
+"dataset/KAUH/audio/BP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",900004,bell,heart failure + lung fibrosis,out_of_label
+"dataset/KAUH/audio/BP50_N,N,P R L ,27,M.wav",900050,bell,n,healthy
+"dataset/KAUH/audio/BP51_N,N,P L M,30,M.wav",900051,bell,n,healthy
+"dataset/KAUH/audio/BP52_Lung Fibrosis,Crep,P L L,76,F.wav",900052,bell,lung fibrosis,out_of_label
+"dataset/KAUH/audio/BP54_heart failure,Crep,P R L ,73,F.wav",900054,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP57_COPD,E W,P R L ,42,M.wav",900057,bell,copd,copd
+"dataset/KAUH/audio/BP59_heart failure,Crep,P R L ,83,F.wav",900059,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",900005,bell,heart failure + copd,out_of_label
+"dataset/KAUH/audio/BP60_heart failure,Crep,P L L,83,F.wav",900060,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP61_COPD,E W,P R L ,53,M.wav",900061,bell,copd,copd
+"dataset/KAUH/audio/BP62_COPD,E W,P L M,53,M.wav",900062,bell,copd,copd
+"dataset/KAUH/audio/BP63_COPD,E W,P R L ,58,F.wav",900063,bell,copd,copd
+"dataset/KAUH/audio/BP66_heart failure,Crep,P R L ,43,M.wav",900066,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP67_heart failure,Crep,P R L ,24,F.wav",900067,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP6_Plueral Effusion,I C B,P L R,81,M.wav",900006,bell,plueral effusion,out_of_label
+"dataset/KAUH/audio/BP70_N,N,P L U,52,F.wav",900070,bell,n,healthy
+"dataset/KAUH/audio/BP71_N,N,P R U,36,M.wav",900071,bell,n,healthy
+"dataset/KAUH/audio/BP72_N,N,P R U,24,F.wav",900072,bell,n,healthy
+"dataset/KAUH/audio/BP73_N,N,P L L,32,M.wav",900073,bell,n,healthy
+"dataset/KAUH/audio/BP74_N,N,P R M,74,M.wav",900074,bell,n,healthy
+"dataset/KAUH/audio/BP75_N,N,P L U,73,F.wav",900075,bell,n,healthy
+"dataset/KAUH/audio/BP76_N,N,A L U,31,M.wav",900076,bell,n,healthy
+"dataset/KAUH/audio/BP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",900007,bell,heart failure + copd,out_of_label
+"dataset/KAUH/audio/BP81_N,N,P L U,33,M.wav",900081,bell,n,healthy
+"dataset/KAUH/audio/BP82_N,N,P L U,38,M.wav",900082,bell,n,healthy
+"dataset/KAUH/audio/BP83_N,N,A R U,18,F.wav",900083,bell,n,healthy
+"dataset/KAUH/audio/BP84_N,N,A R U,65,F.wav",900084,bell,n,healthy
+"dataset/KAUH/audio/BP85_N,N,A R U,33,M.wav",900085,bell,n,healthy
+"dataset/KAUH/audio/BP86_N,N,P R U,68,F.wav",900086,bell,n,healthy
+"dataset/KAUH/audio/BP87_N,N,P R M,72,M.wav",900087,bell,n,healthy
+"dataset/KAUH/audio/BP88_N,N,A R U,29,M.wav",900088,bell,n,healthy
+"dataset/KAUH/audio/BP89_N,N,P L M,70,M.wav",900089,bell,n,healthy
+"dataset/KAUH/audio/BP8_Plueral Effusion,I C B,P L L,70,M.wav",900008,bell,plueral effusion,out_of_label
+"dataset/KAUH/audio/BP90_heart failure,Crep,P L M,74,F.wav",900090,bell,heart failure,out_of_label
+"dataset/KAUH/audio/BP92_N,N,P L L ,43,M.wav",900092,bell,n,healthy
+"dataset/KAUH/audio/BP93_N,N,P R M,75,M.wav",900093,bell,n,healthy
+"dataset/KAUH/audio/BP94_N,N,P L L,24,M.wav",900094,bell,n,healthy
+"dataset/KAUH/audio/BP95_N,N,P L M,18,M.wav",900095,bell,n,healthy
+"dataset/KAUH/audio/BP96_N,N,P R L ,66,F.wav",900096,bell,n,healthy
+"dataset/KAUH/audio/BP98_N,N,P L L,53,M.wav",900098,bell,n,healthy
+"dataset/KAUH/audio/BP99_N,N,P R M,50,M.wav",900099,bell,n,healthy
+"dataset/KAUH/audio/DP100_N,N,P R M,70,F.wav",900100,diaphragm,n,healthy
+"dataset/KAUH/audio/DP102_N,N,P L L,41,M.wav",900102,diaphragm,n,healthy
+"dataset/KAUH/audio/DP103_N,N,P R U,81,F.wav",900103,diaphragm,n,healthy
+"dataset/KAUH/audio/DP105_Lung Fibrosis,Crep,A U R,44,M.wav",900105,diaphragm,lung fibrosis,out_of_label
+"dataset/KAUH/audio/DP108_COPD,E W,P R L ,63,M.wav",900108,diaphragm,copd,copd
+"dataset/KAUH/audio/DP109_N,N,P L M,26,M.wav",900109,diaphragm,n,healthy
+"dataset/KAUH/audio/DP110_COPD,E W,P L L,62,M.wav",900110,diaphragm,copd,copd
+"dataset/KAUH/audio/DP111_COPD,E W,P R L ,51,M.wav",900111,diaphragm,copd,copd
+"dataset/KAUH/audio/DP112_N,N,P L M,30,M.wav",900112,diaphragm,n,healthy
+"dataset/KAUH/audio/DP11_Heart Failure,C,P L L,53,M.wav",900011,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP13_Heart Failure,C,P L L,55,M.wav",900013,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP14_Heart Failure,C,A R M,54,M.wav",900014,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP16_heart failure,C,P R U,56,M.wav",900016,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP17_COPD,E W,A R M,57,M.wav",900017,diaphragm,copd,copd
+"dataset/KAUH/audio/DP19_heart failure,C,P R U,70,F.wav",900019,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP22_BRON,Crep,P R U,24,M.wav",900022,diaphragm,bron,bronchial
+"dataset/KAUH/audio/DP23_Lung Fibrosis,Crep,P R L ,50,M.wav",900023,diaphragm,lung fibrosis,out_of_label
+"dataset/KAUH/audio/DP24_heart failure,Crep,P R L ,76,F.wav",900024,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP25_copd,E W,P L L,76,M.wav",900025,diaphragm,copd,copd
+"dataset/KAUH/audio/DP26_Lung Fibrosis,Crep,P,90,F.wav",900026,diaphragm,lung fibrosis,out_of_label
+"dataset/KAUH/audio/DP29_heart failure,Crep,P L L,57,M.wav",900029,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP30_N,N,P R M,18,F.wav",900030,diaphragm,n,healthy
+"dataset/KAUH/audio/DP31_N,N,P L M,27,F.wav",900031,diaphragm,n,healthy
+"dataset/KAUH/audio/DP32_N,N,A R L,30,M.wav",900032,diaphragm,n,healthy
+"dataset/KAUH/audio/DP34_heart failure,Crep,P R M,78,F.wav",900034,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP39_heart failure,Crep,P R L ,67,M.wav",900039,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP40_heart failure,Crep,A R M,26,M.wav",900040,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP42_heart failure,Crep,P L L,56,M.wav",900042,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP45_heart failure,Crep,P R L ,30,M.wav",900045,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP48_N,N,P L U,31,M.wav",900048,diaphragm,n,healthy
+"dataset/KAUH/audio/DP49_N,N,P R M,21,M.wav",900049,diaphragm,n,healthy
+"dataset/KAUH/audio/DP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",900004,diaphragm,heart failure + lung fibrosis,out_of_label
+"dataset/KAUH/audio/DP50_N,N,P R L ,27,M.wav",900050,diaphragm,n,healthy
+"dataset/KAUH/audio/DP51_N,N,P L M,30,M.wav",900051,diaphragm,n,healthy
+"dataset/KAUH/audio/DP52_Lung Fibrosis,Crep,P L L,76,F.wav",900052,diaphragm,lung fibrosis,out_of_label
+"dataset/KAUH/audio/DP54_heart failure,Crep,P R L ,73,F.wav",900054,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP57_COPD,E W,P R L ,42,M.wav",900057,diaphragm,copd,copd
+"dataset/KAUH/audio/DP59_heart failure,Crep,P R L ,83,F.wav",900059,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",900005,diaphragm,heart failure + copd,out_of_label
+"dataset/KAUH/audio/DP60_heart failure,Crep,P L L,83,F.wav",900060,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP61_COPD,E W,P R L ,53,M.wav",900061,diaphragm,copd,copd
+"dataset/KAUH/audio/DP62_COPD,E W,P L M,53,M.wav",900062,diaphragm,copd,copd
+"dataset/KAUH/audio/DP63_COPD,E W,P R L ,58,F.wav",900063,diaphragm,copd,copd
+"dataset/KAUH/audio/DP66_heart failure,Crep,P R L ,43,M.wav",900066,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP67_heart failure,Crep,P R L ,24,F.wav",900067,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP6_Plueral Effusion,I C B,P L R,81,M.wav",900006,diaphragm,plueral effusion,out_of_label
+"dataset/KAUH/audio/DP70_N,N,P L U,52,F.wav",900070,diaphragm,n,healthy
+"dataset/KAUH/audio/DP71_N,N,P R U,36,M.wav",900071,diaphragm,n,healthy
+"dataset/KAUH/audio/DP72_N,N,P R U,24,F.wav",900072,diaphragm,n,healthy
+"dataset/KAUH/audio/DP73_N,N,P L L,32,M.wav",900073,diaphragm,n,healthy
+"dataset/KAUH/audio/DP74_N,N,P R M,74,M.wav",900074,diaphragm,n,healthy
+"dataset/KAUH/audio/DP75_N,N,P L U,73,F.wav",900075,diaphragm,n,healthy
+"dataset/KAUH/audio/DP76_N,N,A L U,31,M.wav",900076,diaphragm,n,healthy
+"dataset/KAUH/audio/DP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",900007,diaphragm,heart failure + copd,out_of_label
+"dataset/KAUH/audio/DP81_N,N,P L U,33,M.wav",900081,diaphragm,n,healthy
+"dataset/KAUH/audio/DP82_N,N,P L U,38,M.wav",900082,diaphragm,n,healthy
+"dataset/KAUH/audio/DP83_N,N,A R U,18,F.wav",900083,diaphragm,n,healthy
+"dataset/KAUH/audio/DP84_N,N,A R U,65,F.wav",900084,diaphragm,n,healthy
+"dataset/KAUH/audio/DP85_N,N,A R U,33,M.wav",900085,diaphragm,n,healthy
+"dataset/KAUH/audio/DP86_N,N,P R U,68,F.wav",900086,diaphragm,n,healthy
+"dataset/KAUH/audio/DP87_N,N,P R M,72,M.wav",900087,diaphragm,n,healthy
+"dataset/KAUH/audio/DP88_N,N,A R U,29,M.wav",900088,diaphragm,n,healthy
+"dataset/KAUH/audio/DP89_N,N,P L M,70,M.wav",900089,diaphragm,n,healthy
+"dataset/KAUH/audio/DP8_Plueral Effusion,I C B,P L L,70,M.wav",900008,diaphragm,plueral effusion,out_of_label
+"dataset/KAUH/audio/DP90_heart failure,Crep,P L M,74,F.wav",900090,diaphragm,heart failure,out_of_label
+"dataset/KAUH/audio/DP92_N,N,P L L ,43,M.wav",900092,diaphragm,n,healthy
+"dataset/KAUH/audio/DP93_N,N,P R M,75,M.wav",900093,diaphragm,n,healthy
+"dataset/KAUH/audio/DP94_N,N,P L L,24,M.wav",900094,diaphragm,n,healthy
+"dataset/KAUH/audio/DP95_N,N,P L M,18,M.wav",900095,diaphragm,n,healthy
+"dataset/KAUH/audio/DP96_N,N,P R L ,66,F.wav",900096,diaphragm,n,healthy
+"dataset/KAUH/audio/DP98_N,N,P L L,53,M.wav",900098,diaphragm,n,healthy
+"dataset/KAUH/audio/DP99_N,N,P R M,50,M.wav",900099,diaphragm,n,healthy
+"dataset/KAUH/audio/EP100_N,N,P R M,70,F.wav",900100,extended,n,healthy
+"dataset/KAUH/audio/EP102_N,N,P L L,41,M.wav",900102,extended,n,healthy
+"dataset/KAUH/audio/EP103_N,N,P R U,81,F.wav",900103,extended,n,healthy
+"dataset/KAUH/audio/EP105_Lung Fibrosis,Crep,A U R,44,M.wav",900105,extended,lung fibrosis,out_of_label
+"dataset/KAUH/audio/EP108_COPD,E W,P R L ,63,M.wav",900108,extended,copd,copd
+"dataset/KAUH/audio/EP109_N,N,P L M,26,M.wav",900109,extended,n,healthy
+"dataset/KAUH/audio/EP110_COPD,E W,P L L,62,M.wav",900110,extended,copd,copd
+"dataset/KAUH/audio/EP111_COPD,E W,P R L ,51,M.wav",900111,extended,copd,copd
+"dataset/KAUH/audio/EP112_N,N,P L M,30,M.wav",900112,extended,n,healthy
+"dataset/KAUH/audio/EP11_Heart Failure,C,P L L,53,M.wav",900011,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP13_Heart Failure,C,P L L,55,M.wav",900013,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP14_Heart Failure,C,A R M,54,M.wav",900014,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP16_heart failure,C,P R U,56,M.wav",900016,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP17_COPD,E W,A R M,57,M.wav",900017,extended,copd,copd
+"dataset/KAUH/audio/EP19_heart failure,C,P R U,70,F.wav",900019,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP22_BRON,Crep,P R U,24,M.wav",900022,extended,bron,bronchial
+"dataset/KAUH/audio/EP23_Lung Fibrosis,Crep,P R L ,50,M.wav",900023,extended,lung fibrosis,out_of_label
+"dataset/KAUH/audio/EP24_heart failure,Crep,P R L ,76,F.wav",900024,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP25_copd,E W,P L L,76,M.wav",900025,extended,copd,copd
+"dataset/KAUH/audio/EP26_Lung Fibrosis,Crep,P,90,F.wav",900026,extended,lung fibrosis,out_of_label
+"dataset/KAUH/audio/EP29_heart failure,Crep,P L L,57,M.wav",900029,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP30_N,N,P R M,18,F.wav",900030,extended,n,healthy
+"dataset/KAUH/audio/EP31_N,N,P L M,27,F.wav",900031,extended,n,healthy
+"dataset/KAUH/audio/EP32_N,N,A R L,30,M.wav",900032,extended,n,healthy
+"dataset/KAUH/audio/EP34_heart failure,Crep,P R M,78,F.wav",900034,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP39_heart failure,Crep,P R L ,67,M.wav",900039,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP40_heart failure,Crep,A R M,26,M.wav",900040,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP42_heart failure,Crep,P L L,56,M.wav",900042,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP45_heart failure,Crep,P R L ,30,M.wav",900045,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP48_N,N,P L U,31,M.wav",900048,extended,n,healthy
+"dataset/KAUH/audio/EP49_N,N,P R M,21,M.wav",900049,extended,n,healthy
+"dataset/KAUH/audio/EP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",900004,extended,heart failure + lung fibrosis,out_of_label
+"dataset/KAUH/audio/EP50_N,N,P R L ,27,M.wav",900050,extended,n,healthy
+"dataset/KAUH/audio/EP51_N,N,P L M,30,M.wav",900051,extended,n,healthy
+"dataset/KAUH/audio/EP52_Lung Fibrosis,Crep,P L L,76,F.wav",900052,extended,lung fibrosis,out_of_label
+"dataset/KAUH/audio/EP54_heart failure,Crep,P R L ,73,F.wav",900054,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP57_COPD,E W,P R L ,42,M.wav",900057,extended,copd,copd
+"dataset/KAUH/audio/EP59_heart failure,Crep,P R L ,83,F.wav",900059,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",900005,extended,heart failure + copd,out_of_label
+"dataset/KAUH/audio/EP60_heart failure,Crep,P L L,83,F.wav",900060,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP61_COPD,E W,P R L ,53,M.wav",900061,extended,copd,copd
+"dataset/KAUH/audio/EP62_COPD,E W,P L M,53,M.wav",900062,extended,copd,copd
+"dataset/KAUH/audio/EP63_COPD,E W,P R L ,58,F.wav",900063,extended,copd,copd
+"dataset/KAUH/audio/EP66_heart failure,Crep,P R L ,43,M.wav",900066,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP67_heart failure,Crep,P R L ,24,F.wav",900067,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP6_Plueral Effusion,I C B,P L R,81,M.wav",900006,extended,plueral effusion,out_of_label
+"dataset/KAUH/audio/EP70_N,N,P L U,52,F.wav",900070,extended,n,healthy
+"dataset/KAUH/audio/EP71_N,N,P R U,36,M.wav",900071,extended,n,healthy
+"dataset/KAUH/audio/EP72_N,N,P R U,24,F.wav",900072,extended,n,healthy
+"dataset/KAUH/audio/EP73_N,N,P L L,32,M.wav",900073,extended,n,healthy
+"dataset/KAUH/audio/EP74_N,N,P R M,74,M.wav",900074,extended,n,healthy
+"dataset/KAUH/audio/EP75_N,N,P L U,73,F.wav",900075,extended,n,healthy
+"dataset/KAUH/audio/EP76_N,N,A L U,31,M.wav",900076,extended,n,healthy
+"dataset/KAUH/audio/EP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",900007,extended,heart failure + copd,out_of_label
+"dataset/KAUH/audio/EP81_N,N,P L U,33,M.wav",900081,extended,n,healthy
+"dataset/KAUH/audio/EP82_N,N,P L U,38,M.wav",900082,extended,n,healthy
+"dataset/KAUH/audio/EP83_N,N,A R U,18,F.wav",900083,extended,n,healthy
+"dataset/KAUH/audio/EP84_N,N,A R U,65,F.wav",900084,extended,n,healthy
+"dataset/KAUH/audio/EP85_N,N,A R U,33,M.wav",900085,extended,n,healthy
+"dataset/KAUH/audio/EP86_N,N,P R U,68,F.wav",900086,extended,n,healthy
+"dataset/KAUH/audio/EP87_N,N,P R M,72,M.wav",900087,extended,n,healthy
+"dataset/KAUH/audio/EP88_N,N,A R U,29,M.wav",900088,extended,n,healthy
+"dataset/KAUH/audio/EP89_N,N,P L M,70,M.wav",900089,extended,n,healthy
+"dataset/KAUH/audio/EP8_Plueral Effusion,I C B,P L L,70,M.wav",900008,extended,plueral effusion,out_of_label
+"dataset/KAUH/audio/EP90_heart failure,Crep,P L M,74,F.wav",900090,extended,heart failure,out_of_label
+"dataset/KAUH/audio/EP92_N,N,P L L ,43,M.wav",900092,extended,n,healthy
+"dataset/KAUH/audio/EP93_N,N,P R M,75,M.wav",900093,extended,n,healthy
+"dataset/KAUH/audio/EP94_N,N,P L L,24,M.wav",900094,extended,n,healthy
+"dataset/KAUH/audio/EP95_N,N,P L M,18,M.wav",900095,extended,n,healthy
+"dataset/KAUH/audio/EP96_N,N,P R L ,66,F.wav",900096,extended,n,healthy
+"dataset/KAUH/audio/EP98_N,N,P L L,53,M.wav",900098,extended,n,healthy
+"dataset/KAUH/audio/EP99_N,N,P R M,50,M.wav",900099,extended,n,healthy

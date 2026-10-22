@@ -1,0 +1,29 @@
+{
+  "threshold": 0.75,
+  "clips": 1211,
+  "overlaps": 316,
+  "by_class": {
+    "bronchial": {
+      "clips": 104,
+      "overlaps": 15
+    },
+    "asthma": {
+      "clips": 288,
+      "overlaps": 262
+    },
+    "copd": {
+      "clips": 401,
+      "overlaps": 0
+    },
+    "healthy": {
+      "clips": 133,
+      "overlaps": 0
+    },
+    "pneumonia": {
+      "clips": 285,
+      "overlaps": 39
+    }
+  },
+  "min_overlap_ncc": 0.7722,
+  "max_non_overlap_ncc": 0.5728
+}

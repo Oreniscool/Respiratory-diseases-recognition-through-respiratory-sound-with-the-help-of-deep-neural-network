@@ -177,6 +177,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--kauh-overlap-csv",
+        default="data/kaggle_kauh_overlap.csv",
+        help="Evidence file listing Kaggle V2 clips cut from KAUH recordings (real patient IDs)",
+    )
+    parser.add_argument(
+        "--no-kauh-ids",
+        action="store_true",
+        help="Keep Kaggle filename pseudo-patient IDs (known to merge and split real patients)",
+    )
+    parser.add_argument(
         "--no-overlap-exclusion",
         action="store_true",
         help="Keep Kaggle clips that are copies of ICBHI audio (reintroduces split leakage)",
@@ -343,6 +353,61 @@ def exclude_cross_dataset_overlap(
     return [record for record in records if id(record) not in removed_ids], report
 
 
+def assign_kauh_patient_ids(
+    records: list[AudioRecord], evidence_csv: str | Path
+) -> tuple[list[AudioRecord], dict[str, object]]:
+    """Give Kaggle V2 clips that were cut from KAUH recordings their real KAUH patient ID.
+
+    Kaggle filename prefixes ("P54") are not subject IDs: 57 of the 64 prefix groups that match
+    KAUH contain clips of several KAUH patients. Without this step one patient's audio can sit
+    on both sides of the split. The evidence file must cover every Kaggle clip (fail closed), and
+    a clip whose class disagrees with the KAUH diagnosis stops the pipeline.
+    """
+    from kauh import matched_patients
+
+    evidence_csv = Path(evidence_csv)
+    if not evidence_csv.is_absolute() and not evidence_csv.is_file():
+        evidence_csv = Path(__file__).resolve().parent / evidence_csv
+    if not evidence_csv.is_file():
+        raise FileNotFoundError(
+            f"Kaggle Asthma V2 requires the KAUH overlap evidence file {evidence_csv}. Generate it "
+            "with cross_dataset_overlap.py, or pass --no-kauh-ids knowingly."
+        )
+    covered, _ = load_overlap_evidence(evidence_csv)
+    matches = matched_patients(evidence_csv)
+    kaggle = [record for record in records if record.source == "kaggle_asthma_v2"]
+    uncovered = [str(record.path) for record in kaggle if overlap_key(record.path) not in covered]
+    if uncovered:
+        raise ValueError(
+            f"KAUH evidence {evidence_csv} does not cover {len(uncovered)} Kaggle clips "
+            f"(e.g. {uncovered[0]}); regenerate it with cross_dataset_overlap.py"
+        )
+    updated, reassigned = [], []
+    for record in records:
+        match = matches.get(overlap_key(record.path)) if record.source == "kaggle_asthma_v2" else None
+        if match is None:
+            updated.append(record)
+            continue
+        if match.primary_label != record.disease:
+            raise ValueError(
+                f"{record.path} is labeled {record.disease!r} but was cut from KAUH patient "
+                f"{match.patient} diagnosed {match.diagnosis!r}"
+            )
+        updated.append(AudioRecord(record.path, match.patient_id, record.disease, record.source))
+        reassigned.append((record, match))
+    from dataset_provenance import sha256_file
+
+    report = {
+        "evidence_file": portable_path(evidence_csv),
+        "evidence_sha256": sha256_file(evidence_csv),
+        "reassigned_recordings": len(reassigned),
+        "kauh_patients": len({match.patient for _, match in reassigned}),
+        "previous_pseudo_patients": len({record.patient_id for record, _ in reassigned}),
+        "reassigned_by_class": dict(sorted(Counter(r.disease for r, _ in reassigned).items())),
+    }
+    return updated, report
+
+
 def portable_path(path: str | Path) -> str:
     """Path relative to backend/ when possible, so manifest hashes don't depend on the machine."""
     backend_dir = os.path.abspath(Path(__file__).parent)
@@ -420,6 +485,16 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
             f"that are cuts of ICBHI recordings: {cross_dataset_overlap['removed_by_class']}"
         )
 
+    kauh_patient_ids: dict[str, object] = {"applied": False}
+    if "kaggle_asthma_v2" in {record.source for record in records} and not args.no_kauh_ids:
+        records, kauh_patient_ids = assign_kauh_patient_ids(records, args.kauh_overlap_csv)
+        kauh_patient_ids["applied"] = True
+        print(
+            f"[kauh] {kauh_patient_ids['reassigned_recordings']} Kaggle clips cut from KAUH now carry "
+            f"{kauh_patient_ids['kauh_patients']} real KAUH patient IDs "
+            f"(were {kauh_patient_ids['previous_pseudo_patients']} filename groups)"
+        )
+
     # Byte-identical files under different names would otherwise be able to land in different
     # splits (12 such groups exist in Kaggle Asthma V2). Remove them before splitting.
     records, duplicates_removed = deduplicate_records(records)
@@ -434,6 +509,7 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
     else:
         dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
     dataset_audit["cross_dataset_overlap"] = cross_dataset_overlap
+    dataset_audit["kauh_patient_ids"] = kauh_patient_ids
     dataset_audit["duplicates_removed"] = [
         {**row, "path": portable_path(row["path"]), "duplicate_of": portable_path(row["duplicate_of"])}
         for row in duplicates_removed

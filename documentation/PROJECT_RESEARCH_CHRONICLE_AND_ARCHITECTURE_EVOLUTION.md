@@ -850,6 +850,37 @@ split is used once, only for an adopted configuration. Full method and results:
    1e-3 and requires identical classes (`042a1bd`), and the run was repeated from a clean tree.
    The server reproduces the pipeline's fused probabilities within 4e-4 on sampled test files.
 
+
+## 8.9 Phase 8: Round 2 — Validity First, Then Accuracy (October 22, 2026)
+
+Branch `round2-validity-accuracy`. A read-only check of the merged cohort showed that class is
+entangled with recording device and dataset: all 793 COPD recordings come from ICBHI (646 on the
+AKG C417L stethoscope, used by no other class), the ICBHI healthy and bronchial recordings are all
+from the Meditron device, and 288 of 289 asthma recordings come from Kaggle. A model can score
+well by recognizing the source. Round 2 therefore fixes the data and measures this shortcut
+before tuning for accuracy.
+
+1. **KAUH dataset and real patient IDs for Kaggle (`kauh.py`, `main.assign_kauh_patient_ids`).**
+   Downloaded KAUH (Fraiwan et al. 2021, Mendeley Data doi:10.17632/jwyy9np4gv.3, CC BY 4.0;
+   `Audio Files.zip` SHA-256 `8093b608…7c` matches the published hash): 336 recordings of 112
+   patients at 4 kHz, each recording present once per stethoscope filter (bell, diaphragm,
+   extended). `cross_dataset_overlap.py` (Kaggle clips vs KAUH recordings) found **316 Kaggle
+   clips cut from 40 KAUH patients** (asthma 262 of 288, pneumonia 39, bronchial 15), with clean
+   separation (copies ≥ 0.772 NCC, everything else ≤ 0.573). Evidence:
+   `backend/data/kaggle_kauh_overlap.csv`. Every matched clip's Kaggle class agrees with the KAUH
+   diagnosis. **57 of the 64 Kaggle filename groups that match KAUH contain clips of several
+   KAUH patients**, so the filename pseudo-IDs split real patients across train and test. These
+   clips now carry the real KAUH patient ID (900,000 + patient number); the step fails closed
+   without complete evidence and on any label conflict. Corrected cohort: 1,488 recordings /
+   **223 patients**; new seed-42 split 133 / 45 / 45 patients (868 / 284 / 336 recordings). This is
+   a **new locked test set**; earlier test results are not comparable with it.
+2. **KAUH external test set (`backend/data/kauh_external_manifest.csv`).** The 72 KAUH patients
+   who contributed nothing to Kaggle (216 recordings): 35 healthy, 9 COPD, 1 bronchial, and 27
+   with diagnoses outside the five labels (heart failure, lung fibrosis, pleural effusion, combined
+   diagnoses), kept to test abstention. It is never used for training or for choosing between
+   models. Every asthma and pneumonia patient in KAUH is already in Kaggle, so the external set
+   tests healthy vs COPD on a different stethoscope — the device shortcut case.
+
 ---
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
