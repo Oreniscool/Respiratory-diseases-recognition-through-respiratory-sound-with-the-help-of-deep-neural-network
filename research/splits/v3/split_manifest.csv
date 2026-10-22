@@ -1,0 +1,1552 @@
+split,patient_id,disease,source,path
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1b1_Al_sc_Meditron.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1b1_Ar_sc_Meditron.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1b1_Lr_sc_Meditron.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1b1_Pl_sc_Meditron.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1b1_Pr_sc_Meditron.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1p1_Ar_sc_Litt3200.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1p1_Pl_sc_Litt3200.wav
+test,102004,copd,icbhi,dataset/ICBHI_as_folders/copd/218_1p1_Pr_sc_Litt3200.wav
+test,126287,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/116_1b2_Pl_sc_Meditron.wav
+test,126287,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/116_1b2_Tc_sc_Meditron.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Al_sc_Litt3200.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Ar_sc_Litt3200.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Ll_sc_Litt3200.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Lr_sc_Litt3200.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Pl_sc_Litt3200.wav
+test,163937,copd,icbhi,dataset/ICBHI_as_folders/copd/124_1b1_Pr_sc_Litt3200.wav
+test,174641,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/137_1b1_Ar_sc_Meditron.wav
+test,174641,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/137_1b1_Ll_sc_Meditron.wav
+test,175514,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/140_2b2_Ll_mc_LittC2SE.wav
+test,175514,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/140_2b2_Tc_mc_LittC2SE.wav
+test,175514,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/140_2b3_Ll_mc_LittC2SE.wav
+test,175514,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/140_2b3_Tc_mc_LittC2SE.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b2_Al_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b2_Ar_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b2_Pl_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b2_Pr_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b2_Tc_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b3_Al_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b3_Ar_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b3_Pl_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b3_Pr_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b3_Tc_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b4_Al_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b4_Ar_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b4_Pl_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b4_Pr_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_2b4_Tc_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Al_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Ar_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Lr_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Pl_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Pr_mc_AKGC417L.wav
+test,211953,copd,icbhi,dataset/ICBHI_as_folders/copd/207_3b2_Tc_mc_AKGC417L.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia14Q.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia16C.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia43V.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia47D.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia47J.wav
+test,214196,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P31Pneumonia92I.wav
+test,228625,healthy,icbhi,dataset/ICBHI_as_folders/healthy/143_1b1_Al_sc_Meditron.wav
+test,292172,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/108_1b1_Al_sc_Meditron.wav
+test,304689,healthy,icbhi,dataset/ICBHI_as_folders/healthy/187_1b1_Ll_sc_Meditron.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Al_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Ar_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Lr_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Pl_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Pr_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p2_Tc_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p3_Al_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p3_Ar_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p3_Pl_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p3_Pr_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p3_Tc_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p4_Al_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p4_Ar_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p4_Pl_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p4_Pr_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_1p4_Tc_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_2p3_Al_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_2p3_Ar_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_2p3_Pl_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_2p3_Pr_mc_AKGC417L.wav
+test,334952,copd,icbhi,dataset/ICBHI_as_folders/copd/203_2p3_Tc_mc_AKGC417L.wav
+test,343036,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P17Healthy22S.wav
+test,343036,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P17Healthy35S.wav
+test,343036,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P17Healthy58S.wav
+test,343036,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P17Healthy71S.wav
+test,343036,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P17Healthy83S.wav
+test,362151,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/190_1b1_Tc_sc_Meditron.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Al_sc_Litt3200.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Ar_sc_Litt3200.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Ll_sc_Litt3200.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Lr_sc_Litt3200.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Pl_sc_Litt3200.wav
+test,393300,copd,icbhi,dataset/ICBHI_as_folders/copd/175_1b1_Pr_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Al_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Ar_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Ll_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Lr_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Pl_sc_Litt3200.wav
+test,396960,copd,icbhi,dataset/ICBHI_as_folders/copd/139_1b1_Pr_sc_Litt3200.wav
+test,400073,copd,icbhi,dataset/ICBHI_as_folders/copd/117_1b2_Tc_mc_LittC2SE.wav
+test,400073,copd,icbhi,dataset/ICBHI_as_folders/copd/117_1b3_Tc_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b1_Al_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b1_Ar_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b1_Lr_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b1_Pl_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b2_Al_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b2_Ar_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b2_Lr_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b2_Pl_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b3_Al_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b3_Ar_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b3_Lr_mc_LittC2SE.wav
+test,437855,copd,icbhi,dataset/ICBHI_as_folders/copd/221_2b3_Pr_mc_LittC2SE.wav
+test,534860,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia36U.wav
+test,534860,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia59U.wav
+test,534860,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia65N.wav
+test,536216,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P21Healthy15S.wav
+test,536216,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P21Healthy38S.wav
+test,536216,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P21Healthy53S.wav
+test,536216,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P21Healthy95S.wav
+test,536216,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P21Healthy98S.wav
+test,536823,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/149_1b1_Al_sc_Meditron.wav
+test,536823,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/149_1b1_Lr_sc_Meditron.wav
+test,536823,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/149_1b1_Pl_sc_Meditron.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Al_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Ar_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Ll_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Pl_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Pr_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b2_Tc_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_1b4_Lr_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Al_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Ar_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Ll_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Lr_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Pl_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Pr_mc_AKGC417L.wav
+test,564538,copd,icbhi,dataset/ICBHI_as_folders/copd/193_7b3_Tc_mc_AKGC417L.wav
+test,567467,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/188_1b1_Al_sc_Meditron.wav
+test,567467,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/188_1b1_Ar_sc_Meditron.wav
+test,567467,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/188_1b1_Pl_sc_Meditron.wav
+test,567467,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/188_1b1_Tc_sc_Meditron.wav
+test,570343,healthy,icbhi,dataset/ICBHI_as_folders/healthy/136_1b1_Ar_sc_Meditron.wav
+test,584737,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/165_1b1_Ar_sc_Meditron.wav
+test,584737,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/165_1b1_Pl_sc_Meditron.wav
+test,584737,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/165_1b1_Pr_sc_Meditron.wav
+test,608188,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/196_1b1_Pr_sc_Meditron.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Al_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Ar_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Ll_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Lr_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Pl_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Pr_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_1b5_Tc_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Al_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Ar_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Ll_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Lr_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Pl_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Pr_mc_AKGC417L.wav
+test,642814,copd,icbhi,dataset/ICBHI_as_folders/copd/198_6p1_Tc_mc_AKGC417L.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia12X.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia66S.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia72P.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia83Z.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia84P.wav
+test,644344,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P26Pneumonia89E.wav
+test,663088,healthy,icbhi,dataset/ICBHI_as_folders/healthy/126_1b1_Al_sc_Meditron.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia11Q.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia28R.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia36Z.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia70H.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia82A.wav
+test,719094,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P2Pneumonia93N.wav
+test,727390,healthy,icbhi,dataset/ICBHI_as_folders/healthy/153_1b1_Al_sc_Meditron.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Al_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Ar_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Ll_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Lr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Pl_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Pr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b3_Tc_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Al_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Ar_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Ll_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Lr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Pl_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Pr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b4_Tc_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Al_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Ar_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Ll_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Lr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Pl_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Pr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_1b5_Tc_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Al_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Ar_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Lr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Pl_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Pr_mc_AKGC417L.wav
+test,794582,copd,icbhi,dataset/ICBHI_as_folders/copd/172_2b5_Tc_mc_AKGC417L.wav
+test,795185,healthy,icbhi,dataset/ICBHI_as_folders/healthy/224_1b1_Tc_sc_Meditron.wav
+test,795185,healthy,icbhi,dataset/ICBHI_as_folders/healthy/224_1b2_Al_sc_Meditron.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p2_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p3_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_1p4_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b2_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b3_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b4_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b4_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b4_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b4_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2b4_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p3_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_2p5_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b3_Ll_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b4_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b4_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b4_Lr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b4_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3b4_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p2_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p2_Ar_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p2_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p2_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p2_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p3_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p3_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p3_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p3_Tc_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p4_Al_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p4_Pl_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p4_Pr_mc_AKGC417L.wav
+test,869999,copd,icbhi,dataset/ICBHI_as_folders/copd/130_3p4_Tc_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Al_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Ar_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Ll_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Lr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Pl_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Pr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_1b2_Tc_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b2_Al_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b2_Ar_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b2_Pl_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b2_Pr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b2_Tc_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Al_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Ar_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Lr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Pl_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Pr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b3_Tc_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Al_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Ar_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Lr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Pl_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Pr_mc_AKGC417L.wav
+test,883107,copd,icbhi,dataset/ICBHI_as_folders/copd/162_2b4_Tc_mc_AKGC417L.wav
+test,893230,healthy,icbhi,dataset/ICBHI_as_folders/healthy/179_1b1_Al_sc_Meditron.wav
+test,893230,healthy,icbhi,dataset/ICBHI_as_folders/healthy/179_1b1_Tc_sc_Meditron.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P20WheezingRL_99.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P20WheezingRS_100.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P21WheezingIE_101.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P21WheezingIU_102.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P21WheezingRL_103.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P38WheezingIE_189.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P38WheezingIU_186.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P38WheezingIU_190.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P38WheezingRL_187.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P38WheezingRS_188.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P3AsthmaIE_13.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P3AsthmaIU_14.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P3AsthmaRL_11.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P3AsthmaRL_15.wav
+test,900001,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P3AsthmaRS_12.wav
+test,900009,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P17WheezingRL_83.wav
+test,900009,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P17WheezingRS_84.wav
+test,900009,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P34WheezingIU_170.wav
+test,900009,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P35WheezingRL_171.wav
+test,900018,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia56V.wav
+test,900018,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia57U.wav
+test,900018,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia86S.wav
+test,900018,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia73K.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia44I.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia73X.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia83S.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia84E.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P37Pneumonia95J.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia41F.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia49H.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia85Q.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia87S.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia32Q.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia17O.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia25E.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia41D.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia71Q.wav
+test,900036,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia63L.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P24WheezingRS_120.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingIE_121.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P42WheezingIU_206.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P42WheezingRL_207.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P7AsthmaRL_31.wav
+test,900038,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P7AsthmaRS_32.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P26WheezingIE_129.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P26WheezingIU_130.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P44WheezingIE_217.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P44WheezingIU_218.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P44WheezingRS_216.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P8AsthmaRS_40.wav
+test,900044,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P9AsthmaIE_41.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P10AsthmaIU_46.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P27WheezingIE_133.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P27WheezingIU_134.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P45WheezingIE_221.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P45WheezingIU_222.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P45WheezingRL_223.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P9AsthmaIE_45.wav
+test,900047,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P9AsthmaRS_44.wav
+test,900053,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P10AsthmaRL_47.wav
+test,900053,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P27WheezingRL_135.wav
+test,900053,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P45WheezingRS_224.wav
+test,900061,copd,kauh,"dataset/KAUH/audio/BP61_COPD,E W,P R L ,53,M.wav"
+test,900061,copd,kauh,"dataset/KAUH/audio/DP61_COPD,E W,P R L ,53,M.wav"
+test,900061,copd,kauh,"dataset/KAUH/audio/EP61_COPD,E W,P R L ,53,M.wav"
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia34H.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia41S.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia16K.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia78Z.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia18H.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia90Y.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia31S.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P41Pneumonia72U.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia27A.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia46D.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia67F.wav
+test,900069,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia69S.wav
+test,900071,healthy,kauh,"dataset/KAUH/audio/BP71_N,N,P R U,36,M.wav"
+test,900071,healthy,kauh,"dataset/KAUH/audio/DP71_N,N,P R U,36,M.wav"
+test,900071,healthy,kauh,"dataset/KAUH/audio/EP71_N,N,P R U,36,M.wav"
+test,900073,healthy,kauh,"dataset/KAUH/audio/BP73_N,N,P L L,32,M.wav"
+test,900073,healthy,kauh,"dataset/KAUH/audio/DP73_N,N,P L L,32,M.wav"
+test,900073,healthy,kauh,"dataset/KAUH/audio/EP73_N,N,P L L,32,M.wav"
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P15WheezingRL_75.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P16WheezingIE_77.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P16WheezingRS_76.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P33WheezingIU_162.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P33WheezingRL_163.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P33WheezingRS_164.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P51WheezingIE_253.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P51WheezingRL_251.wav
+test,900080,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P51WheezingRS_252.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P16WheezingRS_80.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P17WheezingIE_81.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P17WheezingIU_82.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P34WheezingIE_169.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P34WheezingRL_167.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P34WheezingRS_168.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P52WheezingIE_257.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P52WheezingIU_258.wav
+test,900097,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P52WheezingRS_256.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b2_Pl_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b4_Al_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b4_Ar_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b4_Ll_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b4_Lr_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_2b4_Pr_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_8p3_Al_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_8p3_Ar_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_8p3_Lr_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_8p3_Pl_mc_AKGC417L.wav
+train,106056,copd,icbhi,dataset/ICBHI_as_folders/copd/146_8p3_Pr_mc_AKGC417L.wav
+train,110075,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/215_1b2_Ar_sc_Meditron.wav
+train,110075,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/215_1b3_Tc_sc_Meditron.wav
+train,111635,healthy,icbhi,dataset/ICBHI_as_folders/healthy/171_1b1_Al_sc_Meditron.wav
+train,116288,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P54WheezingIE_269.wav
+train,116288,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P54WheezingIU_266.wav
+train,116288,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P54WheezingIU_270.wav
+train,116288,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P54WheezingRL_267.wav
+train,116288,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P54WheezingRS_268.wav
+train,153110,copd,icbhi,dataset/ICBHI_as_folders/copd/166_1p1_Al_sc_Meditron.wav
+train,153110,copd,icbhi,dataset/ICBHI_as_folders/copd/166_1p1_Ar_sc_Meditron.wav
+train,153110,copd,icbhi,dataset/ICBHI_as_folders/copd/166_1p1_Ll_sc_Meditron.wav
+train,153110,copd,icbhi,dataset/ICBHI_as_folders/copd/166_1p1_Pl_sc_Meditron.wav
+train,153110,copd,icbhi,dataset/ICBHI_as_folders/copd/166_1p1_Pr_sc_Meditron.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia10T.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia39F.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia41U.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia93D.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia94J.wav
+train,156909,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P1Pneumonia97M.wav
+train,163192,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P14BronchialSc_70.wav
+train,170488,copd,icbhi,dataset/ICBHI_as_folders/copd/132_2b1_Lr_mc_LittC2SE.wav
+train,170488,copd,icbhi,dataset/ICBHI_as_folders/copd/132_2b2_Lr_mc_LittC2SE.wav
+train,181492,healthy,icbhi,dataset/ICBHI_as_folders/healthy/225_1b1_Pl_sc_Meditron.wav
+train,184081,healthy,icbhi,dataset/ICBHI_as_folders/healthy/217_1b1_Tc_sc_Meditron.wav
+train,214332,copd,icbhi,dataset/ICBHI_as_folders/copd/142_1b1_Pl_mc_LittC2SE.wav
+train,216175,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P26Healthy22S.wav
+train,216175,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P26Healthy32S.wav
+train,216175,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P26Healthy46S.wav
+train,216175,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P26Healthy48S.wav
+train,216175,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P26Healthy76S.wav
+train,219678,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/164_1b1_Ll_sc_Meditron.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia22W.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia43J.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia56Y.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia65J.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia71A.wav
+train,231514,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P28Pneumonia90E.wav
+train,248460,healthy,icbhi,dataset/ICBHI_as_folders/healthy/121_1b1_Tc_sc_Meditron.wav
+train,248460,healthy,icbhi,dataset/ICBHI_as_folders/healthy/121_1p1_Tc_sc_Meditron.wav
+train,255972,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P17BronchialSc_82.wav
+train,255972,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P17BronchialSc_84.wav
+train,255972,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P17BronchialTc_81.wav
+train,255972,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P17BronchialTc_83.wav
+train,255972,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P17BronchialTc_85.wav
+train,258270,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/210_1b1_Al_sc_Meditron.wav
+train,258270,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/210_1b1_Ar_sc_Meditron.wav
+train,259990,healthy,icbhi,dataset/ICBHI_as_folders/healthy/152_1b1_Al_sc_Meditron.wav
+train,261703,healthy,icbhi,dataset/ICBHI_as_folders/healthy/127_1b1_Ar_sc_Meditron.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Al_sc_Litt3200.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Ar_sc_Litt3200.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Ll_sc_Litt3200.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Lr_sc_Litt3200.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Pl_sc_Litt3200.wav
+train,265442,copd,icbhi,dataset/ICBHI_as_folders/copd/104_1b1_Pr_sc_Litt3200.wav
+train,265602,healthy,icbhi,dataset/ICBHI_as_folders/healthy/202_1b1_Ar_sc_Meditron.wav
+train,274975,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P53WheezingIE_265.wav
+train,274975,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P53WheezingRL_263.wav
+train,274975,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P53WheezingRS_264.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Al_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Ar_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Ll_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Lr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Pl_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Pr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p2_Tc_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Al_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Ar_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Ll_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Lr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Pl_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Pr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p3_Tc_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Ar_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Ll_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Lr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Pl_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Pr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_1p4_Tc_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Al_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Ar_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Ll_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Lr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Pl_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Pr_mc_AKGC417L.wav
+train,279583,copd,icbhi,dataset/ICBHI_as_folders/copd/138_2p2_Tc_mc_AKGC417L.wav
+train,281478,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P57WheezingIE_281.wav
+train,281478,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P57WheezingIE_285.wav
+train,281478,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P57WheezingIU_282.wav
+train,281478,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P57WheezingRL_283.wav
+train,281478,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P57WheezingRS_284.wav
+train,285848,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/216_1b1_Al_sc_Meditron.wav
+train,285848,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/216_1b1_Pl_sc_Meditron.wav
+train,301405,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P25Healthy20S.wav
+train,301405,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P25Healthy42S.wav
+train,301405,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P25Healthy72S.wav
+train,301405,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P25Healthy88S.wav
+train,301405,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P25Healthy97S.wav
+train,315170,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P21BronchialSc_102.wav
+train,315170,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P21BronchialSc_104.wav
+train,315170,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P21BronchialTc_101.wav
+train,315170,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P21BronchialTc_103.wav
+train,317874,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/119_1b1_Ar_sc_Meditron.wav
+train,324354,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P3Pneumonia41L.wav
+train,324354,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P3Pneumonia54K.wav
+train,324354,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P3Pneumonia74F.wav
+train,324354,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P3Pneumonia96L.wav
+train,328282,healthy,icbhi,dataset/ICBHI_as_folders/healthy/159_1b1_Al_sc_Meditron.wav
+train,328282,healthy,icbhi,dataset/ICBHI_as_folders/healthy/159_1b1_Ar_sc_Meditron.wav
+train,328282,healthy,icbhi,dataset/ICBHI_as_folders/healthy/159_1b1_Ll_sc_Meditron.wav
+train,328282,healthy,icbhi,dataset/ICBHI_as_folders/healthy/159_1b1_Pr_sc_Meditron.wav
+train,338097,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/197_1b1_Al_sc_Meditron.wav
+train,338097,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/197_1b1_Tc_sc_Meditron.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_2b5_Al_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_2b5_Ar_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_2b5_Ll_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Al_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Ar_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Ll_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Lr_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Pr_mc_AKGC417L.wav
+train,339182,copd,icbhi,dataset/ICBHI_as_folders/copd/204_7p5_Tc_mc_AKGC417L.wav
+train,343825,healthy,icbhi,dataset/ICBHI_as_folders/healthy/125_1b1_Tc_sc_Meditron.wav
+train,348845,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P18Healthy17S.wav
+train,348845,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P18Healthy46S.wav
+train,348845,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P18Healthy59S.wav
+train,348845,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P18Healthy79S.wav
+train,348845,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P18Healthy98S.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b1_Al_mc_LittC2SE.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b1_Ar_mc_LittC2SE.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b2_Al_mc_LittC2SE.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b2_Ar_mc_LittC2SE.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b3_Al_mc_LittC2SE.wav
+train,354451,copd,icbhi,dataset/ICBHI_as_folders/copd/192_2b3_Ar_mc_LittC2SE.wav
+train,357537,asthma,icbhi,dataset/ICBHI_as_folders/asthma/103_2b2_Ar_mc_LittC2SE.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Al_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Ar_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Lr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Pl_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Pr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b2_Tc_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Al_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Ar_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Ll_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Lr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Pl_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Pr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b3_Tc_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Al_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Ar_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Lr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Pl_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Pr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_1b4_Tc_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Al_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Ar_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Lr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Pl_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Pr_mc_AKGC417L.wav
+train,363226,copd,icbhi,dataset/ICBHI_as_folders/copd/170_2b2_Tc_mc_AKGC417L.wav
+train,363455,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/173_1b1_Al_sc_Meditron.wav
+train,370201,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/219_2b1_Ar_mc_LittC2SE.wav
+train,370201,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/219_2b1_Tc_mc_LittC2SE.wav
+train,370201,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/219_2b2_Ar_mc_LittC2SE.wav
+train,370201,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/219_2b2_Tc_mc_LittC2SE.wav
+train,370201,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/219_2b3_Tc_mc_LittC2SE.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Ar_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Ll_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Lr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Pl_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Pr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p2_Tc_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Ar_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Ll_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Lr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Pl_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Pr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p3_Tc_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Ar_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Ll_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Lr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Pl_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Pr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_1p4_Tc_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_2p3_Al_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_2p3_Ar_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_2p3_Pl_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_2p3_Pr_mc_AKGC417L.wav
+train,370941,copd,icbhi,dataset/ICBHI_as_folders/copd/174_2p3_Tc_mc_AKGC417L.wav
+train,379692,copd,icbhi,dataset/ICBHI_as_folders/copd/114_1b4_Al_mc_AKGC417L.wav
+train,379692,copd,icbhi,dataset/ICBHI_as_folders/copd/114_1b4_Ar_mc_AKGC417L.wav
+train,379692,copd,icbhi,dataset/ICBHI_as_folders/copd/114_1b4_Lr_mc_AKGC417L.wav
+train,379692,copd,icbhi,dataset/ICBHI_as_folders/copd/114_1b4_Pl_mc_AKGC417L.wav
+train,379692,copd,icbhi,dataset/ICBHI_as_folders/copd/114_1b4_Pr_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_2b2_Al_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_2b2_Ar_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_2b2_Lr_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_2b2_Pr_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_3b2_Ar_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_3b2_Lr_mc_AKGC417L.wav
+train,383420,copd,icbhi,dataset/ICBHI_as_folders/copd/145_3b4_Pl_mc_AKGC417L.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b1_Al_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b1_Ar_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b1_Tc_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b2_Al_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b2_Ar_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b2_Tc_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b3_Al_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b3_Ar_mc_LittC2SE.wav
+train,383910,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/122_2b3_Tc_mc_LittC2SE.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Al_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Ar_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Ll_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Lr_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Pl_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Pr_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_1b3_Tc_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Al_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Ar_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Ll_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Lr_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Pl_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Pr_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_2b4_Tc_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_3b3_Al_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_3b3_Ar_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_3b3_Ll_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Al_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Ar_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Ll_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Lr_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Pl_mc_AKGC417L.wav
+train,386967,copd,icbhi,dataset/ICBHI_as_folders/copd/154_4b4_Pr_mc_AKGC417L.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia50P.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia70D.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia74T.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia88U.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia94C.wav
+train,390026,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P33Pneumonia94P.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia15W.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia22V.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia49D.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia80D.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia95A.wav
+train,406333,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia99Y.wav
+train,418570,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/111_1b2_Tc_sc_Meditron.wav
+train,418570,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/111_1b3_Tc_sc_Meditron.wav
+train,425148,copd,icbhi,dataset/ICBHI_as_folders/copd/157_1b1_Al_sc_Meditron.wav
+train,425148,copd,icbhi,dataset/ICBHI_as_folders/copd/157_1b1_Ar_sc_Meditron.wav
+train,425148,copd,icbhi,dataset/ICBHI_as_folders/copd/157_1b1_Lr_sc_Meditron.wav
+train,425148,copd,icbhi,dataset/ICBHI_as_folders/copd/157_1b1_Pl_sc_Meditron.wav
+train,425148,copd,icbhi,dataset/ICBHI_as_folders/copd/157_1b1_Pr_sc_Meditron.wav
+train,430515,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P55WheezingIE_273.wav
+train,430515,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P55WheezingIU_274.wav
+train,430515,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P55WheezingRL_271.wav
+train,430515,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P55WheezingRL_275.wav
+train,430515,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P55WheezingRS_272.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Al_sc_Litt3200.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Ar_sc_Litt3200.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Ll_sc_Litt3200.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Lr_sc_Litt3200.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Pl_sc_Litt3200.wav
+train,431542,copd,icbhi,dataset/ICBHI_as_folders/copd/185_1b1_Pr_sc_Litt3200.wav
+train,438919,healthy,icbhi,dataset/ICBHI_as_folders/healthy/214_1b1_Ar_sc_Meditron.wav
+train,452880,healthy,icbhi,dataset/ICBHI_as_folders/healthy/183_1b1_Pl_sc_Meditron.wav
+train,452880,healthy,icbhi,dataset/ICBHI_as_folders/healthy/183_1b1_Tc_sc_Meditron.wav
+train,453669,copd,icbhi,dataset/ICBHI_as_folders/copd/180_1b4_Al_mc_AKGC417L.wav
+train,453669,copd,icbhi,dataset/ICBHI_as_folders/copd/180_1b4_Ar_mc_AKGC417L.wav
+train,453669,copd,icbhi,dataset/ICBHI_as_folders/copd/180_1b4_Lr_mc_AKGC417L.wav
+train,453669,copd,icbhi,dataset/ICBHI_as_folders/copd/180_1b4_Pl_mc_AKGC417L.wav
+train,453669,copd,icbhi,dataset/ICBHI_as_folders/copd/180_1b4_Pr_mc_AKGC417L.wav
+train,458108,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/115_1b1_Ar_sc_Meditron.wav
+train,468125,copd,icbhi,dataset/ICBHI_as_folders/copd/212_2b2_Tc_mc_LittC2SE.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia15Q.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia16E.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia23E.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia50S.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia84N.wav
+train,468795,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P18Pneumonia88I.wav
+train,481721,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P56WheezingIE_277.wav
+train,481721,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P56WheezingIU_278.wav
+train,481721,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P56WheezingRL_279.wav
+train,481721,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P56WheezingRS_276.wav
+train,481721,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P56WheezingRS_280.wav
+train,482691,copd,icbhi,dataset/ICBHI_as_folders/copd/181_1b1_Ar_mc_LittC2SE.wav
+train,482691,copd,icbhi,dataset/ICBHI_as_folders/copd/181_1b1_Tc_mc_LittC2SE.wav
+train,482691,copd,icbhi,dataset/ICBHI_as_folders/copd/181_1b2_Ar_mc_LittC2SE.wav
+train,482691,copd,icbhi,dataset/ICBHI_as_folders/copd/181_1b3_Tc_mc_LittC2SE.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Al_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Ar_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Lr_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Pl_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Pr_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p2_Tc_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p3_Al_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p3_Ar_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p3_Pl_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p3_Pr_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p5_Al_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p5_Ar_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p5_Pl_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p5_Pr_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_1p5_Tc_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_2p2_Al_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_2p2_Ar_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_2p2_Pl_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_2p2_Pr_mc_AKGC417L.wav
+train,484402,copd,icbhi,dataset/ICBHI_as_folders/copd/213_2p2_Tc_mc_AKGC417L.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia24U.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia53X.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia54I.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia73N.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia88Y.wav
+train,484406,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia89T.wav
+train,489305,copd,icbhi,dataset/ICBHI_as_folders/copd/155_2b1_Al_mc_LittC2SE.wav
+train,496295,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/129_1b1_Ar_sc_Meditron.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Al_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Ar_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Lr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Pl_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Pr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b2_Tc_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Al_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Ar_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Lr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Pl_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Pr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b3_Tc_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Al_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Ar_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Ll_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Lr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Pl_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Pr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_1b6_Tc_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_2b2_Al_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_2b2_Ar_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_2b2_Lr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_2b2_Pr_mc_AKGC417L.wav
+train,504408,copd,icbhi,dataset/ICBHI_as_folders/copd/178_2b2_Tc_mc_AKGC417L.wav
+train,506584,copd,icbhi,dataset/ICBHI_as_folders/copd/112_1b1_Ar_sc_Meditron.wav
+train,506584,copd,icbhi,dataset/ICBHI_as_folders/copd/112_1b1_Lr_sc_Meditron.wav
+train,506584,copd,icbhi,dataset/ICBHI_as_folders/copd/112_1p1_Ll_sc_Litt3200.wav
+train,506584,copd,icbhi,dataset/ICBHI_as_folders/copd/112_1p1_Pl_sc_Litt3200.wav
+train,506584,copd,icbhi,dataset/ICBHI_as_folders/copd/112_1p1_Pr_sc_Litt3200.wav
+train,507959,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P8Pneumonia16Z.wav
+train,507959,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P8Pneumonia28V.wav
+train,510802,copd,icbhi,dataset/ICBHI_as_folders/copd/120_1b1_Al_sc_Meditron.wav
+train,510802,copd,icbhi,dataset/ICBHI_as_folders/copd/120_1b1_Ar_sc_Meditron.wav
+train,510802,copd,icbhi,dataset/ICBHI_as_folders/copd/120_1b1_Lr_sc_Meditron.wav
+train,510802,copd,icbhi,dataset/ICBHI_as_folders/copd/120_1b1_Pl_sc_Meditron.wav
+train,510802,copd,icbhi,dataset/ICBHI_as_folders/copd/120_1b1_Pr_sc_Meditron.wav
+train,525849,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P16BronchialSc_76.wav
+train,525849,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P16BronchialSc_78.wav
+train,525849,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P16BronchialSc_80.wav
+train,525849,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P16BronchialTc_77.wav
+train,525849,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P16BronchialTc_79.wav
+train,539130,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/161_1b1_Al_sc_Meditron.wav
+train,539130,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/161_1b1_Pl_sc_Meditron.wav
+train,545560,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/168_1b1_Al_sc_Meditron.wav
+train,548450,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/206_1b1_Ar_sc_Meditron.wav
+train,548450,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/206_1b1_Lr_sc_Meditron.wav
+train,548450,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/206_1b1_Pl_sc_Meditron.wav
+train,550429,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/105_1b1_Tc_sc_Meditron.wav
+train,552234,copd,icbhi,dataset/ICBHI_as_folders/copd/106_2b1_Pl_mc_LittC2SE.wav
+train,552234,copd,icbhi,dataset/ICBHI_as_folders/copd/106_2b1_Pr_mc_LittC2SE.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Al_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Ar_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Lr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Pl_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Pr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b2_Tc_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Al_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Ar_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Lr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Pl_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Pr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b3_Tc_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Al_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Ar_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Lr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Pl_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Pr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_1b4_Tc_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_2b3_Lr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_2b4_Ar_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_2b4_Pl_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_2b4_Pr_mc_AKGC417L.wav
+train,556110,copd,icbhi,dataset/ICBHI_as_folders/copd/160_2b4_Tc_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p2_Al_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p2_Ar_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p2_Pl_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p2_Tc_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p3_Al_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p3_Ar_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p3_Pl_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p3_Pr_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p3_Tc_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p4_Al_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p4_Ar_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p4_Pl_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p4_Pr_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_2p4_Tc_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_3p2_Al_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_3p2_Ar_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_3p2_Pl_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_3p2_Pr_mc_AKGC417L.wav
+train,563863,copd,icbhi,dataset/ICBHI_as_folders/copd/133_3p4_Tc_mc_AKGC417L.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Al_sc_Litt3200.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Ar_sc_Litt3200.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Ll_sc_Litt3200.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Lr_sc_Litt3200.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Pl_sc_Litt3200.wav
+train,577196,copd,icbhi,dataset/ICBHI_as_folders/copd/118_1b1_Pr_sc_Litt3200.wav
+train,587108,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia79Z.wav
+train,587108,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia83N.wav
+train,587108,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P36Pneumonia85U.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia16F.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia46U.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia56D.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia57I.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia75E.wav
+train,588295,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P35Pneumonia99V.wav
+train,601400,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P22Pneumonia29K.wav
+train,601400,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P22Pneumonia47V.wav
+train,604739,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/148_1b1_Al_sc_Meditron.wav
+train,605845,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/191_2b1_Pl_mc_LittC2SE.wav
+train,605845,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/191_2b1_Pr_mc_LittC2SE.wav
+train,605845,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/191_2b2_Tc_mc_LittC2SE.wav
+train,614029,healthy,icbhi,dataset/ICBHI_as_folders/healthy/144_1b1_Al_sc_Meditron.wav
+train,614029,healthy,icbhi,dataset/ICBHI_as_folders/healthy/144_1b1_Tc_sc_Meditron.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia14M.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia17N.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia18M.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia24X.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia51O.wav
+train,621049,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P29Pneumonia82U.wav
+train,639065,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy24S.wav
+train,639065,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy72S.wav
+train,640238,healthy,icbhi,dataset/ICBHI_as_folders/healthy/194_1b1_Lr_sc_Meditron.wav
+train,640238,healthy,icbhi,dataset/ICBHI_as_folders/healthy/194_1b1_Pr_sc_Meditron.wav
+train,651241,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P25Pneumonia16B.wav
+train,651241,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P25Pneumonia97D.wav
+train,656492,copd,icbhi,dataset/ICBHI_as_folders/copd/110_1b1_Pr_sc_Meditron.wav
+train,656492,copd,icbhi,dataset/ICBHI_as_folders/copd/110_1p1_Al_sc_Meditron.wav
+train,656492,copd,icbhi,dataset/ICBHI_as_folders/copd/110_1p1_Ll_sc_Meditron.wav
+train,656492,copd,icbhi,dataset/ICBHI_as_folders/copd/110_1p1_Lr_sc_Meditron.wav
+train,656492,copd,icbhi,dataset/ICBHI_as_folders/copd/110_1p1_Pr_sc_Meditron.wav
+train,685089,healthy,icbhi,dataset/ICBHI_as_folders/healthy/209_1b1_Tc_sc_Meditron.wav
+train,694512,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P9Pneumonia63O.wav
+train,701093,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P58WheezingIU_286.wav
+train,701093,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P58WheezingRL_287.wav
+train,701093,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P58WheezingRS_288.wav
+train,705431,healthy,icbhi,dataset/ICBHI_as_folders/healthy/123_1b1_Al_sc_Meditron.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia24H.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia33O.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia39Z.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia41U.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia75B.wav
+train,707889,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P19Pneumonia90X.wav
+train,744859,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P17Pneumonia49T.wav
+train,744859,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P17Pneumonia57K.wav
+train,744859,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P17Pneumonia63G.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Al_sc_Litt3200.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Ar_sc_Litt3200.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Ll_sc_Litt3200.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Lr_sc_Litt3200.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Pl_sc_Litt3200.wav
+train,758380,copd,icbhi,dataset/ICBHI_as_folders/copd/113_1b1_Pr_sc_Litt3200.wav
+train,758476,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P21Pneumonia56M.wav
+train,758476,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P21Pneumonia69Q.wav
+train,758476,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P21Pneumonia78P.wav
+train,763720,copd,icbhi,dataset/ICBHI_as_folders/copd/199_2b1_Ll_mc_LittC2SE.wav
+train,763720,copd,icbhi,dataset/ICBHI_as_folders/copd/199_2b3_Ll_mc_LittC2SE.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1b3_Ar_mc_LittC2SE.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Al_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Ar_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Ll_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Lr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Pl_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Pr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p2_Tc_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Al_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Ar_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Ll_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Lr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Pl_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Pr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p3_Tc_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Al_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Ar_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Lr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Pl_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Pr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_1p4_Tc_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_2p2_Ar_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_2p3_Lr_mc_AKGC417L.wav
+train,775347,copd,icbhi,dataset/ICBHI_as_folders/copd/158_2p3_Tc_mc_AKGC417L.wav
+train,788876,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P27Healthy30S.wav
+train,788876,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P27Healthy73S.wav
+train,788876,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P27Healthy92S.wav
+train,794986,healthy,icbhi,dataset/ICBHI_as_folders/healthy/208_1b1_Ll_sc_Meditron.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Al_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Ar_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Ll_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Lr_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Pl_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Pr_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_2b2_Tc_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Al_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Ar_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Ll_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Lr_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Pl_mc_AKGC417L.wav
+train,795132,copd,icbhi,dataset/ICBHI_as_folders/copd/163_8b3_Pr_mc_AKGC417L.wav
+train,796327,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/131_1b1_Al_sc_Meditron.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b1_Al_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b1_Ar_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b1_Pl_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b1_Tc_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b2_Al_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b2_Ar_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b2_Pl_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b2_Tc_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b3_Al_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b3_Ar_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b3_Pl_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b3_Pr_mc_LittC2SE.wav
+train,798877,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/135_2b3_Tc_mc_LittC2SE.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Al_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Ar_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Ll_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Lr_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Pl_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_1b3_Pr_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_2b2_Pr_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_2b3_Al_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_2b3_Ar_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_2b3_Ll_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_2b4_Pl_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_3b4_Al_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_3b4_Ar_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_3b4_Pl_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_3b4_Pr_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_4b2_Al_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_4b2_Ar_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_4b2_Lr_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_4b2_Pl_mc_AKGC417L.wav
+train,814409,copd,icbhi,dataset/ICBHI_as_folders/copd/205_4b2_Pr_mc_AKGC417L.wav
+train,839970,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P24Healthy51S.wav
+train,839970,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P24Healthy58S.wav
+train,839970,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P24Healthy62S.wav
+train,839970,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P24Healthy63S.wav
+train,839970,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P24Healthy95S.wav
+train,853775,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/150_1b2_Al_sc_Meditron.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Al_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Ar_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Ll_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Lr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Pl_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Pr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b3_Tc_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Al_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Ar_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Ll_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Lr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Pl_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Pr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b4_Tc_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Al_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Ar_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Ll_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Lr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Pl_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Pr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_2b5_Tc_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Al_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Ar_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Ll_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Lr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Pl_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Pr_mc_AKGC417L.wav
+train,855387,copd,icbhi,dataset/ICBHI_as_folders/copd/107_3p2_Tc_mc_AKGC417L.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b1_Al_sc_Meditron.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b1_Ar_sc_Meditron.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b2_Al_sc_Meditron.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b2_Ar_sc_Meditron.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b3_Al_sc_Meditron.wav
+train,856831,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/201_1b3_Ar_sc_Meditron.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Al_sc_Litt3200.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Ar_sc_Litt3200.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Ll_sc_Litt3200.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Lr_sc_Litt3200.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Pl_sc_Litt3200.wav
+train,857220,copd,icbhi,dataset/ICBHI_as_folders/copd/195_1b1_Pr_sc_Litt3200.wav
+train,869210,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/101_1b1_Al_sc_Meditron.wav
+train,869210,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/101_1b1_Pr_sc_Meditron.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Al_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Ar_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Ll_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Lr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Pl_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Pr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p2_Tc_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Al_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Ar_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Ll_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Lr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Pl_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Pr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p3_Tc_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Al_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Ar_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Ll_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Lr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Pl_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Pr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_2p4_Tc_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Al_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Ar_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Lr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Pl_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Pr_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p2_Tc_mc_AKGC417L.wav
+train,874508,copd,icbhi,dataset/ICBHI_as_folders/copd/151_3p3_Ll_mc_AKGC417L.wav
+train,877937,copd,icbhi,dataset/ICBHI_as_folders/copd/128_1b3_Tc_mc_LittC2SE.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia15R.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia36H.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia61E.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia66M.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia77O.wav
+train,893645,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P34Pneumonia99G.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia10C.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia15J.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia30W.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia52T.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia70X.wav
+train,894200,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P30Pneumonia85D.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_1p2_Ar_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_1p2_Pl_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_1p2_Pr_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_1p3_Ar_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_1p5_Ar_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_2p2_Tc_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_2p3_Tc_mc_AKGC417L.wav
+train,896832,copd,icbhi,dataset/ICBHI_as_folders/copd/211_2p4_Tc_mc_AKGC417L.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingIE_125.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingIU_122.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingRL_123.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingRS_124.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P26WheezingIU_126.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P42WheezingIE_209.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P42WheezingIU_210.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P42WheezingRS_208.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P43WheezingRL_211.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P43WheezingRS_212.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P7AsthmaIE_33.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P7AsthmaIU_34.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P7AsthmaRL_35.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P8AsthmaIE_37.wav
+train,900003,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P8AsthmaRS_36.wav
+train,900010,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P19WheezingIU_94.wav
+train,900010,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P2AsthmaRL_7.wav
+train,900010,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P37WheezingIE_181.wav
+train,900015,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P20WheezingIU_98.wav
+train,900015,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P2AsthmaIU_10.wav
+train,900015,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P37WheezingIE_185.wav
+train,900015,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P37WheezingRS_184.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P21WheezingIE_105.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P21WheezingRS_104.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P22WheezingIU_106.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P22WheezingRL_107.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P39WheezingIE_193.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P39WheezingRL_191.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P39WheezingRS_192.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P4AsthmaIE_17.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P4AsthmaIU_18.wav
+train,900020,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P4AsthmaRS_16.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P22WheezingIE_109.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P22WheezingRS_108.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P39WheezingIU_194.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P39WheezingRL_195.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P4AsthmaRL_19.wav
+train,900027,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P4AsthmaRS_20.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P12BronchialSc_58.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P12BronchialTc_59.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P13BronchialSc_64.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P13BronchialTc_63.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P14BronchialSc_68.wav
+train,900028,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P14BronchialTc_69.wav
+train,900031,healthy,kauh,"dataset/KAUH/audio/BP31_N,N,P L M,27,F.wav"
+train,900031,healthy,kauh,"dataset/KAUH/audio/DP31_N,N,P L M,27,F.wav"
+train,900031,healthy,kauh,"dataset/KAUH/audio/EP31_N,N,P L M,27,F.wav"
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P24WheezingIU_118.wav
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P24WheezingRL_119.wav
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P41WheezingIE_205.wav
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P41WheezingRS_204.wav
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P6AsthmaIE_29.wav
+train,900035,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P6AsthmaIU_30.wav
+train,900041,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia23A.wav
+train,900041,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia35P.wav
+train,900041,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia92J.wav
+train,900041,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P42Pneumonia47W.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P27WheezingRL_131.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P27WheezingRS_132.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P44WheezingRL_219.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P44WheezingRS_220.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P9AsthmaIU_42.wav
+train,900046,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P9AsthmaRL_43.wav
+train,900049,healthy,kauh,"dataset/KAUH/audio/BP49_N,N,P R M,21,M.wav"
+train,900049,healthy,kauh,"dataset/KAUH/audio/DP49_N,N,P R M,21,M.wav"
+train,900049,healthy,kauh,"dataset/KAUH/audio/EP49_N,N,P R M,21,M.wav"
+train,900055,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P10AsthmaIE_49.wav
+train,900055,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P10AsthmaRS_48.wav
+train,900055,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P28WheezingRS_136.wav
+train,900055,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P45WheezingIE_225.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P10AsthmaIU_50.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P11WheezingRL_51.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P28WheezingIE_137.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P28WheezingIU_138.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P46WheezingIU_226.wav
+train,900056,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P46WheezingRL_227.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P11WheezingIE_53.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P11WheezingIU_54.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P11WheezingRL_55.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P11WheezingRS_52.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P28WheezingRL_139.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P28WheezingRS_140.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P29WheezingIE_141.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P29WheezingIU_142.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P46WheezingIE_229.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P46WheezingIU_230.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P46WheezingRS_228.wav
+train,900058,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P47WheezingRL_231.wav
+train,900062,copd,kauh,"dataset/KAUH/audio/BP62_COPD,E W,P L M,53,M.wav"
+train,900062,copd,kauh,"dataset/KAUH/audio/DP62_COPD,E W,P L M,53,M.wav"
+train,900062,copd,kauh,"dataset/KAUH/audio/EP62_COPD,E W,P L M,53,M.wav"
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P12WheezingRS_60.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P13WheezingIE_61.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P13WheezingIU_62.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P13WheezingRL_63.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P30WheezingIE_149.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P30WheezingIU_150.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P30WheezingRL_147.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P30WheezingRS_148.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P48WheezingIE_237.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P48WheezingIU_238.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P48WheezingRL_239.wav
+train,900065,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P48WheezingRS_236.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P13WheezingIE_65.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P13WheezingRS_64.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P14WheezingIU_66.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P31WheezingIE_153.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P31WheezingRL_151.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P31WheezingRS_152.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P48WheezingRS_240.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P49WheezingIE_241.wav
+train,900068,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P49WheezingIU_242.wav
+train,900072,healthy,kauh,"dataset/KAUH/audio/BP72_N,N,P R U,24,F.wav"
+train,900072,healthy,kauh,"dataset/KAUH/audio/DP72_N,N,P R U,24,F.wav"
+train,900072,healthy,kauh,"dataset/KAUH/audio/EP72_N,N,P R U,24,F.wav"
+train,900074,healthy,kauh,"dataset/KAUH/audio/BP74_N,N,P R M,74,M.wav"
+train,900074,healthy,kauh,"dataset/KAUH/audio/DP74_N,N,P R M,74,M.wav"
+train,900074,healthy,kauh,"dataset/KAUH/audio/EP74_N,N,P R M,74,M.wav"
+train,900075,healthy,kauh,"dataset/KAUH/audio/BP75_N,N,P L U,73,F.wav"
+train,900075,healthy,kauh,"dataset/KAUH/audio/DP75_N,N,P L U,73,F.wav"
+train,900075,healthy,kauh,"dataset/KAUH/audio/EP75_N,N,P L U,73,F.wav"
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P14WheezingRL_67.wav
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P14WheezingRS_68.wav
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P31WheezingIU_154.wav
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P31WheezingRL_155.wav
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P49WheezingRL_243.wav
+train,900077,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P49WheezingRS_244.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P14WheezingIE_69.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P14WheezingIU_70.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P15WheezingRL_71.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P32WheezingIE_157.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P32WheezingIU_158.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P32WheezingRS_156.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P49WheezingIE_245.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P50WheezingIU_246.wav
+train,900078,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P50WheezingRL_247.wav
+train,900082,healthy,kauh,"dataset/KAUH/audio/BP82_N,N,P L U,38,M.wav"
+train,900082,healthy,kauh,"dataset/KAUH/audio/DP82_N,N,P L U,38,M.wav"
+train,900082,healthy,kauh,"dataset/KAUH/audio/EP82_N,N,P L U,38,M.wav"
+train,900085,healthy,kauh,"dataset/KAUH/audio/BP85_N,N,A R U,33,M.wav"
+train,900085,healthy,kauh,"dataset/KAUH/audio/DP85_N,N,A R U,33,M.wav"
+train,900085,healthy,kauh,"dataset/KAUH/audio/EP85_N,N,A R U,33,M.wav"
+train,900088,healthy,kauh,"dataset/KAUH/audio/BP88_N,N,A R U,29,M.wav"
+train,900088,healthy,kauh,"dataset/KAUH/audio/DP88_N,N,A R U,29,M.wav"
+train,900088,healthy,kauh,"dataset/KAUH/audio/EP88_N,N,A R U,29,M.wav"
+train,900089,healthy,kauh,"dataset/KAUH/audio/BP89_N,N,P L M,70,M.wav"
+train,900089,healthy,kauh,"dataset/KAUH/audio/DP89_N,N,P L M,70,M.wav"
+train,900089,healthy,kauh,"dataset/KAUH/audio/EP89_N,N,P L M,70,M.wav"
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P16WheezingIU_78.wav
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P16WheezingRL_79.wav
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P33WheezingIE_165.wav
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P34WheezingIU_166.wav
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P51WheezingIU_254.wav
+train,900091,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P51WheezingRL_255.wav
+train,900094,healthy,kauh,"dataset/KAUH/audio/BP94_N,N,P L L,24,M.wav"
+train,900094,healthy,kauh,"dataset/KAUH/audio/DP94_N,N,P L L,24,M.wav"
+train,900094,healthy,kauh,"dataset/KAUH/audio/EP94_N,N,P L L,24,M.wav"
+train,900099,healthy,kauh,"dataset/KAUH/audio/BP99_N,N,P R M,50,M.wav"
+train,900099,healthy,kauh,"dataset/KAUH/audio/DP99_N,N,P R M,50,M.wav"
+train,900099,healthy,kauh,"dataset/KAUH/audio/EP99_N,N,P R M,50,M.wav"
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P18WheezingRL_87.wav
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P18WheezingRS_88.wav
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P35WheezingIU_174.wav
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P35WheezingRL_175.wav
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P53WheezingIE_261.wav
+train,900104,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P53WheezingIU_262.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P18WheezingIE_89.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P18WheezingIU_90.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P19WheezingRL_91.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P1AsthmaIE_1.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P1AsthmaIU_2.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P1AsthmaRL_3.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P36WheezingIE_177.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P36WheezingIU_178.wav
+train,900106,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P36WheezingRS_176.wav
+train,900109,healthy,kauh,"dataset/KAUH/audio/BP109_N,N,P L M,26,M.wav"
+train,900109,healthy,kauh,"dataset/KAUH/audio/DP109_N,N,P L M,26,M.wav"
+train,900109,healthy,kauh,"dataset/KAUH/audio/EP109_N,N,P L M,26,M.wav"
+train,900110,copd,kauh,"dataset/KAUH/audio/BP110_COPD,E W,P L L,62,M.wav"
+train,900110,copd,kauh,"dataset/KAUH/audio/DP110_COPD,E W,P L L,62,M.wav"
+train,900110,copd,kauh,"dataset/KAUH/audio/EP110_COPD,E W,P L L,62,M.wav"
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Al_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Ar_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Lr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Pl_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Pr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b2_Tc_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Al_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Ar_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Lr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Pl_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Pr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b3_Tc_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Al_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Ar_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Lr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Pl_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Pr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_2b4_Tc_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Al_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Ar_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Lr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Pl_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Pr_mc_AKGC417L.wav
+validation,102971,copd,icbhi,dataset/ICBHI_as_folders/copd/186_3b3_Tc_mc_AKGC417L.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Al_sc_Litt3200.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Ar_sc_Litt3200.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Ll_sc_Litt3200.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Lr_sc_Litt3200.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Pl_sc_Litt3200.wav
+validation,132227,copd,icbhi,dataset/ICBHI_as_folders/copd/109_1b1_Pr_sc_Litt3200.wav
+validation,157609,copd,icbhi,dataset/ICBHI_as_folders/copd/189_1b2_Lr_mc_LittC2SE.wav
+validation,171638,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P15Healthy61S.wav
+validation,174106,healthy,icbhi,dataset/ICBHI_as_folders/healthy/184_1b1_Ar_sc_Meditron.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Al_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Ar_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Lr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Pl_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Pr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b2_Tc_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Al_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Ar_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Lr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Pl_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Pr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_1b4_Tc_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_2b4_Al_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_2b4_Lr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_2b4_Pl_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_2b4_Pr_mc_AKGC417L.wav
+validation,244273,copd,icbhi,dataset/ICBHI_as_folders/copd/177_2b4_Tc_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Al_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Ar_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Ll_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Lr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Pl_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Pr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b3_Tc_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Al_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Ar_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Ll_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Lr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Pl_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Pr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_1b4_Tc_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Al_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Ar_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Ll_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Lr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Pl_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Pr_mc_AKGC417L.wav
+validation,266013,copd,icbhi,dataset/ICBHI_as_folders/copd/176_2b3_Tc_mc_AKGC417L.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia59Q.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia66M.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia69E.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia75E.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia98Y.wav
+validation,306510,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P32Pneumonia99W.wav
+validation,310658,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/167_1b1_Al_sc_Meditron.wav
+validation,310658,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/167_1b1_Pr_sc_Meditron.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia25R.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia28K.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia37T.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia48G.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia62C.wav
+validation,321872,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P27Pneumonia77J.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia10J.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia25T.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia29L.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia51F.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia59I.wav
+validation,339076,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P45Pneumonia72P.wav
+validation,347251,healthy,icbhi,dataset/ICBHI_as_folders/healthy/182_1b1_Tc_sc_Meditron.wav
+validation,375355,copd,icbhi,dataset/ICBHI_as_folders/copd/220_1b1_Tc_mc_LittC2SE.wav
+validation,375355,copd,icbhi,dataset/ICBHI_as_folders/copd/220_1b2_Al_mc_LittC2SE.wav
+validation,464099,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy19S.wav
+validation,464099,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy26S.wav
+validation,490906,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P15Pneumonia58S.wav
+validation,490906,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P15Pneumonia81V.wav
+validation,613867,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy36S.wav
+validation,613867,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy45S.wav
+validation,613867,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy50S.wav
+validation,613867,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy88S.wav
+validation,613867,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy94S.wav
+validation,635107,healthy,icbhi,dataset/ICBHI_as_folders/healthy/102_1b1_Ar_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Al_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Ar_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Ll_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Lr_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Pl_sc_Meditron.wav
+validation,636297,copd,icbhi,dataset/ICBHI_as_folders/copd/223_1b1_Pr_sc_Meditron.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b1_Pr_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b2_Ar_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b2_Lr_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b2_Pr_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b2_Tc_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b3_Al_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b3_Ar_mc_LittC2SE.wav
+validation,637021,copd,icbhi,dataset/ICBHI_as_folders/copd/141_1b3_Pr_mc_LittC2SE.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_1b2_Tc_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_1b3_Tc_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_1b4_Tc_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b2_Al_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b2_Ar_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b2_Pl_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b3_Al_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b3_Ar_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b3_Ll_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b3_Lr_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b3_Pl_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b4_Al_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b4_Ar_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b4_Ll_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b4_Lr_mc_AKGC417L.wav
+validation,647863,copd,icbhi,dataset/ICBHI_as_folders/copd/147_2b4_Pl_mc_AKGC417L.wav
+validation,654562,copd,icbhi,dataset/ICBHI_as_folders/copd/134_2b1_Al_mc_LittC2SE.wav
+validation,654562,copd,icbhi,dataset/ICBHI_as_folders/copd/134_2b1_Ar_mc_LittC2SE.wav
+validation,654562,copd,icbhi,dataset/ICBHI_as_folders/copd/134_2b2_Al_mc_LittC2SE.wav
+validation,654562,copd,icbhi,dataset/ICBHI_as_folders/copd/134_2b2_Ar_mc_LittC2SE.wav
+validation,654562,copd,icbhi,dataset/ICBHI_as_folders/copd/134_2b3_Ar_mc_LittC2SE.wav
+validation,668167,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P19BronchialSc_92.wav
+validation,668167,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P19BronchialSc_94.wav
+validation,668167,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P19BronchialTc_91.wav
+validation,668167,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P19BronchialTc_93.wav
+validation,668167,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P19BronchialTc_95.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Al_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Ar_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Ll_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Lr_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Pl_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_2b3_Pr_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Al_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Ar_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Ll_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Lr_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Pl_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_5b3_Pr_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_8b3_Al_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_8b3_Ar_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_8b3_Ll_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_8b3_Lr_mc_AKGC417L.wav
+validation,690828,copd,icbhi,dataset/ICBHI_as_folders/copd/156_8b3_Pl_mc_AKGC417L.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia14M.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia19A.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia24N.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia69D.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia74Q.wav
+validation,703836,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P47Pneumonia98K.wav
+validation,724414,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/169_1b1_Lr_sc_Meditron.wav
+validation,724414,bronchial,icbhi,dataset/ICBHI_as_folders/bronchial/169_1b2_Ll_sc_Meditron.wav
+validation,753324,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P15BronchialSc_72.wav
+validation,753324,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P15BronchialSc_74.wav
+validation,753324,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P15BronchialTc_71.wav
+validation,753324,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P15BronchialTc_73.wav
+validation,753324,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P15BronchialTc_75.wav
+validation,759666,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P19Healthy47S.wav
+validation,759666,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P19Healthy50S.wav
+validation,759666,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P19Healthy55S.wav
+validation,759666,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P19Healthy62S.wav
+validation,759666,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P19Healthy79S.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Al_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Ar_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Lr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Pl_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Pr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p2_Tc_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Al_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Ar_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Lr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Pl_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Pr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p3_Tc_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Al_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Ar_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Lr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Pl_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Pr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_2p4_Tc_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_3p4_Al_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_3p4_Ar_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_3p4_Pl_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_3p4_Pr_mc_AKGC417L.wav
+validation,802411,copd,icbhi,dataset/ICBHI_as_folders/copd/200_3p4_Tc_mc_AKGC417L.wav
+validation,821434,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P20BronchialSc_100.wav
+validation,821434,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P20BronchialSc_96.wav
+validation,821434,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P20BronchialSc_98.wav
+validation,821434,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P20BronchialTc_97.wav
+validation,821434,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P20BronchialTc_99.wav
+validation,836660,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P20Healthy25S.wav
+validation,836660,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P20Healthy31S.wav
+validation,836660,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P20Healthy59S.wav
+validation,836660,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P20Healthy70S.wav
+validation,836660,healthy,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P20Healthy84S.wav
+validation,841582,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P18BronchialSc_86.wav
+validation,841582,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P18BronchialSc_88.wav
+validation,841582,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P18BronchialSc_90.wav
+validation,841582,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P18BronchialTc_87.wav
+validation,841582,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P18BronchialTc_89.wav
+validation,861654,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/226_1b1_Al_sc_Meditron.wav
+validation,861654,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/226_1b1_Ll_sc_Meditron.wav
+validation,861654,pneumonia,icbhi,dataset/ICBHI_as_folders/pneumonia/226_1b1_Pl_sc_LittC2SE.wav
+validation,864821,copd,icbhi,dataset/ICBHI_as_folders/copd/222_1b1_Ar_sc_Meditron.wav
+validation,864821,copd,icbhi,dataset/ICBHI_as_folders/copd/222_1b1_Lr_sc_Meditron.wav
+validation,864821,copd,icbhi,dataset/ICBHI_as_folders/copd/222_1b1_Pr_sc_Meditron.wav
+validation,878343,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P11BronchialSc_52.wav
+validation,878343,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P11BronchialSc_54.wav
+validation,878343,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P11BronchialTc_53.wav
+validation,880163,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P24Pneumonia54A.wav
+validation,880163,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P24Pneumonia67Z.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P22WheezingIU_110.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P23WheezingIE_113.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P23WheezingIU_114.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P23WheezingRL_111.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P23WheezingRS_112.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P40WheezingIE_197.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P40WheezingIU_198.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P40WheezingRL_199.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P40WheezingRS_196.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P40WheezingRS_200.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P5AsthmaIE_21.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P5AsthmaIE_25.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P5AsthmaIU_22.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P5AsthmaRL_23.wav
+validation,900002,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P5AsthmaRS_24.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P19WheezingRL_95.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P20WheezingIE_97.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P20WheezingRS_96.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P2AsthmaIE_9.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P2AsthmaRS_8.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P37WheezingIU_182.wav
+validation,900012,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P37WheezingRL_183.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P11BronchialTc_55.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P12BronchialSc_56.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P12BronchialSc_60.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P12BronchialTc_57.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P13BronchialSc_62.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P13BronchialTc_61.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P13BronchialTc_65.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P14BronchialSc_66.wav
+validation,900021,bronchial,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/Bronchial/P14BronchialTc_67.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P23WheezingRL_115.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P24WheezingIE_117.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P24WheezingRS_116.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P41WheezingIE_201.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P41WheezingIU_202.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P41WheezingRL_203.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P6AsthmaIU_26.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P6AsthmaRL_27.wav
+validation,900033,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P6AsthmaRS_28.wav
+validation,900037,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia61R.wav
+validation,900037,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P38Pneumonia64N.wav
+validation,900037,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia69N.wav
+validation,900037,pneumonia,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P40Pneumonia91V.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P26WheezingRL_127.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P26WheezingRS_128.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P43WheezingIE_213.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P43WheezingIU_214.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P43WheezingRL_215.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P8AsthmaIU_38.wav
+validation,900043,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P8AsthmaRL_39.wav
+validation,900048,healthy,kauh,"dataset/KAUH/audio/BP48_N,N,P L U,31,M.wav"
+validation,900048,healthy,kauh,"dataset/KAUH/audio/DP48_N,N,P L U,31,M.wav"
+validation,900048,healthy,kauh,"dataset/KAUH/audio/EP48_N,N,P L U,31,M.wav"
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P12WheezingIE_57.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P12WheezingIU_58.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P12WheezingRL_59.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P12WheezingRS_56.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P29WheezingIE_145.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P29WheezingRL_143.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P29WheezingRS_144.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P30WheezingIU_146.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P47WheezingIE_233.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P47WheezingIU_234.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P47WheezingRL_235.wav
+validation,900064,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P47WheezingRS_232.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P15WheezingIE_73.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P15WheezingIU_74.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P15WheezingRS_72.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P32WheezingRL_159.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P32WheezingRS_160.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P33WheezingIE_161.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P50WheezingIE_249.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P50WheezingIU_250.wav
+validation,900079,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P50WheezingRS_248.wav
+validation,900093,healthy,kauh,"dataset/KAUH/audio/BP93_N,N,P R M,75,M.wav"
+validation,900093,healthy,kauh,"dataset/KAUH/audio/DP93_N,N,P R M,75,M.wav"
+validation,900093,healthy,kauh,"dataset/KAUH/audio/EP93_N,N,P R M,75,M.wav"
+validation,900095,healthy,kauh,"dataset/KAUH/audio/BP95_N,N,P L M,18,M.wav"
+validation,900095,healthy,kauh,"dataset/KAUH/audio/DP95_N,N,P L M,18,M.wav"
+validation,900095,healthy,kauh,"dataset/KAUH/audio/EP95_N,N,P L M,18,M.wav"
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P17WheezingIE_85.wav
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P18WheezingIU_86.wav
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P35WheezingIE_173.wav
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P35WheezingRS_172.wav
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P52WheezingRL_259.wav
+validation,900101,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P52WheezingRS_260.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P19WheezingIE_93.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P19WheezingRS_92.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P1AsthmaIE_5.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P1AsthmaRS_4.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P2AsthmaIU_6.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P36WheezingRL_179.wav
+validation,900107,asthma,kaggle_asthma_v2,dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P36WheezingRS_180.wav
+validation,900108,copd,kauh,"dataset/KAUH/audio/BP108_COPD,E W,P R L ,63,M.wav"
+validation,900108,copd,kauh,"dataset/KAUH/audio/DP108_COPD,E W,P R L ,63,M.wav"
+validation,900108,copd,kauh,"dataset/KAUH/audio/EP108_COPD,E W,P R L ,63,M.wav"

@@ -1,0 +1,53 @@
+{
+  "split_manifest_sha256": "8bdc97ffcc1ddd9631e02969adebca9ca4ed136663b61e2badfd0b80c0dbe97c",
+  "splits": {
+    "train": {
+      "recordings": 837,
+      "patients": 146,
+      "class_counts": {
+        "bronchial": 54,
+        "asthma": 156,
+        "healthy": 84,
+        "pneumonia": 120,
+        "copd": 423
+      },
+      "source_counts": {
+        "kaggle_asthma_v2": 291,
+        "icbhi": 504,
+        "kauh": 42
+      }
+    },
+    "validation": {
+      "recordings": 325,
+      "patients": 49,
+      "class_counts": {
+        "bronchial": 36,
+        "asthma": 72,
+        "healthy": 30,
+        "pneumonia": 35,
+        "copd": 152
+      },
+      "source_counts": {
+        "kaggle_asthma_v2": 154,
+        "icbhi": 159,
+        "kauh": 12
+      }
+    },
+    "test": {
+      "recordings": 389,
+      "patients": 49,
+      "class_counts": {
+        "asthma": 61,
+        "healthy": 25,
+        "pneumonia": 56,
+        "bronchial": 17,
+        "copd": 230
+      },
+      "source_counts": {
+        "kaggle_asthma_v2": 123,
+        "icbhi": 257,
+        "kauh": 9
+      }
+    }
+  }
+}

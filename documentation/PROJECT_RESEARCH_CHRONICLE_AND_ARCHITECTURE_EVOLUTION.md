@@ -975,6 +975,26 @@ before tuning for accuracy.
     (`pretrained.hear_embedding`: 2 s clips at 16 kHz, mean + std of 512-d embeddings) was added; it
     needs a Hugging Face login for the gated `google/hear` weights.
 
+
+## 8.10 Research program for a journal paper (started October 23, 2026)
+
+Governance and evidence now live in `research/` (see `research/README.md`).
+- **Primary question (user decision):** how much of reported accuracy on public lung-sound disease
+  classification comes from evaluation leakage and recording-source shortcuts, and does mixing
+  recording sources restore cross-site generalization? Hypotheses H1–H5 with explicit support and
+  falsification criteria are in `research/RESEARCH_PLAN.md`.
+- **Original contribution re-read from git** (`3ec7dc6`, including the paper PDF): 6 ICBHI classes
+  with Asthma and LRTI removed, COPD capped at 3 locations per patient, one 40-dim mean-MFCC vector
+  per recording, augmentation before a random recording-level 75/25 split repeated 20 times, and the
+  checkpoint chosen on the test split. It reported 95.67% ± 0.77% accuracy. These are three leaks
+  the planned leakage ladder (X1) will remove one at a time.
+- **Frozen evaluation protocol v1** (`research/EVALUATION_PROTOCOL.md`) and split manifests v0–v3
+  (`research/splits/`, SHA-256 in each `split_summary.json`).
+- **Experiment ledger** generated from artifact files (`research/tools/collect_evidence.py`; failed
+  and superseded runs included). Also: dataset audit, decision log and claim–evidence matrix.
+- **Agents:** an independent literature review and a separate adversarial novelty review were
+  commissioned (outputs `research/LITERATURE_REVIEW.md`, `research/NOVELTY_REVIEW.md`).
+
 ---
 
 ## 9. Comprehensive Synthesis for University Major Project Reports

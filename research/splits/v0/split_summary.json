@@ -1,0 +1,38 @@
+{
+  "split_manifest_sha256": "2ec5541a9994e0fef8d34f4e2d876fd1dcd096443a354c562e66f8b2b13f3c4a",
+  "splits": {
+    "train": {
+      "recordings": 1248,
+      "patients": 198,
+      "class_counts": {
+        "bronchial": 99,
+        "asthma": 175,
+        "copd": 699,
+        "healthy": 89,
+        "pneumonia": 186
+      }
+    },
+    "validation": {
+      "recordings": 440,
+      "patients": 66,
+      "class_counts": {
+        "bronchial": 35,
+        "asthma": 60,
+        "copd": 237,
+        "healthy": 38,
+        "pneumonia": 70
+      }
+    },
+    "test": {
+      "recordings": 443,
+      "patients": 67,
+      "class_counts": {
+        "bronchial": 24,
+        "asthma": 54,
+        "copd": 258,
+        "healthy": 41,
+        "pneumonia": 66
+      }
+    }
+  }
+}

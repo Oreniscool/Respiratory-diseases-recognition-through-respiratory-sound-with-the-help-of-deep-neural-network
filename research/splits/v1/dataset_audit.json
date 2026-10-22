@@ -1,0 +1,115 @@
+{
+  "dataset": "Class-folder audio datasets",
+  "dataset_dirs": [
+    "/mnt/SSD2/repos/Respiratory-diseases-recognition-through-respiratory-sound-with-the-help-of-deep-neural-network/backend/dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2",
+    "/mnt/SSD2/repos/Respiratory-diseases-recognition-through-respiratory-sound-with-the-help-of-deep-neural-network/backend/dataset/ICBHI_as_folders"
+  ],
+  "diagnosis_sha256": "not-applicable: labels come from class folder names",
+  "recordings": 1488,
+  "patients": 243,
+  "recording_label_counts": {
+    "asthma": 289,
+    "bronchial": 107,
+    "copd": 793,
+    "healthy": 88,
+    "pneumonia": 211
+  },
+  "per_source": {
+    "icbhi": {
+      "recordings": 920,
+      "patients": 126,
+      "recording_label_counts": {
+        "asthma": 1,
+        "bronchial": 54,
+        "copd": 793,
+        "healthy": 35,
+        "pneumonia": 37
+      }
+    },
+    "kaggle_asthma_v2": {
+      "recordings": 568,
+      "patients": 117,
+      "recording_label_counts": {
+        "asthma": 288,
+        "bronchial": 53,
+        "healthy": 53,
+        "pneumonia": 174
+      }
+    }
+  },
+  "audio_inventory_sha256": "0a912a3be0a110abceaf3e7e46df80645406f13770a992621986b349b9b8b2d8",
+  "cross_dataset_overlap": {
+    "evidence_file": "data/kaggle_icbhi_overlap.csv",
+    "evidence_sha256": "1711191095eda6d1ba05580476f6f1a8d42c8a2336e70bd01bdaf1206a29d97e",
+    "removed_recordings": 631,
+    "removed_by_class": {
+      "bronchial": 51,
+      "copd": 401,
+      "healthy": 74,
+      "pneumonia": 105
+    },
+    "applied": true
+  },
+  "duplicates_removed": [
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy18S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P15Healthy61S.wav",
+      "sha256": "294a11fe5a0d5108a45a8f5f9d53011ffbb8ac2474621388177f890ca5c77077"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy38S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy19S.wav",
+      "sha256": "70e7a85c398b55bc6ad7ef2ecb9d9c8bdb16b92ee85c55ade242f5b35df2067b"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy41S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P16Healthy26S.wav",
+      "sha256": "84974dd584af9b8e3de00fdfd4597713f9448fe937941719d095f0260e0332ed"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy14S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P22Healthy88S.wav",
+      "sha256": "4f02fa79d4d627f572ef793b5bdd5a972a83eb0b5e6404205d58a8af23f7afca"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy97S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy24S.wav",
+      "sha256": "d14bc0c954572434ced008e6b22a697a2c9be3ab298401c1421bfa5caa965f55"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy98S.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/healthy/P23Healthy72S.wav",
+      "sha256": "ca67ec8427f8071f7d1e8597c51cae507b67db8a9933455d4b8a5fb9983a58fb"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia71M.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia53X.wav",
+      "sha256": "98acd64e68d6df15fe7f85f1b17e2dce64ee76639c3a6c45493af6bc0ab60e43"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia49B.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia54I.wav",
+      "sha256": "070de53b9c6090aa06893b2ee437cb00a9897a7e70252734c78d2429d23baf26"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P44Pneumonia47J.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P43Pneumonia73N.wav",
+      "sha256": "dab5d5a84d1804e307a69d962b80952210426498b33f5129429736d7f1f958aa"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P48Pneumonia61T.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia22V.wav",
+      "sha256": "ba6ffda0d8db2fdbb0bc16e366c38fce9d79b957d9535f5732e58564fa4da5e6"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P48Pneumonia31K.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia80D.wav",
+      "sha256": "1498c48954c229ee5a06b23e811b070f106380b918de85d555938a5caa0dcf22"
+    },
+    {
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P48Pneumonia82Z.wav",
+      "duplicate_of": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P46Pneumonia95A.wav",
+      "sha256": "1c51698841a2cad5283f3a8b1f320ea11f9a9361515561d7b55e70f292512275"
+    }
+  ]
+}
