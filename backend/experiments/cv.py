@@ -57,6 +57,15 @@ DEEP_VARIANTS: dict[str, dict[str, object]] = {
     # validity mask reads as padding, so cuDNN GRUs go together with per-sample SpecAugment.
     "D3": {"cudnn_gru": True, "spec_augment_mode": "sample"},
 }
+# Round-2 candidates: each changes one thing on top of D3.
+_D3 = DEEP_VARIANTS["D3"]
+DEEP_VARIANTS.update({
+    "D3_x3": {**_D3, "seeds": [SEED, SEED + 1, SEED + 2]},
+    "D3_devaug": {**_D3, "cache": "mfcc_devaug"},
+    "D3_mtl": {**_D3, "multitask": True},
+    "D3_ce": {**_D3, "use_focal_loss": False},
+    "D3_mixup": {**_D3, "mixup_alpha": 0.4},
+})
 ICBHI_ANNOTATIONS = Path("dataset/ICBHI_final_dataset")
 # Training settings of the current model (artifacts/latest/model_metadata.json).
 TRAINING = {"batch_size": 64, "epochs": 80, "learning_rate": 3e-4, "label_smoothing": 0.1}
@@ -196,6 +205,7 @@ def read_oof(path: Path) -> tuple[list[str], dict[str, np.ndarray]]:
         "patient_id": np.asarray([int(r["patient_id"]) for r in rows]),
         "source": np.asarray([r["source"] for r in rows]),
         "y": np.asarray([class_names.index(r["label"]) for r in rows]),
+        "fold": np.asarray([int(r["fold"]) for r in rows]),
         "probabilities": np.asarray([[float(r[f"p_{c}"]) for c in class_names] for r in rows]),
     }
     return class_names, table
@@ -471,6 +481,25 @@ def _metrics(class_names, table):
     }
 
 
+def stacked_fusion(member_tables: list[dict[str, np.ndarray]]) -> np.ndarray:
+    """Learned fusion: a logistic regression on the members' log-probabilities, fit out of fold.
+
+    Each fold's recordings are scored by a stacker trained on the other folds' out-of-fold
+    predictions, so no recording is scored by a stacker that saw it. The folds are the CV folds.
+    """
+    from sklearn.linear_model import LogisticRegression
+
+    features = np.hstack([np.log(np.clip(t["probabilities"], 1e-6, 1.0)) for t in member_tables])
+    y, folds = member_tables[0]["y"], member_tables[0]["fold"]
+    stacked = np.zeros_like(member_tables[0]["probabilities"])
+    for fold in np.unique(folds):
+        train, test = folds != fold, folds == fold
+        model = LogisticRegression(C=1.0, class_weight="balanced", max_iter=5000).fit(features[train], y[train])
+        order = [list(model.classes_).index(c) for c in range(stacked.shape[1])]
+        stacked[test] = model.predict_proba(features[test])[:, order]
+    return stacked
+
+
 def report(fusions: tuple[str, ...] = (), reference: str = "D0") -> dict[str, object]:
     """Metrics for every OOF file and equal-weight fusion, compared with D0 and ``reference``.
 
@@ -484,10 +513,14 @@ def report(fusions: tuple[str, ...] = (), reference: str = "D0") -> dict[str, ob
         if not np.array_equal(table["path"], first["path"]):
             raise ValueError(f"{name} does not cover the same recordings as the other variants")
     for fusion in fusions:
-        members = fusion.split("+")
+        stack = fusion.startswith("stack:")
+        members = fusion.removeprefix("stack:").split("+")
         if all(member in tables for member in members):
             fused = dict(tables[members[0]])
-            fused["probabilities"] = np.mean([tables[m]["probabilities"] for m in members], axis=0)
+            fused["probabilities"] = (
+                stacked_fusion([tables[m] for m in members]) if stack
+                else np.mean([tables[m]["probabilities"] for m in members], axis=0)
+            )
             tables[fusion] = fused
 
     results = {}
@@ -531,7 +564,10 @@ def main() -> None:
     parser.add_argument("--cache", default="mfcc", help='cache name: "mfcc", "mfcc_devaug", ...')
     parser.add_argument("--variant", choices=sorted(DEEP_VARIANTS))
     parser.add_argument("--extractor", help="pretrained.EXTRACTORS name, for the embed command")
-    parser.add_argument("--fuse", action="append", default=[], help='e.g. "D0+E_yamnet" (repeatable)')
+    parser.add_argument(
+        "--fuse", action="append", default=[],
+        help='equal-weight "D0+E_yamnet" or learned "stack:D0+E_yamnet" (repeatable)',
+    )
     parser.add_argument("--reference", default="D0")
     args = parser.parse_args()
     if args.command == "report":

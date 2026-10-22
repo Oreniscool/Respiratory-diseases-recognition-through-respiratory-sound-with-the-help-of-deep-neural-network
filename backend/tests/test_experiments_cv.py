@@ -111,3 +111,17 @@ def test_shortcut_probe_detects_a_recoverable_source():
     noise = rng.standard_normal((60, 5))
     assert probe(informative, source, groups) > 0.95
     assert probe(noise, source, groups) < 0.8
+
+
+def test_stacked_fusion_scores_each_fold_with_a_stacker_trained_elsewhere():
+    from experiments.cv import stacked_fusion
+
+    rng = np.random.default_rng(5)
+    y = np.arange(90) % 3
+    folds = np.arange(90) % 3
+    good = np.eye(3)[y] * 0.8 + 0.2 / 3
+    noise = rng.dirichlet(np.ones(3), 90)
+    tables = [{"probabilities": noise, "y": y, "fold": folds}, {"probabilities": good, "y": y, "fold": folds}]
+    stacked = stacked_fusion(tables)
+    np.testing.assert_allclose(stacked.sum(axis=1), 1.0, rtol=1e-6)
+    assert (stacked.argmax(axis=1) == y).mean() > 0.9  # learns to trust the informative member
