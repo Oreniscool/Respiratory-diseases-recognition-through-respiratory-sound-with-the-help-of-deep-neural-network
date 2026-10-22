@@ -53,7 +53,9 @@ DEEP_VARIANTS: dict[str, dict[str, object]] = {
     "D0": {},
     "D1": {"use_focal_loss": False},
     "D2": {"cache": "logmel"},
-    "D3": {"cudnn_gru": True},
+    # cuDNN needs right-padded masks; batch SpecAugment zeroes whole frames mid-window, which the
+    # validity mask reads as padding, so cuDNN GRUs go together with per-sample SpecAugment.
+    "D3": {"cudnn_gru": True, "spec_augment_mode": "sample"},
 }
 ICBHI_ANNOTATIONS = Path("dataset/ICBHI_final_dataset")
 # Training settings of the current model (artifacts/latest/model_metadata.json).
