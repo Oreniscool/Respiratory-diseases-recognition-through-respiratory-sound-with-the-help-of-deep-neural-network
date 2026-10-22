@@ -5,8 +5,12 @@
 | Source | Recordings | Patients | Identity quality | Notes |
 |---|---:|---:|---|---|
 | ICBHI 2017 Respiratory Sound Database | 920 | 126 | real patient IDs | authentic diagnoses, mapped to 5 classes (`reorganize_icbhi.py`) |
-| Kaggle Asthma Detection Dataset V2 (remainder) | 568 | 117 groups | **unverified** (filename prefixes) | after removing 631 cuts of ICBHI and 12 byte duplicates |
-| **Total** | **1,488** | **243** | | patient-disjoint split 145 / 49 / 49 |
+| Kaggle Asthma Detection Dataset V2 (remainder) | 568 | 97 | 316 clips: **real KAUH patient IDs** (40 patients); the other 252: unverified filename groups | after removing 631 cuts of ICBHI and 12 byte duplicates |
+| **Total** | **1,488** | **223** | | patient-disjoint split 133 / 45 / 45 (since round 2) |
+
+**External test set (never trained on):** 72 KAUH patients who contributed no clip to Kaggle,
+216 recordings (`backend/data/kauh_external_manifest.csv`): 35 healthy, 9 COPD, 1 bronchial, and 27
+with diagnoses outside the five labels.
 
 **Kaggle V2 is not independent of ICBHI.** Its description says some clips were segmented from
 ICBHI. Normalized cross-correlation of every Kaggle clip against every ICBHI recording found
@@ -17,10 +21,22 @@ clips are dropped whenever both datasets are merged. The tracked evidence file i
 `backend/data/kaggle_icbhi_overlap.csv`, produced by `backend/cross_dataset_overlap.py`.
 
 Kaggle `P`-numbers are **not** subject identifiers: the same numbers occur in every class, and
-35 of 98 (class, `P`) groups contain cuts from several different ICBHI patients. The remaining
-Kaggle clips partly derive from the KAUH respiratory database (DOI 10.1016/j.bbe.2020.11.003) and
-the dataset authors' own recordings, and were not checked for overlap. Treat Kaggle-subset
-metrics as optimistic.
+35 of 98 (class, `P`) groups contain cuts from several different ICBHI patients.
+
+**Kaggle V2 is also cut from KAUH** (Fraiwan et al. 2021, Mendeley Data doi:10.17632/jwyy9np4gv.3,
+CC BY 4.0; downloaded into `backend/dataset/KAUH/`, archive SHA-256 verified). The same matcher
+found **316 Kaggle clips cut from 40 KAUH patients** (asthma 262 of 288, pneumonia 39, bronchial
+15; copies ≥ 0.772, all others ≤ 0.573; evidence `backend/data/kaggle_kauh_overlap.csv`). 57 of the
+64 matching filename groups mixed several KAUH patients. Since round 2 these clips carry the real
+KAUH patient ID (`main.assign_kauh_patient_ids`). The remaining 252 Kaggle clips in the cohort
+(healthy 53, pneumonia 135, bronchial 38, asthma 26; 57 filename groups) match neither database;
+their grouping stays unverified.
+KAUH does not overlap ICBHI (0 of 336 recordings match).
+
+**Source confounding.** All COPD recordings are ICBHI (mostly the AKG C417L stethoscope, which
+records no other class), and almost all KAUH-recorded training audio is asthma. A model trained on
+this cohort labels external KAUH healthy and COPD patients as asthma (round-2 report §6). Do not
+expect it to transfer to other hospitals or stethoscopes.
 
 Class mapping (ICBHI → 5 classes): COPD → copd, Healthy → healthy, Pneumonia → pneumonia,
 Asthma → asthma, URTI / Bronchiectasis / Bronchiolitis / LRTI → bronchial.

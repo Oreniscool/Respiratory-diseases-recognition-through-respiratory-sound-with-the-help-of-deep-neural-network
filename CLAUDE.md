@@ -260,6 +260,17 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 
 ## 8. Top gotchas (details in subdirectory CLAUDE.md files)
 
+- **The model does not transfer to a new hospital/stethoscope (round 2).** On 45 external KAUH
+  patients the pre-round-2 model predicted asthma for nearly everyone (0% accuracy), because almost
+  all KAUH-recorded training audio is asthma and all COPD is ICBHI (mostly the AKG C417L). Probes
+  identify the dataset/device far more easily than the disease. Never present in-cohort accuracy as
+  real-world performance; see `documentation/ROUND2_EXPERIMENTS_REPORT.md`.
+- **Kaggle clips cut from KAUH carry real KAUH patient IDs** (`main.assign_kauh_patient_ids`,
+  evidence `backend/data/kaggle_kauh_overlap.csv`, IDs 900,000 + n). This changed the seed-42 split
+  (223 patients, 133/45/45): test results before round 2 are on a different, leakier split.
+- **`data/kauh_external_manifest.csv` is an external test set:** never train on it or use it to
+  pick between candidates (`experiments/external.py` evaluates a served artifact once).
+
 - **The served model is a two-member fusion.** The artifact dir must contain `yamnet/` (SavedModel)
   and `yamnet_head.keras`; `model_metadata.json["fusion"]` pins their SHA-256 and the member
   temperatures, and `load_verified_contract` refuses the artifact if either changes. The server

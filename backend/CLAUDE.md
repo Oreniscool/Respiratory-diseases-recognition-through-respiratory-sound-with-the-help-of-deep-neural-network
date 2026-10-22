@@ -196,6 +196,29 @@ training augmentation; scoring uses `variants == "original"`. Each variant write
 rows (`oof_<id>.csv`); `report` writes `results.json` with a paired patient bootstrap vs D0.
 A deep variant takes ~70 min for 3 folds on the RTX 4060.
 
+### Round 2 additions (branch `round2-validity-accuracy`)
+- `kauh.py`: KAUH filename parsing (`BP12_Asthma,...wav` → patient 12, bell filter, label), label map
+  (N→healthy, Asthma, Pneumonia, COPD, BRON→bronchial; anything else out of label),
+  `external_manifest()` → `data/kauh_external_manifest.csv` (72 patients absent from Kaggle).
+- `main.assign_kauh_patient_ids` (inside `build_cohort`, after the ICBHI exclusion): Kaggle clips
+  matched to KAUH (`data/kaggle_kauh_overlap.csv`) get ID 900,000 + KAUH patient; fails closed;
+  `--no-kauh-ids` / `--kauh-overlap-csv`.
+- `experiments/shortcut.py`: probes predicting dataset / ICBHI device / disease from each
+  representation. `experiments/cv.shortcut_metrics`: off-device COPD sensitivity and Meditron
+  accuracy for every variant. `report --fuse A+B` (equal weights) or `--fuse stack:A+B` (nested
+  learned stacking, worse here).
+- `experiments/external.py`: KAUH external set through the served path for one artifact
+  (`RESPINET_MODEL_PATH`/`RESPINET_MODEL_METADATA`); writes `artifacts/experiments/external/<name>.json`.
+- Training options (defaults unchanged): `--cudnn-gru` (needs `--spec-augment-mode sample`, because
+  cuDNN rejects masks with holes and batch SpecAugment zeroes whole frames), `--mixup-alpha`,
+  `--device-augment` (`Augmentation.device_response`), `--multitask` (aux crackle/wheeze head from
+  ICBHI `.txt` cycle annotations; saved model keeps only the class output).
+- `pretrained.Extractor` (yamnet, yamnet_bandpass, opera_ct, opera_ce; OPERA code vendored in
+  `third_party/opera/`, weights in `artifacts/pretrained/opera/`, PyTorch CPU build), `--fusion
+  members --fusion-members yamnet,opera_ce --ensemble-seeds N` → `fusion.type = late_fusion_members`.
+- `pretrained.lung_sound_gate`: server refuses silence, broadband noise, speech, music and tones for
+  artifacts that ship YAMNet (`RESPINET_LUNG_SOUND_GATE`, `/health.lung_sound_gate`).
+
 ### `cross_dataset_overlap.py` (evidence tool)
 Finds clips of one dataset that are cut from recordings of another. Audio is band-passed to
 100–1000 Hz at 4 kHz, and each clip is slid over every reference recording with normalized

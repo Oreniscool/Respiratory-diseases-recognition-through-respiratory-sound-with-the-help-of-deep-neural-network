@@ -930,6 +930,30 @@ before tuning for accuracy.
    every extractor directory (OPERA members ship only their own checkpoint) and every head; the
    server loads all members and computes embeddings from the 16 kHz decode. The 2026-10-22
    `respinet+yamnet_logistic` format still loads unchanged. Saliency still uses the first RespiNet.
+8. **Cross-validation results (178 development patients of the corrected split, out-of-fold, patient
+   level; `backend/artifacts/experiments/results.json`).** Reference R = D0 + YAMNet (the served
+   configuration): balanced accuracy 76.7%, macro F1 0.769, off-device COPD sensitivity 72.1%.
+   - D0 alone 65.8% (off-device COPD 57.4%). D3 (cuDNN GRUs + per-sample SpecAugment) 66.4%,
+     off-device COPD **69.0%**, about 2× faster.
+   - Frozen embeddings + logistic regression: YAMNet 73.3%, band-limited YAMNet 69.0%,
+     OPERA-CE 69.4%, OPERA-CT 62.7%.
+   - Fusions: D3 + YAMNet 78.1% (+1.4, P = 0.81); D0 + YAMNet + OPERA-CE 78.9% (+2.2, P = 0.76);
+     D3 + YAMNet + OPERA-CE 77.0% (off-device COPD 79.8%). Nested learned stacking 71.0%.
+   - Probes: every representation identifies the dataset (90–99% balanced accuracy) and the ICBHI
+     device (77–89%) more easily than the disease (59–72%).
+   - With real KAUH patient IDs, RespiNet's asthma sensitivity is 75.0%, against 93.6% in round 1:
+     part of round 1's asthma performance came from the same KAUH patient on both sides of the split.
+   - No candidate met the pre-registered rule (≥ +2 balanced accuracy and macro F1, P ≥ 0.90). The
+     3-seed ensemble (1 of 3 folds done), device augmentation, multi-task, cross-entropy and mixup
+     variants were stopped or not started for time; HeAR awaits a Hugging Face login.
+9. **External KAUH result for the previously served model**
+   (`backend/artifacts/experiments/external/previous_served_model.json`): **0% patient-level
+   accuracy on 45 in-label external patients.** 34 of 35 healthy and all 9 COPD patients were
+   predicted asthma, and 76 of 81 out-of-label recordings too (42% abstained). 262 of the 316
+   KAUH-derived training clips are asthma, so the model learned "KAUH recording → asthma". In-cohort
+   accuracy, round 1 included, measures separation of these datasets, not disease recognition in
+   new recording conditions. Fixing this needs KAUH (or other) healthy and COPD recordings in
+   training.
 
 ---
 
