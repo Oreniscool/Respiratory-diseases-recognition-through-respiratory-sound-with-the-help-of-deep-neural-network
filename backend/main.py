@@ -44,7 +44,7 @@ from featureExtraction import (
     deduplicate_records,
     extract_manifest,
 )
-from preprocessing import DEFAULT_PREPROCESSING
+from preprocessing import FEATURE_TYPES, PreprocessingConfig
 
 
 def parse_args() -> argparse.Namespace:
@@ -182,11 +182,25 @@ def parse_args() -> argparse.Namespace:
         help="Keep Kaggle clips that are copies of ICBHI audio (reintroduces split leakage)",
     )
     parser.add_argument(
+        "--feature-type",
+        choices=FEATURE_TYPES,
+        default="mfcc",
+        help="Front-end features: MFCC (default) or log-mel bands within the band-pass range",
+    )
+    parser.add_argument(
+        "--n-mels", type=int, default=64, help="Mel bands for --feature-type logmel (default: 64)"
+    )
+    parser.add_argument(
         "--merge-icbhi",
         action="store_true",
         help="Automatically merge the ICBHI dataset (backend/dataset/ICBHI_as_folders) into the training cohort",
     )
     return parser.parse_args()
+
+
+def preprocessing_config(args: argparse.Namespace) -> PreprocessingConfig:
+    """The feature contract for this run; persisted in metadata and re-read by the server."""
+    return PreprocessingConfig(feature_type=args.feature_type, n_mels=args.n_mels)
 
 
 def resolve_dataset_paths(args: argparse.Namespace) -> None:
@@ -346,13 +360,8 @@ def _write_split_manifest(
     return hashlib.sha256(frame.to_csv(index=False).encode("utf-8")).hexdigest()
 
 
-def run_training(args: argparse.Namespace) -> None:
-    resolve_dataset_paths(args)
-    # Capture the revision now: commits made while a long run trains must not be credited to it.
-    args.source_revision = resolve_source_revision(args.source_revision)
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-
+def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str, object]]:
+    """Build the deduplicated, overlap-free cohort and the audit describing it."""
     if args.dataset_format == "folder":
         records = build_manifest_from_folders(
             args.dataset_dir,
@@ -418,6 +427,17 @@ def run_training(args: argparse.Namespace) -> None:
         {**row, "path": portable_path(row["path"]), "duplicate_of": portable_path(row["duplicate_of"])}
         for row in duplicates_removed
     ]
+    return records, dataset_audit
+
+
+def run_training(args: argparse.Namespace) -> None:
+    resolve_dataset_paths(args)
+    # Capture the revision now: commits made while a long run trains must not be credited to it.
+    args.source_revision = resolve_source_revision(args.source_revision)
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+
+    records, dataset_audit = build_cohort(args)
 
     splits = split_by_patient(
         records,
@@ -474,6 +494,7 @@ def run_training(args: argparse.Namespace) -> None:
     set_random_seed(args.seed)
 
     offline_spec = args.offline_spec_augment and (not args.no_spec_augment)
+    config = preprocessing_config(args)
     train_data = extract_manifest(
         splits["train"],
         augment=not args.no_augmentation,
@@ -484,9 +505,14 @@ def run_training(args: argparse.Namespace) -> None:
         max_time_mask=args.max_time_mask,
         max_waveform_variants=args.max_waveform_variants,
         seed=args.seed,
+        config=config,
     )
-    validation_data = extract_manifest(splits["validation"], augment=False, use_spec_augment=False, seed=args.seed)
-    test_data = extract_manifest(splits["test"], augment=False, use_spec_augment=False, seed=args.seed)
+    validation_data = extract_manifest(
+        splits["validation"], augment=False, use_spec_augment=False, seed=args.seed, config=config
+    )
+    test_data = extract_manifest(
+        splits["test"], augment=False, use_spec_augment=False, seed=args.seed, config=config
+    )
 
 
     encoder = LabelEncoder()
@@ -637,6 +663,7 @@ def build_model_metadata(
         FOCAL_GAMMA,
     )
 
+    preprocessing = preprocessing_config(args)
     if args.no_augmentation or args.no_spec_augment:
         spec_augment_mode = "off"
     else:
@@ -647,15 +674,15 @@ def build_model_metadata(
         "model_filename": model_path.name,
         "model_sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
         "classes": class_names,
-        "preprocessing": DEFAULT_PREPROCESSING.to_dict(),
+        "preprocessing": preprocessing.to_dict(),
         "training": {
             "seed": args.seed,
             "test_size": args.test_size,
             "validation_size": args.validation_size,
             "augmentation": not args.no_augmentation,
             "windowing": {
-                "window_frames": DEFAULT_PREPROCESSING.max_len,
-                "hop_frames": DEFAULT_PREPROCESSING.window_hop,
+                "window_frames": preprocessing.max_len,
+                "hop_frames": preprocessing.window_hop,
                 # Window probabilities are averaged first; temperature is applied to the mean.
                 "aggregation": "temperature-calibrated mean of window probabilities",
             },

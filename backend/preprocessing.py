@@ -17,6 +17,9 @@ import numpy as np
 from scipy.signal import butter, sosfiltfilt
 
 
+FEATURE_TYPES = ("mfcc", "logmel")
+
+
 @dataclass(frozen=True)
 class PreprocessingConfig:
     sample_rate: int = 22_050
@@ -31,10 +34,22 @@ class PreprocessingConfig:
     lowcut: float = 100.0
     highcut: float = 2000.0
     use_cmvn: bool = True
+    # "mfcc" (every artifact up to 2026-10-22) or "logmel" (log-power mel bands limited to the
+    # band-pass range, so no band is filled with the filtered-out noise floor).
+    feature_type: str = "mfcc"
+    n_mels: int = 64
+
+    def __post_init__(self) -> None:
+        if self.feature_type not in FEATURE_TYPES:
+            raise ValueError(f"feature_type must be one of {FEATURE_TYPES}, got {self.feature_type!r}")
+
+    @property
+    def base_dim(self) -> int:
+        return self.n_mels if self.feature_type == "logmel" else self.n_mfcc
 
     @property
     def feature_dim(self) -> int:
-        return self.n_mfcc * (3 if self.use_deltas else 1)
+        return self.base_dim * (3 if self.use_deltas else 1)
 
     def to_dict(self) -> dict[str, object]:
         return asdict(self)
@@ -115,7 +130,7 @@ def extract_feature_sequence(
     sample_rate: int,
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
 ) -> np.ndarray:
-    """Return the complete, unpadded ``(time_steps, feature_dim)`` MFCC sequence."""
+    """Return the complete, unpadded ``(time_steps, feature_dim)`` feature sequence."""
     if data.size == 0:
         raise ValueError("Cannot extract features from empty audio")
 
@@ -124,17 +139,29 @@ def extract_feature_sequence(
             data, sample_rate, lowcut=config.lowcut, highcut=config.highcut
         )
 
-    mfcc = librosa.feature.mfcc(
-        y=data,
-        sr=sample_rate,
-        n_mfcc=config.n_mfcc,
-        n_fft=config.n_fft,
-        hop_length=config.hop_length,
-    )
-    feature_blocks = [mfcc]
+    if config.feature_type == "logmel":
+        mel = librosa.feature.melspectrogram(
+            y=data,
+            sr=sample_rate,
+            n_fft=config.n_fft,
+            hop_length=config.hop_length,
+            n_mels=config.n_mels,
+            fmin=config.lowcut if config.use_bandpass else 0.0,
+            fmax=config.highcut if config.use_bandpass else None,
+        )
+        base = librosa.power_to_db(mel, ref=1.0, amin=1e-10, top_db=80.0)
+    else:
+        base = librosa.feature.mfcc(
+            y=data,
+            sr=sample_rate,
+            n_mfcc=config.n_mfcc,
+            n_fft=config.n_fft,
+            hop_length=config.hop_length,
+        )
+    feature_blocks = [base]
     if config.use_deltas:
         feature_blocks.extend(
-            [librosa.feature.delta(mfcc), librosa.feature.delta(mfcc, order=2)]
+            [librosa.feature.delta(base), librosa.feature.delta(base, order=2)]
         )
 
     features = np.vstack(feature_blocks).T

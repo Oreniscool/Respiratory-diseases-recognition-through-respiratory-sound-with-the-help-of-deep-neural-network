@@ -786,6 +786,26 @@ weaker than documented. Changes, in commit order:
     server), "Grad-CAM" (time-only gradient saliency), a demo result that looked real, and a broken
     `/documentation` link.
 
+## 8.8 Phase 7: Accuracy Experiments Under a Locked Test Set (October 22, 2026)
+
+Branch `accuracy-experiments`. Goal: find changes that raise accuracy on the leakage-free cohort
+without overfitting the 49-patient test split. Variants are compared with 3-fold patient-grouped
+cross-validation on the development patients (train + validation of the seed-42 split); the test
+split is used once, only for an adopted configuration. Full method and results:
+[`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md).
+
+1. **`main.build_cohort` (refactor, no behavior change):** the manifest → merge → overlap exclusion
+   → dedup → audit code moved out of `run_training` so the experiment harness builds exactly the
+   same cohort. Verified: `--prepare-only` writes a `split_manifest.csv` byte-identical to the one
+   of the current model.
+2. **Log-mel front-end option (`preprocessing.py`):** `PreprocessingConfig` gains
+   `feature_type` (`"mfcc"` default, or `"logmel"`) and `n_mels` (64). Log-mel uses
+   `librosa.feature.melspectrogram` limited to the band-pass range (100–2,000 Hz) → `power_to_db`
+   → the same Δ/Δ², CMVN and 200-frame windowing; dimension `3 × n_mels` (192). Configs saved
+   before this field existed load as MFCC and produce identical features (tested). `main.py` gains
+   `--feature-type` and `--n-mels`, and the chosen config is persisted in `model_metadata.json`
+   and re-read by the server.
+
 ---
 
 ## 9. Comprehensive Synthesis for University Major Project Reports

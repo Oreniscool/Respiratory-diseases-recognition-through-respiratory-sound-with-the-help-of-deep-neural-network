@@ -89,3 +89,18 @@ def test_source_revision_is_captured_when_the_run_starts(monkeypatch):
     except StopAfterResolve:
         pass
     assert args.source_revision == "rev-at-start"
+
+
+def test_feature_type_flag_reaches_the_persisted_contract(tmp_path, monkeypatch):
+    args = _args(monkeypatch, "--feature-type", "logmel", "--n-mels", "48")
+    assert main.preprocessing_config(args).feature_dim == 144
+    model_path = tmp_path / "best_model.keras"
+    model_path.write_bytes(b"m")
+    metadata = main.build_model_metadata(
+        args, model_path=model_path, class_names=["a", "b"], class_weights={0: 1.0, 1: 1.0},
+        manifest_hash="f" * 64, dataset_audit={"diagnosis_sha256": "x", "audio_inventory_sha256": "y"},
+        calibration={"abstention": {}},
+        use_online_spec_augment=True,
+    )
+    assert metadata["preprocessing"]["feature_type"] == "logmel"
+    assert metadata["preprocessing"]["n_mels"] == 48
