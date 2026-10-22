@@ -692,7 +692,12 @@ def fit_yamnet_fusion(
     head = export_logistic_head(pipeline, class_names, output_dir / "yamnet_head.keras")
     order = [list(pipeline.classes_).index(name) for name in class_names]
     validation_head = np.asarray(head.predict(matrix(validation_paths), verbose=0))
-    if not np.allclose(validation_head, pipeline.predict_proba(matrix(validation_paths))[:, order], atol=1e-4):
+    # GPU matmuls run in TF32 (about 3 decimal digits), so allow 1e-3 but require identical classes.
+    reference = pipeline.predict_proba(matrix(validation_paths))[:, order]
+    if not (
+        np.allclose(validation_head, reference, atol=1e-3)
+        and np.array_equal(validation_head.argmax(1), reference.argmax(1))
+    ):
         raise RuntimeError("Exported YAMNet head does not reproduce the fitted logistic regression")
     test_head = np.asarray(head.predict(matrix(test_paths), verbose=0))
 
