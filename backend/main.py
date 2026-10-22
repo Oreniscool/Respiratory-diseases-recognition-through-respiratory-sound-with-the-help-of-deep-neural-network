@@ -47,7 +47,7 @@ from featureExtraction import (
 from preprocessing import FEATURE_TYPES, PreprocessingConfig
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train RespiNet without patient leakage")
     parser.add_argument("--dataset-dir", default="dataset/ICBHI_final_dataset")
     parser.add_argument("--diagnosis-csv", default="patient_diagnosis.csv")
@@ -195,7 +195,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Automatically merge the ICBHI dataset (backend/dataset/ICBHI_as_folders) into the training cohort",
     )
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def preprocessing_config(args: argparse.Namespace) -> PreprocessingConfig:

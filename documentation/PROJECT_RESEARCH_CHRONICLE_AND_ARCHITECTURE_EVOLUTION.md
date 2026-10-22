@@ -805,6 +805,17 @@ split is used once, only for an adopted configuration. Full method and results:
    before this field existed load as MFCC and produce identical features (tested). `main.py` gains
    `--feature-type` and `--n-mels`, and the chosen config is persisted in `model_metadata.json`
    and re-read by the server.
+3. **Cross-validation harness (`backend/experiments/cv.py`):** takes the 194 development patients
+   (1,192 recordings) of the seed-42 split and asserts that none of the 49 test patients is
+   present. It builds 3 `StratifiedGroupKFold` folds by patient, and each fold's training part gets
+   an inner 20% patient split for early stopping and temperature fitting, so the scored fold is
+   never used for selection. Each fold fits on about 103 patients (production: 145), so CV scores
+   are lower than production scores and are only meant for comparing variants. Features are
+   extracted once per front-end with the training augmentation, and folds select windows by
+   recording; calibration and scoring use un-augmented windows only. Every variant writes
+   calibrated out-of-fold probabilities for all 1,192 recordings (`artifacts/experiments/oof_*.csv`).
+   `report` computes recording-, patient- and per-source metrics with `evaluate.py` and a paired
+   patient bootstrap of the difference from the current configuration (D0).
 
 ---
 
