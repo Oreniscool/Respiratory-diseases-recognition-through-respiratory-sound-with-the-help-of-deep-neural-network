@@ -963,6 +963,17 @@ before tuning for accuracy.
     predicted asthma). Temperatures: RespiNet 0.844, YAMNet 1.537, fused 0.559; abstention min
     confidence 0.693, max normalized entropy 0.453. Round-1 test numbers (77.55%) came from a split
     with KAUH patients on both sides and are superseded.
+11. **Round 2b: half of the in-label KAUH patients join the cohort (user decision, 2026-10-22).**
+    `kauh.py --split-for-training` (seeded shuffle per class) moved 21 patients (17 healthy, 4 COPD;
+    63 recordings) into the cohort as source `kauh` (`main.py --merge-kauh`,
+    `data/kauh_cohort_manifest.csv`). 51 stay external (`data/kauh_external_holdout_manifest.csv`:
+    18 healthy, 5 COPD, 1 bronchial, 27 out of label). The cohort becomes 1,551 recordings / 244
+    patients with a new seed-42 split of 146 / 49 / 49 (another new locked test set).
+    `experiments/external.py` now refuses patients that are in the evaluated artifact's own split.
+    The CV harness reports OOF accuracy on the in-cohort KAUH recordings. Adoption rules were written
+    into `ROUND2_EXPERIMENTS_REPORT.md` §9 before any 2b result. The HeAR extractor
+    (`pretrained.hear_embedding`: 2 s clips at 16 kHz, mean + std of 512-d embeddings) was added; it
+    needs a Hugging Face login for the gated `google/hear` weights.
 
 ---
 

@@ -6,7 +6,7 @@ hold module-level detail. The full verified reference (history, exact architectu
 verified metrics, discrepancy register) is
 [`documentation/PROJECT_CONTEXT.md`](documentation/PROJECT_CONTEXT.md).
 
-Last verified against source and on-disk artifacts: **2026-10-22** (branch `accuracy-experiments`, stacked on `final-phase-improvements`).
+Last verified against source and on-disk artifacts: **2026-10-22** (branch `round2-validity-accuracy`, stacked on `accuracy-experiments`).
 
 ---
 
@@ -108,7 +108,7 @@ current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 │   ├── best_model.h5, scaler.pkl        # LEGACY 2021 artifacts (8-class, no contract; do not load scaler.pkl)
 │   ├── patient_diagnosis.csv            # DELIBERATELY SCRAMBLED historical labels; never train on it
 │   ├── dataset_provenance.json          # stale provenance for an older scrambled CSV (checksum mismatch → rejected)
-│   ├── tests/                   # 87 dataset-free pytest tests
+│   ├── tests/                   # dataset-free pytest tests (107 as of round 2b)
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
 │                                #   patient_diagnosis_authentic.csv  ← the REAL ICBHI labels
@@ -148,7 +148,7 @@ pip install -r requirements-dev.txt   # includes nvidia-cuda-nvcc-cu12 (ptxas/li
 
 # --- static checks (what CI runs; no dataset or model needed) ---
 ruff check .                # clean
-pytest                      # 87 tests pass (pyproject sets pythonpath=["."], so bare pytest works)
+pytest                      # all tests pass (107 as of round 2b) (pyproject sets pythonpath=["."], so bare pytest works)
 
 # --- datasets (into backend/dataset/) ---
 ./download_dataset.sh all   # Kaggle CLI or curl; also runs under sbatch
@@ -171,8 +171,11 @@ python main.py --dataset-format folder --merge-icbhi \
   # source_revision is filled from git automatically; commit first so it isn't "-dirty"
 
 # --- compare variants without touching the test split (see experiments/cv.py docstring) ---
-python -m experiments.cv cache --feature-type mfcc && python -m experiments.cv deep --variant D0
-python -m experiments.cv yamnet && python -m experiments.cv report
+python -m experiments.cv cache --cache mfcc && python -m experiments.cv deep --variant D3
+python -m experiments.cv embed --extractor yamnet
+python -m experiments.cv report --fuse D3+E_yamnet --reference D0+E_yamnet
+python -m experiments.shortcut              # dataset/device probes
+python -m experiments.external --name NAME  # KAUH holdout through the served path (once per model)
 
 # --- serve ---
 python server.py            # binds RESPINET_HOST:RESPINET_PORT (default 127.0.0.1:5001)
