@@ -147,3 +147,26 @@ def test_server_fuses_yamnet_before_the_final_temperature(tmp_path, monkeypatch)
 
     with pytest.raises(RuntimeError, match="YAMNet audio"):
         server._aggregate_window_probabilities(windows, yamnet_audio=None)
+
+
+def test_lung_sound_gate_rejects_tone_noise_and_silence_but_passes_real_recordings():
+    import glob
+
+    from pretrained import gate_reason, load_yamnet, load_yamnet_audio, lung_sound_gate
+
+    yamnet_dir = "artifacts/pretrained/yamnet"
+    import os
+
+    if not os.path.isdir(yamnet_dir):
+        pytest.skip("YAMNet SavedModel not downloaded")
+    model = load_yamnet(yamnet_dir)
+    t = np.arange(16_000 * 3) / 16_000
+    tone = (0.3 * np.sin(2 * np.pi * 440 * t)).astype(np.float32)
+    noise = np.random.default_rng(0).standard_normal(16_000 * 3).astype(np.float32) * 0.3
+    silence = np.zeros(16_000 * 3, dtype=np.float32)
+    for audio, reason in ((tone, "tone"), (noise, "noise"), (silence, "silent")):
+        passes, scores = lung_sound_gate(model, audio)
+        assert not passes and reason in gate_reason(scores)
+    recordings = sorted(glob.glob("dataset/ICBHI_final_dataset/*.wav"))[:3]
+    for path in recordings:
+        assert lung_sound_gate(model, load_yamnet_audio(path))[0]

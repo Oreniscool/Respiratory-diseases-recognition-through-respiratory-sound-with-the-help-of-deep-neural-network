@@ -909,6 +909,19 @@ before tuning for accuracy.
      self-supervised on ICBHI's official training split (no labels) but not on KAUH.
    - PyTorch 2.14.1 (CPU build, to avoid clashing with TensorFlow's CUDA libraries) plus
      efficientnet_pytorch, torchlibrosa, pytorch_lightning in the training environment.
+5. **Non-lung-sound gate (`pretrained.lung_sound_gate`, `server.extract_mfcc`).** For artifacts that
+   ship YAMNet, uploads are refused (422, with the reason) when they are silent (RMS below −70 dBFS;
+   the quietest development recording is −52 dBFS), broadband noise (median spectral flatness above
+   0.2; development recordings ≤ 0.018, white noise ≈ 0.56), or when YAMNet hears speech (> 0.5),
+   music (> 0.55) or a tone/alarm (> 0.3; a 440 Hz tone is heard as "Dial tone"/"Telephone", not
+   "Sine wave"). Thresholds were set from the 1,152 development recordings only, all of which pass;
+   synthetic tone, white noise and silence are rejected (`tests/test_fusion.py`). YAMNet's
+   "Silence" and "White noise" classes are not used: 176 real recordings have "Silence" as their top
+   class, and white noise scores no higher than some real recordings. `RESPINET_LUNG_SOUND_GATE=0`
+   disables it; `/health` reports `lung_sound_gate`. No speech or music samples were available to
+   test those two categories directly.
+6. **External evaluation tool (`experiments/external.py`).** Runs the KAUH external manifest
+   through the served prediction path (fusion, temperature, abstention) for a chosen artifact.
 
 ---
 

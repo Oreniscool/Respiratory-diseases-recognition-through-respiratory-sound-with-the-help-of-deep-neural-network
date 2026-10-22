@@ -1,0 +1,30 @@
+import numpy as np
+
+from experiments.external import summarize
+from kauh import OUT_OF_LABEL
+
+CLASSES = ["asthma", "bronchial", "copd", "healthy", "pneumonia"]
+
+
+def _row(patient, label, probabilities, uncertain=False):
+    probabilities = np.asarray(probabilities, dtype=float)
+    return {"patient_id": patient, "label": label, "probabilities": probabilities.tolist(),
+            "model_prediction": CLASSES[int(probabilities.argmax())], "uncertain": uncertain}
+
+
+def test_patients_are_scored_on_the_mean_of_their_recordings():
+    rows = [
+        _row(1, "healthy", [0, 0, 0.4, 0.6, 0]),
+        _row(1, "healthy", [0, 0, 0.7, 0.3, 0]),  # mean favours copd (0.55)
+        _row(2, "copd", [0, 0, 0.9, 0.1, 0]),
+        _row(3, "healthy", [0, 0, 0.1, 0.9, 0]),
+        _row(4, OUT_OF_LABEL, [0.2, 0.2, 0.2, 0.2, 0.2], uncertain=True),
+        _row(5, OUT_OF_LABEL, [0, 0, 1, 0, 0]),
+    ]
+    result = summarize(rows, CLASSES)
+    assert result["in_label_patients"] == 3
+    assert result["patient_sensitivity"] == {"copd": 1.0, "healthy": 0.5}
+    assert result["patient_balanced_accuracy"] == 0.75
+    assert result["recording_accuracy"] == 3 / 4
+    assert result["out_of_label_abstention"] == 0.5
+    assert result["out_of_label_predictions"] == {"asthma": 1, "copd": 1}

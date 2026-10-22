@@ -46,6 +46,56 @@ def yamnet_embedding(model, waveform: np.ndarray) -> np.ndarray:
     return np.concatenate([frames.mean(axis=0), frames.std(axis=0)]).astype(np.float32)
 
 
+# --------------------------------------------------------------------------- lung-sound gate
+
+# YAMNet AudioSet classes whose presence means the upload is not a chest recording, with the
+# frame-averaged score above which the service refuses it. Thresholds sit well above the highest
+# score seen on any of the 1,152 development recordings (speech 0.36, music 0.42, tones 0.098).
+# A pure tone is heard as "Dial tone"/"Telephone"/"Alarm" as often as "Sine wave", hence the list.
+# Two cues are not taken from YAMNet: quiet auscultation often scores ~1.0 on "Silence", so
+# silence is detected by level (quietest development recording: −52 dBFS RMS); and YAMNet scores
+# white noise no higher than some real recordings, so broadband noise is detected by spectral
+# flatness (development recordings ≤ 0.018, white noise ≈ 0.56).
+GATE_CLASSES = {
+    "speech": ((0, 1, 2, 3, 4, 5, 65), 0.5),
+    "music": ((132, 133), 0.55),
+    "a tone or alarm": ((382, 383, 384, 385, 386, 387, 388, 389, 390, 392, 393, 396, 475, 495), 0.3),
+}
+SILENCE_DBFS = -70.0
+MAX_SPECTRAL_FLATNESS = 0.2
+
+
+def lung_sound_gate(model, waveform: np.ndarray) -> tuple[bool, dict[str, float]]:
+    """(passes, scores): False when the recording is silent, broadband noise, or YAMNet hears
+    speech, music or tones."""
+    import librosa
+    import tensorflow as tf
+
+    level = float(20 * np.log10(np.sqrt(np.mean(np.square(waveform, dtype=np.float64))) + 1e-12))
+    scores, _, _ = model(tf.constant(waveform, dtype=tf.float32))
+    frame_mean = scores.numpy().mean(axis=0)
+    found = {name: float(frame_mean[list(indices)].max()) for name, (indices, _) in GATE_CLASSES.items()}
+    found["level_dbfs"] = level
+    found["spectral_flatness"] = float(
+        np.median(librosa.feature.spectral_flatness(y=waveform, n_fft=1024, hop_length=512))
+    )
+    rejected = (
+        level < SILENCE_DBFS
+        or found["spectral_flatness"] > MAX_SPECTRAL_FLATNESS
+        or any(found[name] > threshold for name, (_, threshold) in GATE_CLASSES.items())
+    )
+    return not rejected, found
+
+
+def gate_reason(scores: dict[str, float]) -> str:
+    if scores["level_dbfs"] < SILENCE_DBFS:
+        return f"the recording is silent ({scores['level_dbfs']:.0f} dBFS)"
+    if scores["spectral_flatness"] > MAX_SPECTRAL_FLATNESS:
+        return f"it is broadband noise (spectral flatness {scores['spectral_flatness']:.2f})"
+    name = max(GATE_CLASSES, key=lambda key: scores[key] - GATE_CLASSES[key][1])
+    return f"it sounds like {name} (score {scores[name]:.2f}), not a chest recording"
+
+
 # --------------------------------------------------------------------------- extractor registry
 
 OPERA_SAMPLE_RATE = 16_000

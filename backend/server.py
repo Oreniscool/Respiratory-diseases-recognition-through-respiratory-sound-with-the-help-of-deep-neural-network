@@ -46,8 +46,10 @@ from calibration import apply_temperature, is_uncertain
 from pretrained import (
     YAMNET_SAMPLE_RATE,
     fuse_probabilities,
+    gate_reason,
     load_yamnet,
     load_yamnet_audio,
+    lung_sound_gate,
     yamnet_embedding,
 )
 from model import (
@@ -101,6 +103,9 @@ CORS_ORIGINS = [
 ALLOW_INFERENCE_DENOISING = os.getenv("RESPINET_ALLOW_INFERENCE_DENOISING", "0").strip().lower() in {
     "1", "true", "yes"
 }
+# Refuse uploads that YAMNet hears as speech, music, tones or noise, or that are silent
+# (pretrained.lung_sound_gate). Active only for artifacts that ship YAMNet (fusion artifacts).
+LUNG_SOUND_GATE = os.getenv("RESPINET_LUNG_SOUND_GATE", "1").strip().lower() in {"1", "true", "yes"}
 DENOISE_DISABLED_MESSAGE = (
     "Inference denoising is disabled because it is not part of the training preprocessing contract"
 )
@@ -236,6 +241,11 @@ def extract_mfcc(
         data_x = _apply_noise_reduction(data_x, sampling_rate)
         if yamnet_audio is not None:
             yamnet_audio = _apply_noise_reduction(yamnet_audio, YAMNET_SAMPLE_RATE)
+
+    if yamnet_audio is not None and YAMNET is not None and LUNG_SOUND_GATE:
+        passes, gate_scores = lung_sound_gate(YAMNET, yamnet_audio)
+        if not passes:
+            raise ValueError(f"This does not look like a chest recording: {gate_reason(gate_scores)}")
 
     duration_seconds = float(len(data_x)) / sampling_rate
     if duration_seconds < 1.0:
@@ -669,6 +679,7 @@ def health():
         "model_output_dim": model_output,
         "model_contract": MODEL_CONTRACT_STATUS,
         "denoise_allowed": ALLOW_INFERENCE_DENOISING,
+        "lung_sound_gate": LUNG_SOUND_GATE and YAMNET is not None,
         "ready": CONTRACT is not None and model_output is not None,
         "contract_error": MODEL_CONTRACT_ERROR,
     })
