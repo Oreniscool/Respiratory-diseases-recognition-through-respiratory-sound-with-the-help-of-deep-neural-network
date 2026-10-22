@@ -27,6 +27,9 @@ parse_args → resolve_dataset_paths (auto Kaggle path, --merge-icbhi)
   → LabelEncoder over sorted class names → one-hot
   → train_model(...) → best_model.keras (checkpoint on val_accuracy)
   → predict val windows → mean per recording → fit_temperature → fit_abstention_policy → calibration.json
+  → [--fusion yamnet] fit_yamnet_fusion: YAMNet embeddings for all splits → logistic head on train
+     (C by val log loss) → yamnet_head.keras + copy of yamnet/ → member temperatures on val →
+     50/50 fusion of val and test probabilities (then the usual temperature is fit on fused val)
   → predict test windows → mean per recording → apply_temperature
   → evaluate_model (recording) + evaluate_patient_level + bootstrap CIs → test_metrics.json
   → model_metadata.json (schema_version 2, sha256, classes, preprocessing, training, provenance, uncertainty)
@@ -34,7 +37,8 @@ parse_args → resolve_dataset_paths (auto Kaggle path, --merge-icbhi)
 
 Output directory contents: `best_model.keras`, `model_summary.txt`, `training_history.{csv,json}`,
 `accuracy_plot.png`, `loss_plot.png`, `split_manifest.csv`, `split_summary.json`,
-`dataset_audit.json`, `calibration.json`, `test_metrics.json`, `model_metadata.json`.
+`dataset_audit.json`, `calibration.json`, `test_metrics.json`, `model_metadata.json`, and for
+`--fusion yamnet` also `yamnet_head.keras` and `yamnet/` (the copied SavedModel; artifact ≈ 24 MB).
 
 ---
 
@@ -172,6 +176,26 @@ input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
   `reorganize_icbhi.py`.
 - `assert_three_way_class_support` raises if any class has fewer than 3 patients.
 
+### `pretrained.py`: YAMNet member and fusion (shared by training, experiments, server)
+- `load_yamnet(dir)` (`tf.saved_model.load`), `load_yamnet_audio(path)` (librosa, 16 kHz mono, no
+  band-pass), `yamnet_embedding(model, waveform)` → mean ‖ std of the 1,024-d frame embeddings (2,048).
+- `fit_logistic_head` (StandardScaler + `LogisticRegression(class_weight="balanced")`, C from
+  {0.001, 0.01, 0.1, 1} by validation log loss) and `export_logistic_head`, which folds the scaler
+  into one Keras `Dense(softmax)` layer. **Never pickle estimators.** On the GPU the head matches
+  scikit-learn only to ~3e-4 (TF32), so `main.py` checks 1e-3 plus identical argmax.
+- `fuse_probabilities(respinet, yamnet, fusion)`: weighted mean of member-calibrated vectors; the
+  caller then applies the `calibration.json` temperature.
+- `directory_sha256(dir)`: one hash over every file of a SavedModel, used by the contract.
+
+### `experiments/cv.py`: comparing variants without the test split
+`python -m experiments.cv {folds,cache,deep,classical,yamnet,report}`. Development set = train +
+validation of the seed-42 split (test patients asserted absent); 3 `StratifiedGroupKFold` folds by
+patient, each with an inner 20% patient split for early stopping and temperature. Feature caches
+(`artifacts/experiments/cache/`, 3.4 GB for MFCC, 5.4 GB for log-mel) are extracted once with the
+training augmentation; scoring uses `variants == "original"`. Each variant writes calibrated OOF
+rows (`oof_<id>.csv`); `report` writes `results.json` with a paired patient bootstrap vs D0.
+A deep variant takes ~70 min for 3 folds on the RTX 4060.
+
 ### `cross_dataset_overlap.py` (evidence tool)
 Finds clips of one dataset that are cut from recordings of another. Audio is band-passed to
 100–1000 Hz at 4 kHz, and each clip is slid over every reference recording with normalized
@@ -236,7 +260,7 @@ itself loads lazily (`load_model_once`, thread-locked) or eagerly under `__main_
 | `/live` | GET | always `{"status":"ok"}` |
 | `/ready` | GET | 503 unless `CONTRACT` is set and the model loads. Returns classes and output dim |
 | `/health` | GET | cheap status; **never loads the model** (it is loaded eagerly at startup by `server.py __main__` and `wsgi.py`). Returns `model` (loaded?), `model_file`, `dataset`, `classes`, `model_contract` (`verified-metadata` or `unverified`), `ready`, `contract_error`. Polled by the UI every 5 s |
-| `/predict` | POST multipart `file`, optional `denoise` | returns the payload below |
+| `/predict` | POST multipart `file`, optional `denoise` | returns the payload below (fused scores for a fusion artifact) |
 | `/predict-sample/<disease>` | GET `?denoise=` | finds the **first** audio file whose parent folder name matches the class (recursive glob over `dataset/Asthma_Detection_V2`, `dataset/`, `DATASET_DIR`), falls back to the ICBHI CSV lookup, then predicts. Always returns the same file |
 | `/explain` | POST multipart `file`, `denoise`, `payload` JSON (`include_reason`, `patient_info`, `external_llm_consent`) | prediction + gradient saliency for the **single window** with the highest predicted-class probability, rendered over that window's 128-mel spectrogram (PNG data URIs), + optional LLM reasoning |
 | `/summarize` | POST JSON `model_result`, `patient_info`, `external_llm_consent` | sanitizes inputs and returns `{summary, model}` from the LLM |
@@ -246,8 +270,9 @@ Prediction payload: `prediction` (class or `"uncertain"`), `model_prediction`, `
 max_normalized_entropy}`, `mfcc_preview` (10 values), `duration_s`, `sample_rate`,
 `windows_analyzed`, `valid_frames`, `noise_cancellation`, `research_only: true`.
 
-Inference math: per-window softmax, renormalized → **mean over windows** → `apply_temperature(T
-from calibration.json)` → abstention via `metadata["uncertainty"]`. (Metadata says "mean
+Inference math: per-window softmax, renormalized → **mean over windows** → for a fusion artifact,
+`fuse_probabilities` with the YAMNet head's output on the 16 kHz decode (`model_metadata.json["fusion"]`
+temperatures and weights) → `apply_temperature(T from calibration.json)` → abstention via `metadata["uncertainty"]`. (Metadata says "mean
 calibrated probability across all windows", but the code calibrates the mean. It matches how
 calibration was fit, so the behavior is correct and only the label is misleading.)
 
@@ -306,7 +331,12 @@ the evidence trail, so make it its own change and record it in the chronicle.
 
 ---
 
-## 6. Tests (`tests/`, 70 tests, dataset-free)
+## 6. Tests (`tests/`, 87 tests, dataset-free)
+
+Accuracy-experiment additions: `test_experiments_cv` (folds, locked test patients, OOF files,
+paired bootstrap, end-to-end shallow run + report), `test_fusion` (Keras head == scikit-learn,
+fusion math, directory hash, contract rejects a tampered head or YAMNet, server fused aggregation),
+log-mel cases in `test_preprocessing`, and the `--feature-type` metadata test.
 
 Final-phase additions: `test_server_fail_closed`, `test_server_denoise`, `test_llm_key_handling`,
 `test_dataset_provenance`, `test_cohort_integrity`, `test_cross_dataset_overlap`,

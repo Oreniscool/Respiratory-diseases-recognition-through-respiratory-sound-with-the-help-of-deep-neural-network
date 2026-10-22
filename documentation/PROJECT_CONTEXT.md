@@ -20,14 +20,26 @@ disagrees with the code or the run artifacts, this document says so explicitly (
 
 ## 0. Final-phase update (2026-10-22) — read first
 
-Full details: [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md).
+Full details: [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md) and
+[`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md).
+
+- **Current served model (branch `accuracy-experiments`): RespiNet + YAMNet late fusion.** The
+  RespiNet network and a logistic-regression head over frozen YAMNet embeddings (16 kHz, mean+std
+  of 1,024-d frames) are each temperature-calibrated, averaged 50/50 and calibrated again
+  (temperatures 0.7133 / 0.9992 / final 0.6744). Test: **84.46% recording / 77.55% patient
+  accuracy** (95% CI 65.3–89.8%), balanced 79.87% / 76.22%, macro AUROC 0.971 / 0.953, ECE 0.031 /
+  0.088. By source (patient): ICBHI 65.38%, Kaggle 91.30%. It was chosen by 3-fold patient-grouped
+  CV on the 194 development patients (+4.6 balanced accuracy over RespiNet alone, P = 0.97) before
+  the test set was used. Code: `backend/pretrained.py`, `main.py --fusion yamnet`,
+  `backend/experiments/cv.py`. The RespiNet-only model below is archived in
+  `backend/artifacts/v3-2026-10-22-leakfree/`.
 
 - **Cross-dataset leakage found and removed.** 631 of the 1,211 Kaggle V2 clips (52%, including all
   401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort, under
   different pseudo-patient IDs. Kaggle `P`-numbers are not subject IDs. These clips and 12 byte
   duplicates are now dropped (evidence: `backend/data/kaggle_icbhi_overlap.csv`). **Corrected
   cohort: 1,488 recordings / 243 patients.**
-- **Retrained, same model and settings:** test accuracy **77.36% recording / 75.51% patient**
+- **Retrained, same model and settings (then superseded by the fusion above):** test accuracy **77.36% recording / 75.51% patient**
   (95% CI 63.3–87.8%), balanced accuracy 71.42% / 73.72%, macro AUROC 0.927 / 0.932, T = 0.713.
   By source: ICBHI 65.4%, Kaggle 87.0% (patient level). The 2026-08-14 model's 82.09% (§9) was
   inflated by the leakage.
@@ -333,7 +345,9 @@ not comparable to cross-entropy.
 > cohort contained 631 Kaggle clips that are verbatim copies of ICBHI recordings, so they are
 > **contaminated by leakage**. The leakage-free retrain (test accuracy 77.36% recording / 75.51%
 > patient, 49 test patients) is reported in
-> [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md) item 9 and in
+> [`FINAL_PHASE_IMPROVEMENT_REPORT.md`](FINAL_PHASE_IMPROVEMENT_REPORT.md) item 9, and the current
+> RespiNet + YAMNet fusion (84.46% / 77.55%) in
+> [`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md) and
 > [`../CLAUDE.md`](../CLAUDE.md) §6. This section is kept as a historical record.
 
 Source: `backend/artifacts/latest/test_metrics.json`. Test split: 67 patients / 443

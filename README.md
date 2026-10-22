@@ -12,7 +12,9 @@ evaluation utilities, and optional externally generated narrative summaries.
 ## Current evidence status
 
 The current model (`backend/artifacts/latest/`, trained 2026-10-22) is a 5-class classifier
-(asthma, bronchial, COPD, healthy, pneumonia) trained on **ICBHI 2017 merged with the Kaggle
+(asthma, bronchial, COPD, healthy, pneumonia) that averages two members: the RespiNet
+Conv1D + BiGRU network over MFCC features, and a logistic-regression head over embeddings from
+Google's pretrained YAMNet audio model. It is trained on **ICBHI 2017 merged with the Kaggle
 Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
 
 - **631 of the 1,211 Kaggle clips (52%, including every Kaggle COPD clip) are verbatim cuts of
@@ -23,14 +25,19 @@ Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
 
 | Held-out test (49 patients) | Recording level | Patient level |
 |---|---:|---:|
-| Accuracy | 77.36% | 75.51% (95% CI 63.3–87.8%) |
-| Balanced accuracy | 71.42% | 73.72% |
-| Macro F1 | 0.690 | 0.737 |
-| Macro one-vs-rest AUROC | 0.927 | 0.932 |
+| Accuracy | 84.46% | 77.55% (95% CI 65.3–89.8%) |
+| Balanced accuracy | 79.87% | 76.22% |
+| Macro F1 | 0.782 | 0.763 |
+| Macro one-vs-rest AUROC | 0.971 | 0.953 |
 
 By source, patient-level accuracy is 65.4% on the 26 ICBHI test patients (reliable identities,
-few non-COPD cases) and 87.0% on 23 Kaggle patient groups (identities unverified, likely
-optimistic). The **82.09% reported for the 2026-08-14 model was inflated by the overlap** and
+few non-COPD cases) and 91.3% on 23 Kaggle patient groups (identities unverified, likely
+optimistic). The YAMNet fusion was chosen by patient-grouped cross-validation on the development
+patients before the test set was used, and it replaced the RespiNet-only model (75.51% patient /
+77.36% recording accuracy, archived in `backend/artifacts/v3-2026-10-22-leakfree/`). At patient
+level the test gain is one patient of 49; see
+[`documentation/ACCURACY_EXPERIMENTS_REPORT.md`](documentation/ACCURACY_EXPERIMENTS_REPORT.md).
+The **82.09% reported for the 2026-08-14 model was inflated by the overlap** and
 must not be cited. That model is archived in `backend/artifacts/v3-2026-08-14/`. Full evidence:
 [`documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md`](documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md).
 

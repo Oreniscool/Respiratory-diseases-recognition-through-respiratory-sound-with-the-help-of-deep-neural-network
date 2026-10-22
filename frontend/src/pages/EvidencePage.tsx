@@ -26,12 +26,12 @@ const METHOD_STEPS = [
   {
     icon: Layers3,
     title: "3. Sequence model",
-    body: "A multi-scale Conv1D block with channel attention feeds two bidirectional GRU layers and dual temporal pooling (attention plus max). The network scores the five project labels for every window.",
+    body: "A multi-scale Conv1D block with channel attention feeds two bidirectional GRU layers and dual temporal pooling (attention plus max), scoring the five project labels for every window. In parallel, Google’s pretrained YAMNet audio model summarizes the whole recording, and a simple classifier scores the same labels from that summary.",
   },
   {
     icon: Braces,
     title: "4. Ranked output",
-    body: "Window scores are averaged and temperature-calibrated on validation recordings. When the top score is too low or the distribution too uncertain, the result is reported as uncertain. Calibrated scores are still model output, not clinical probabilities.",
+    body: "Window scores are averaged, each model’s scores are temperature-calibrated on validation recordings, and the two are averaged and calibrated once more. When the top score is too low or the distribution too uncertain, the result is reported as uncertain. Calibrated scores are still model output, not clinical probabilities.",
   },
 ];
 
@@ -100,10 +100,10 @@ export default function EvidencePage() {
             <caption>Current frontend-facing model contract</caption>
             <tbody>
               <tr><th scope="row">Input representation</th><td>40 MFCC + Δ + Δ² (120 values per frame) in overlapping 200-frame windows across the whole recording</td></tr>
-              <tr><th scope="row">Network family</th><td>Multi-scale Conv1D plus bidirectional GRU (RespiNet-Attention v3, 458,701 parameters)</td></tr>
+              <tr><th scope="row">Network family</th><td>Multi-scale Conv1D plus bidirectional GRU (RespiNet-Attention v3, 458,701 parameters), averaged with a classifier over pretrained YAMNet embeddings</td></tr>
               <tr><th scope="row">Output</th><td>Five labels: asthma, bronchial, COPD, healthy, pneumonia</td></tr>
               <tr><th scope="row">Score interpretation</th><td>Temperature-calibrated model score with an abstention rule; not a clinical probability</td></tr>
-              <tr><th scope="row">Required safeguard</th><td>Verified metadata for preprocessing and class order</td></tr>
+              <tr><th scope="row">Required safeguard</th><td>Verified metadata for preprocessing and class order; hash checks on both models</td></tr>
             </tbody>
           </table>
         </div>
@@ -158,18 +158,18 @@ export default function EvidencePage() {
           <p className="eyebrow">Benchmark status</p>
           <h2>Leakage-free results on one held-out split—not a clinical claim.</h2>
           <p>
-            On 49 patients held out from training, the model reaches 75.5% patient-level accuracy. An earlier figure of 82% was inflated by the dataset overlap described above. These are research measurements on one split of public data, with no external or clinical validation.
+            On 49 patients held out from training, the model reaches 77.6% patient-level and 84.5% recording-level accuracy. Adding the YAMNet model was chosen by cross-validation before this split was used; on the split itself it changes one patient’s result. An earlier figure of 82% was inflated by the dataset overlap described above. These are research measurements on one split of public data, with no external or clinical validation.
           </p>
         </div>
         {/* Results: backend/artifacts/latest/test_metrics.json and calibration.json (2026-10-22). */}
         <div className="benchmark-ledger">
-          <div><span>Patient-level test accuracy</span><strong>75.5%</strong><small>49 held-out patients; 95% CI 63–88%</small></div>
-          <div><span>Balanced accuracy</span><strong>73.7%</strong><small>Average recall across the five labels</small></div>
-          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (T = 0.71); per-recording calibration error 0.07</small></div>
+          <div><span>Patient-level test accuracy</span><strong>77.6%</strong><small>49 held-out patients; 95% CI 65–90%</small></div>
+          <div><span>Balanced accuracy</span><strong>76.2%</strong><small>Average recall across the five labels</small></div>
+          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (fused T = 0.67); per-recording calibration error 0.03</small></div>
           <div><span>External clinical validation</span><strong>None</strong><small>Prototype is not screening- or diagnostic-grade</small></div>
         </div>
         <p>
-          By source: 65.4% on the 26 ICBHI test patients, whose identities are reliable but who include few non-COPD cases, and 87.0% on 23 Kaggle patient groups, which is likely optimistic because Kaggle patient identities are unverified. The weakest label is “bronchial” (50% patient-level sensitivity). Full evidence: <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
+          By source: 65.4% on the 26 ICBHI test patients, whose identities are reliable but who include few non-COPD cases, and 91.3% on 23 Kaggle patient groups, which is likely optimistic because Kaggle patient identities are unverified. The weakest label is “healthy” (62.5% patient-level sensitivity). Full evidence: <code>documentation/ACCURACY_EXPERIMENTS_REPORT.md</code> and <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
         </p>
       </section>
 

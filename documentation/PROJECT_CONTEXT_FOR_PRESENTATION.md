@@ -110,6 +110,14 @@ It is **not a medical device** and has no clinical validation.
 6. **Head:** Dense 128 + GELU + Dropout 0.3 → Dense 64 + GELU + Dropout 0.4 → Dense 5 softmax;
    L2 = 1e-4 on all kernels.
 
+### Phase C2: YAMNet fusion (the served model since 2026-10-22)
+1. **YAMNet** (Google, pretrained on the AudioSet general-sound corpus, kept frozen) turns the
+   recording, decoded at 16 kHz, into one 1,024-value embedding per 0.96 s frame.
+2. The mean and standard deviation of those embeddings (2,048 values) go through a **standardized,
+   class-balanced logistic regression**, stored as a one-layer Keras model (no pickled code).
+3. RespiNet's and YAMNet's probabilities are each temperature-calibrated, **averaged 50/50**, and
+   calibrated once more. The artifact contract pins the SHA-256 of both models.
+
 ### Phase D: Training pipeline and memory engineering
 1. **Categorical focal loss** (γ = 2.0, α = 0.25) with **label smoothing 0.1**, plus balanced class
    weights.
@@ -144,38 +152,54 @@ It is **not a medical device** and has no clinical validation.
 
 ## 4. Quantitative Results (held-out test split, 49 patients / 296 recordings)
 
+The served model is a **late fusion of RespiNet and a classifier over pretrained YAMNet audio
+embeddings**, chosen by cross-validation before the test split was used (see 4.1).
+
 | Metric | Recording level | Patient level |
 | :--- | ---: | ---: |
-| **Accuracy** | **77.36%** | **75.51%** (95% bootstrap CI 63.3–87.8%) |
-| **Balanced accuracy** | 71.42% | 73.72% |
-| **Macro F1** | 0.690 | 0.737 |
-| **Macro one-vs-rest AUROC** | 0.927 | 0.932 |
-| **Cohen's κ / MCC** | 0.672 / 0.678 | 0.692 / 0.699 |
-| **Expected calibration error** | 0.074 | 0.148 |
+| **Accuracy** | **84.46%** | **77.55%** (95% bootstrap CI 65.3–89.8%) |
+| **Balanced accuracy** | 79.87% | 76.22% |
+| **Macro F1** | 0.782 | 0.763 |
+| **Macro one-vs-rest AUROC** | 0.971 | 0.953 |
+| **Cohen's κ / MCC** | 0.768 / 0.771 | 0.716 / 0.717 |
+| **Expected calibration error** | 0.031 | 0.088 |
 
-**Effect of removing the leakage** (identical model and settings, only the data changed):
-patient-level accuracy 82.09% → **75.51%**, recording-level 80.81% → **77.36%**. The earlier
+**Effect of removing the leakage** (RespiNet alone, identical model and settings, only the data
+changed): patient-level accuracy 82.09% → 75.51%, recording-level 80.81% → 77.36%. The earlier
 numbers were inflated and must not be presented as performance.
 
+**Effect of adding YAMNet** (same split): recording-level accuracy 77.36% → **84.46%**, balanced
+accuracy 71.42% → 79.87%, calibration error 0.074 → 0.031; patient-level accuracy 75.51% →
+**77.55%**, which is one patient of 49 and within the confidence interval on its own.
+
+### 4.1 How the improvement was chosen (cross-validation, test split locked)
+Six variants were compared with 3-fold patient-grouped cross-validation on the 194 development
+patients, with a pre-registered rule (≥ +2 points balanced accuracy and macro F1, paired-bootstrap
+P ≥ 0.90). Patient-level out-of-fold balanced accuracy: RespiNet 70.0%, log-mel RespiNet 61.6%,
+MFCC statistics + logistic regression 63.5%, MFCC statistics + gradient boosting 60.6%, YAMNet +
+logistic regression 71.1%, **RespiNet + YAMNet fusion 74.7%** (+4.6 points, P = 0.97, the only
+variant that met the rule). The fusion helps because the two models make different mistakes:
+YAMNet is better on healthy and bronchial, RespiNet on asthma and pneumonia.
+
 ### Patient-level sensitivity and specificity
-- **Asthma:** sensitivity 91.7%, specificity 97.3% (12 patients)
-- **COPD:** 76.9% / 97.2% (13)
-- **Healthy:** 75.0% / 82.9% (8)
-- **Pneumonia:** 75.0% / 95.1% (8)
-- **Bronchial (grouped):** 50.0% / 97.6% (8). This is the weakest class, mostly confused with healthy.
+- **Asthma:** sensitivity 91.7%, specificity 94.6% (12 patients)
+- **COPD:** 76.9% / 94.4% (13)
+- **Bronchial (grouped):** 75.0% / 90.2% (8)
+- **Pneumonia:** 75.0% / 97.6% (8)
+- **Healthy:** 62.5% / 95.1% (8). This is now the weakest class.
 
 ### By data source
-- **ICBHI test patients (26, reliable identities):** 75.8% recording / 65.4% patient accuracy.
+- **ICBHI test patients (26, reliable identities):** 83.0% recording / 65.4% patient accuracy.
   Only 1 asthma and 1 pneumonia patient, so per-class figures here are unstable.
-- **Kaggle test groups (23, identities unverified):** 79.8% / 87.0%. Likely optimistic, because
+- **Kaggle test groups (23, identities unverified):** 86.8% / 91.3%. Likely optimistic, because
   Kaggle has no reliable patient identifiers and part of it derives from another database (KAUH)
   that was not checked for overlap.
 
 ### Training run
-Early stopping at epoch 69, with weights restored from epoch 51 (validation accuracy 73.5%,
-training accuracy 81.7%). Temperature T = 0.713, so the raw model was slightly under-confident.
-The model abstains when the top calibrated score is below 0.573 or the normalized entropy is above
-0.583 (80% validation coverage).
+RespiNet member: early stopping at epoch 62, with weights restored from epoch 44 (validation
+accuracy 74.6%, training accuracy 80.3%). YAMNet head: logistic regression with C = 0.01.
+Temperatures: RespiNet 0.713, YAMNet 0.999, final fused 0.674. The model abstains when the top
+calibrated score is below 0.648 or the normalized entropy is above 0.519 (80% validation coverage).
 
 ---
 
@@ -219,8 +243,8 @@ The model abstains when the top calibrated score is below 0.573 or the normalize
   results, not clinical performance."*
 - **Option 2 (5-minute technical pitch):** *"Summarize this context into a 5-minute talk for an
   engineering and research audience: the clinical problem, why the baseline failed, how a data
-  audit found and removed cross-dataset leakage, the leakage-free result (75.5% patient-level
-  accuracy, 95% CI 63–88%), and the roadmap to external validation."*
+  audit found and removed cross-dataset leakage, the leakage-free result, the cross-validated
+  YAMNet fusion (77.6% patient-level / 84.5% recording-level accuracy, 95% CI 65–90%), and the roadmap to external validation."*
 - **Option 3 (Q&A defense):** *"Act as a tough academic panelist. Generate the 8 hardest questions
   about this methodology (patient- and audio-disjoint splitting, the Kaggle–ICBHI overlap,
   unverified Kaggle patient IDs, focal loss vs. cross-entropy, CMVN and device bias, calibration

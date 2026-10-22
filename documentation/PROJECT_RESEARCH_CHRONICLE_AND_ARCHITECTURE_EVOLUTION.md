@@ -829,6 +829,26 @@ split is used once, only for an adopted configuration. Full method and results:
    file), which `load_verified_contract` checks before the server will load anything. The server
    decodes uploads a second time at 16 kHz for YAMNet. Saliency (`/explain`) still covers the
    RespiNet member only. Artifacts without `fusion` behave exactly as before.
+5. **Cross-validation results (194 development patients, out-of-fold, patient level):** D0 current
+   RespiNet 73.2% accuracy / 70.0% balanced accuracy / 0.698 macro F1; D2 log-mel 66.0% / 61.6% /
+   0.608 (worse, not adopted); MFCC-statistics baselines 67.0–67.5% / 60.6–63.5%; YAMNet + logistic
+   regression alone 73.2% / 71.1% / 0.710; **RespiNet + YAMNet fusion 76.8% / 74.7% / 0.747**
+   (Δ balanced accuracy vs D0 +4.6, 95% CI −0.2 to +9.5, P(Δ>0) = 0.97). Only the fusion met the
+   pre-registered rule (≥ +2 balanced accuracy and macro F1, P ≥ 0.90). D1 (cross-entropy loss) was
+   not run because of the GPU budget. Source: `backend/artifacts/experiments/results.json`.
+6. **Adopted model (`backend/artifacts/latest/`, trained at `30f58ca`):** `main.py --fusion yamnet`
+   with the previous split, seed and RespiNet settings. RespiNet member best epoch 44 of 62 (val
+   accuracy 0.7461); temperatures RespiNet 0.7133, YAMNet 0.9992, fused 0.6744; abstention min
+   confidence 0.648 / max normalized entropy 0.519. **Locked test split (used once):** recording
+   accuracy 84.46% (was 77.36%), balanced 79.87% (71.42%), macro F1 0.782 (0.690), AUROC 0.971
+   (0.927), ECE 0.031 (0.074); patient accuracy 77.55% (75.51%, 95% CI 65.3–89.8%), balanced
+   76.22% (73.72%), macro F1 0.763 (0.737), AUROC 0.953 (0.932). By source: ICBHI 82.97% / 65.38%
+   (recording / patient), Kaggle 86.84% / 91.30%. The patient-level gain is one patient of 49;
+   the cross-validation is the evidence that the improvement is real. The previous model is archived
+   in `backend/artifacts/v3-2026-10-22-leakfree/`. A first production run stopped at the head-export
+   check because GPU TF32 matmuls differ from scikit-learn by up to 3.3e-4; the check now allows
+   1e-3 and requires identical classes (`042a1bd`), and the run was repeated from a clean tree.
+   The server reproduces the pipeline's fused probabilities within 4e-4 on sampled test files.
 
 ---
 

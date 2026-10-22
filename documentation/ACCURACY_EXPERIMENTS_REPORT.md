@@ -107,4 +107,72 @@ SpecAugment and seed ensembles were lower priority. These remain the next things
 
 ## 4. Adopted model: test-set result (used once)
 
-_Pending: production run `main.py --fusion yamnet` on the seed-42 train/validation split._
+Command (same split, seed and RespiNet settings as the previous model):
+
+```bash
+python main.py --dataset-format folder --merge-icbhi --output-dir artifacts/latest \
+  --epochs 80 --batch-size 64 --seed 42 --fusion yamnet
+```
+
+Trained at commit `30f58ca`. The RespiNet member stopped at epoch 62 (best epoch 44, validation
+window accuracy 0.7461). The YAMNet head chose C = 0.01. Temperatures: RespiNet member 0.7133,
+YAMNet member 0.9992, final fused 0.6744. Abstention: min confidence 0.648, max normalized
+entropy 0.519 (80% validation coverage). The previous model is archived in
+`backend/artifacts/v3-2026-10-22-leakfree/`.
+
+**Locked test split, 49 patients / 296 recordings** (`backend/artifacts/latest/test_metrics.json`):
+
+| Metric | Previous (RespiNet) recording | **Fusion recording** | Previous patient | **Fusion patient** |
+|---|---:|---:|---:|---:|
+| Accuracy | 77.36% | **84.46%** | 75.51% | **77.55%** |
+| Balanced accuracy | 71.42% | **79.87%** | 73.72% | **76.22%** |
+| Macro F1 | 0.690 | **0.782** | 0.737 | **0.763** |
+| Cohen's κ | 0.672 | **0.768** | 0.692 | **0.716** |
+| Macro OvR AUROC | 0.927 | **0.971** | 0.932 | **0.953** |
+| Log loss | 0.638 | **0.403** | 0.749 | **0.611** |
+| Brier score | 0.330 | **0.209** | 0.365 | **0.289** |
+| Expected calibration error | 0.074 | **0.031** | 0.148 | **0.088** |
+
+Patient-bootstrap 95% CI for patient-level accuracy: 65.3–89.8% (previously 63.3–87.8%).
+
+**Per class, patient level (sensitivity / specificity):** asthma 91.7% / 94.6% (12 patients),
+bronchial 75.0% / 90.2% (8), copd 76.9% / 94.4% (13), healthy 62.5% / 95.1% (8), pneumonia
+75.0% / 97.6% (8). Compared with the previous model, two more bronchial patients and one fewer
+healthy patient are classified correctly.
+
+**By source:**
+
+| Source | Previous rec. / patient acc. | Fusion rec. / patient acc. |
+|---|---:|---:|
+| ICBHI (182 recordings, 26 patients) | 75.82% / 65.38% | **82.97%** / 65.38% |
+| Kaggle (114 recordings, 23 pseudo-patients) | 79.82% / 86.96% | **86.84%** / **91.30%** |
+
+**How to read this.**
+- The **recording-level** gain is large and consistent: +7.1 points accuracy, +8.5 balanced
+  accuracy, log loss −37%, calibration error more than halved, and it holds on both sources.
+- The **patient-level** gain is +2.0 points, i.e. **one patient out of 49**. On its own this test
+  split cannot distinguish that from noise; the evidence that the improvement is real comes from
+  the cross-validation (section 3: +4.6 balanced accuracy over 194 patients, P = 0.97), and the
+  test result is consistent with it.
+- ICBHI patient-level accuracy did not move (65.38%). That subset has 1 asthma and 1 pneumonia
+  test patient, so it cannot show class-level changes reliably.
+- The new RespiNet member is a fresh training run, so the comparison also includes ordinary
+  run-to-run variation; the controlled comparison is the cross-validation.
+
+## 5. What changed for users
+
+- `/predict`, `/predict-sample` and `/explain` now return fused scores. The server loads YAMNet
+  (from the artifact, hash-checked) and decodes each upload a second time at 16 kHz.
+- Saliency maps in `/explain` still describe the RespiNet member only.
+- Artifacts without a `fusion` section (all older ones) are served exactly as before.
+
+## 6. Limitations
+
+- One public cohort, one test split of 49 patients, no external validation. The 95% interval
+  (65–90%) is wider than any difference reported here.
+- Kaggle patient groups are unverified and part of Kaggle derives from KAUH, which was not checked
+  for overlap; the Kaggle subset numbers are likely optimistic.
+- YAMNet was trained on AudioSet (general sounds), not on stethoscope audio. It helps here, but
+  nothing guarantees it on other devices or populations.
+- The fusion weight (50/50) was fixed in advance, not tuned; tuning it on these data would risk
+  overfitting.

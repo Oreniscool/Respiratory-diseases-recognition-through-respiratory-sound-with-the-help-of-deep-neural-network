@@ -148,20 +148,23 @@
 
 * **Visuals on Slide:** 
   - Held-out test set: 49 patients / 296 recordings
-  - **Patient-level accuracy 75.5%** (95% bootstrap CI 63–88%), balanced accuracy 73.7%, macro-F1 0.74, macro AUROC 0.93; recording-level accuracy 77.4%
-  - Before vs after removing the leakage: 82.1% → **75.5%** patient-level accuracy (same model and settings, only the data changed)
-  - Patient-level sensitivity: Asthma 91.7%, COPD 76.9%, Healthy 75.0%, Pneumonia 75.0%, Bronchial 50.0%
-  - By source: ICBHI patients 65.4% (few non-COPD cases); Kaggle groups 87.0% (identities unverified)
-  - Calibration: temperature scaling T = 0.71, ECE 0.074 (recording level); abstention when the score is < 0.57 or the entropy is high
+  - Served model: **RespiNet + pretrained YAMNet embeddings, late fusion**, chosen by patient-grouped cross-validation (+4.6 points balanced accuracy, P = 0.97) before the test set was used
+  - **Patient-level accuracy 77.6%** (95% bootstrap CI 65–90%), balanced accuracy 76.2%, macro-F1 0.76, macro AUROC 0.95; **recording-level accuracy 84.5%**
+  - Leakage removal (RespiNet alone): 82.1% → 75.5% patient-level; adding YAMNet: 75.5% → 77.6% patient-level, 77.4% → 84.5% recording-level
+  - Patient-level sensitivity: Asthma 91.7%, COPD 76.9%, Bronchial 75.0%, Pneumonia 75.0%, Healthy 62.5%
+  - By source: ICBHI patients 65.4% (few non-COPD cases); Kaggle groups 91.3% (identities unverified)
+  - Calibration: temperature scaling (fused T = 0.67), ECE 0.031 (recording level); abstention when the score is < 0.65 or the entropy is high
   - Deployment: fail-closed SHA-256 artifact contract, Flask API, React 19 UI with live microphone meter, time-only gradient saliency, consented LLM summaries
 * **Estimated Time:** 1:15 min
 
 > **[SPEAKER SCRIPT]:**  
-> "On 49 patients held out from training, RespiNet reaches **75.5% patient-level accuracy**, with a bootstrap confidence interval of 63 to 88 percent, and **73.7% balanced accuracy** across the five labels.
+> "Our earlier figure was 82%. Retraining the identical model on the corrected data dropped it to 75.5%. We report the lower number because it is the honest one: the difference was leakage, not skill.
 >
-> Our earlier figure was 82%. Retraining the identical model on the corrected data dropped it to 75.5%. We report the lower number because it is the honest one: the difference was leakage, not skill.
+> We then looked for real improvements without overfitting our small test set. We compared six variants by cross-validation on the training patients only, with a decision rule fixed in advance. Only one passed: averaging RespiNet with a classifier over embeddings from YAMNet, a model Google pretrained on general sounds. The two make different mistakes, so together they do better.
 >
-> Asthma is recognized best, at 92% patient sensitivity. The grouped 'bronchial' class is the hardest, at 50%. On ICBHI patients alone accuracy is 65%, and on the Kaggle subset it is 87%. We treat the Kaggle figure as optimistic, because that dataset has no reliable patient identifiers.
+> On the 49 held-out patients, the combined model reaches **77.6% patient-level accuracy**, with a bootstrap confidence interval of 65 to 90 percent, **76.2% balanced accuracy**, and **84.5% accuracy per recording**. At patient level that is one more patient than before, so the cross-validation, not the test set, is our evidence that the gain is real.
+>
+> Asthma is recognized best, at 92% patient sensitivity; healthy is now the hardest, at 63%. On ICBHI patients alone accuracy is 65%, and on the Kaggle subset it is 91%. We treat the Kaggle figure as optimistic, because that dataset has no reliable patient identifiers.
 >
 > Scores are temperature-calibrated on validation data, and the server abstains — returning 'uncertain' — when confidence is low or entropy is high. It refuses to serve any model whose hash, class order, preprocessing and evaluation records don't verify."
 
@@ -170,10 +173,10 @@
 ## Slide 8: Summary & Future Research Roadmap
 
 * **Visuals on Slide:** 
-  - Summary milestones: patient- *and audio*-disjoint pipeline, cross-dataset leakage found and removed, 75.5% leakage-free patient-level accuracy, calibrated scores with abstention, fail-closed serving, OOM-free streaming
+  - Summary milestones: patient- *and audio*-disjoint pipeline, cross-dataset leakage found and removed, 77.6% leakage-free patient-level accuracy (84.5% per recording) with a cross-validated YAMNet fusion, calibrated scores with abstention, fail-closed serving, OOM-free streaming
   - Research roadmap:
     1. *External validation on an independent dataset (e.g. SPRSound, HF_Lung) and an overlap check against KAUH*
-    2. *Self-supervised audio foundation models (AST / BEATs)*
+    2. *Respiratory-specific audio foundation models (OPERA, HeAR) and fine-tuning, beyond the frozen YAMNet used now*
     3. *Log-Mel tensors and wavelet features for short crackles*
     4. *Multimodal fusion (acoustics + vitals) and INT8 edge deployment*
 * **Estimated Time:** 0:45 min
@@ -183,7 +186,7 @@
 >
 > **Next steps:**
 > 1. Validate on an independent external dataset, and check the remaining Kaggle data against its KAUH source.
-> 2. Fine-tune self-supervised audio foundation models such as AST or BEATs.
+> 2. Go beyond the frozen YAMNet model: try respiratory-specific foundation models such as OPERA or HeAR, and fine-tuning.
 > 3. Improve short-event features with Log-Mel tensors and wavelet transforms.
 > 4. Explore multimodal fusion with patient vitals, and quantized edge deployment.
 >
@@ -193,16 +196,16 @@
 
 ## 📋 Speaker Reference & Metric Quick-Card
 
-| Metric / Dimension | Earlier merged model (2026-08-14, leakage) | **Current leakage-free model (2026-10-22)** |
-| :--- | :--- | :--- |
-| **Test accuracy (patient / recording)** | 82.09% / 80.81% (inflated, do not cite) | **75.51% / 77.36%** (95% CI 63.3–87.8%) |
-| **Balanced accuracy (patient)** | 79.65% | **73.72%** |
-| **Macro F1 (patient)** | 0.7922 | **0.7374** |
-| **Macro AUROC (patient)** | 0.967 | **0.932** |
-| **ECE (recording)** | 0.033 (T = 0.844) | **0.074 (T = 0.713)** |
-| **Dataset** | 2,131 files / 331 "patients" (631 duplicated ICBHI clips) | **1,488 files / 243 patients, audio-disjoint** |
-| **Test patients** | 67 | **49** |
-| **Architecture** | RespiNet-Attention v3, 458,701 params | same |
-| **Features** | 40 MFCC + Δ + Δ² (120 dims), CMVN, 200-frame windows | same |
-| **Loss / optimizer** | Focal loss (γ = 2) + label smoothing 0.1; Adamax 3e-4 + cosine decay | same |
-| **Peak training RAM** | < 4.8 GB (chunked extraction + `tf.data` streaming) | same |
+| Metric / Dimension | Earlier merged model (2026-08-14, leakage) | Leakage-free RespiNet (archived) | **Current: RespiNet + YAMNet fusion (2026-10-22)** |
+| :--- | :--- | :--- | :--- |
+| **Test accuracy (patient / recording)** | 82.09% / 80.81% (inflated, do not cite) | 75.51% / 77.36% | **77.55% / 84.46%** (95% CI 65.3–89.8%) |
+| **Balanced accuracy (patient)** | 79.65% | 73.72% | **76.22%** |
+| **Macro F1 (patient)** | 0.7922 | 0.7374 | **0.7627** |
+| **Macro AUROC (patient)** | 0.967 | 0.932 | **0.953** |
+| **ECE (recording)** | 0.033 (T = 0.844) | 0.074 (T = 0.713) | **0.031 (fused T = 0.674)** |
+| **Dataset** | 2,131 files / 331 "patients" (631 duplicated ICBHI clips) | 1,488 files / 243 patients, audio-disjoint | same |
+| **Test patients** | 67 | 49 | 49 |
+| **Architecture** | RespiNet-Attention v3, 458,701 params | same | RespiNet + frozen YAMNet → logistic head, 50/50 late fusion |
+| **Features** | 40 MFCC + Δ + Δ² (120 dims), CMVN, 200-frame windows | same | same for RespiNet; YAMNet uses 16 kHz audio (mean + std of 1,024-d embeddings) |
+| **Loss / optimizer** | Focal loss (γ = 2) + label smoothing 0.1; Adamax 3e-4 + cosine decay | same | same for RespiNet; YAMNet head: balanced logistic regression (C = 0.01) |
+| **Peak training RAM** | < 4.8 GB (chunked extraction + `tf.data` streaming) | same | same |

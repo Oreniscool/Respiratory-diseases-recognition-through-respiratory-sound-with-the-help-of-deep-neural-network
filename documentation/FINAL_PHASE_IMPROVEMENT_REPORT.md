@@ -8,6 +8,12 @@
 | Selection rule | Only changes with a **material, verifiable** benefit: correctness, safety, validity of evidence, reproducibility. Every item has a test or a measurement |
 | Companion | [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) (§14 discrepancy register, §15 defect list) |
 
+> **Superseded model (2026-10-22, later the same day):** the RespiNet-only model described here
+> (75.51% patient-level accuracy) was replaced as the served model by a RespiNet + YAMNet fusion
+> (77.55% patient / 84.46% recording accuracy) and archived in
+> `backend/artifacts/v3-2026-10-22-leakfree/`. This report remains the record of the leakage fix
+> and of that model. See [`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md).
+
 ## Outcome at a glance
 
 | | Before (2026-08-14 model) | After (2026-10-22 model) |

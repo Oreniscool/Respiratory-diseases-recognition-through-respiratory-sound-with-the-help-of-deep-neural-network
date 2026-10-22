@@ -68,3 +68,22 @@ Branch `final-phase-improvements`; details in `FINAL_PHASE_IMPROVEMENT_REPORT.md
 - Live server: verified contract ready; test-split recordings predicted end to end; a
   missing contract → 503; random bytes → 400.
 
+
+## 2026-10-22 — Accuracy Experiments and RespiNet + YAMNet Fusion (Completed)
+
+Branch `accuracy-experiments`. Full report: [`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md).
+
+- **Fair comparison method:** `backend/experiments/cv.py` compares variants with 3-fold
+  patient-grouped cross-validation on the 194 development patients; the 49 test patients stay
+  locked and are used once, for the adopted model.
+- **Tried:** log-mel front-end (worse, −8.5 balanced accuracy), MFCC-statistics baselines (worse),
+  YAMNet embeddings alone (equal), **RespiNet + YAMNet fusion (+4.6 balanced accuracy, P = 0.97,
+  adopted)**. New option `--feature-type logmel` kept for future work.
+- **New served model:** late fusion of RespiNet and a YAMNet-embedding logistic head
+  (`main.py --fusion yamnet`). Test results: recording accuracy 84.46% (was 77.36%), patient
+  accuracy **77.55%** (was 75.51%; 95% CI 65.3–89.8%), patient balanced accuracy 76.22% (73.72%),
+  calibration error 0.031 (0.074). The previous model is archived in
+  `backend/artifacts/v3-2026-10-22-leakfree/`.
+- **Serving:** the artifact contract hash-checks the YAMNet SavedModel and the classifier head
+  (a Keras Dense layer, no pickle). The server decodes each upload a second time at 16 kHz for
+  YAMNet. Older artifacts load unchanged.

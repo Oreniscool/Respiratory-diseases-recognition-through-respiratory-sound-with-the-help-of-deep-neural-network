@@ -5,10 +5,16 @@
 Research prototype; not clinically validated and not intended for diagnosis,
 screening, triage, treatment, or reassurance.
 
-- **Current model:** `backend/artifacts/latest/` (trained 2026-10-22), RespiNet-Attention v3,
-  458,701 parameters, 5 classes: asthma, bronchial, copd, healthy, pneumonia.
-- **Archived:** `backend/artifacts/v3-2026-08-14/`. Its reported metrics (82.09% patient-level
-  accuracy) were inflated by cross-dataset leakage and must not be cited.
+- **Current model:** `backend/artifacts/latest/` (trained 2026-10-22 at `30f58ca`), a late fusion
+  of two members over 5 classes (asthma, bronchial, copd, healthy, pneumonia):
+  - RespiNet-Attention v3 (458,701 parameters) over MFCC windows, and
+  - YAMNet (Google, pretrained on AudioSet, frozen) embeddings → logistic-regression head
+    (stored as a one-layer Keras model).
+  The two calibrated outputs are averaged 50/50. Chosen by patient-grouped cross-validation; see
+  [`ACCURACY_EXPERIMENTS_REPORT.md`](ACCURACY_EXPERIMENTS_REPORT.md).
+- **Archived:** `backend/artifacts/v3-2026-10-22-leakfree/` (RespiNet alone, 75.51% patient-level
+  accuracy) and `backend/artifacts/v3-2026-08-14/`. The latter's metrics (82.09%) were inflated by
+  cross-dataset leakage and must not be cited.
 - **Legacy:** `backend/best_model.h5` (2021, 8 classes, leakage-prone split) has no verified
   contract and is never loaded or served.
 
@@ -40,14 +46,22 @@ See [`DATASET_CARD.md`](DATASET_CARD.md).
 
 ## Inputs and outputs
 
-Mono audio resampled to 22.05 kHz, band-pass filtered (100–2,000 Hz), converted into 40 MFCC,
-40 delta, and 40 delta-delta features, normalized per recording. The model evaluates overlapping
-200-frame windows across the complete recording. Window probabilities are averaged and then
-temperature-scaled (T = 0.713, fit on validation recordings). The output is a distribution over
-the ordered classes stored in the verified `model_metadata.json` contract.
+**RespiNet member:** mono audio resampled to 22.05 kHz, band-pass filtered (100–2,000 Hz),
+converted into 40 MFCC, 40 delta, and 40 delta-delta features, normalized per recording. The model
+evaluates overlapping 200-frame windows across the complete recording, and the window
+probabilities are averaged and temperature-scaled (T = 0.713).
 
-The service abstains (`prediction: "uncertain"`) when the top calibrated score is below 0.573 or
-the normalized entropy is above 0.583 (thresholds chosen for 80% validation coverage). This is a
+**YAMNet member:** the same recording decoded at 16 kHz mono without band-pass. The mean and
+standard deviation of YAMNet's 1,024-d frame embeddings (2,048 values) go through a standardized,
+class-balanced logistic regression, temperature-scaled with T = 0.999.
+
+**Fusion:** the two calibrated distributions are averaged 50/50 and scaled with a final
+temperature (T = 0.674). All temperatures are fit on validation recordings. The output is a
+distribution over the ordered classes stored in the verified `model_metadata.json` contract,
+which also pins the SHA-256 of both members.
+
+The service abstains (`prediction: "uncertain"`) when the top calibrated score is below 0.648 or
+the normalized entropy is above 0.519 (thresholds chosen for 80% validation coverage). This is a
 research heuristic. Unsupported sounds, silence, noise, unseen devices, and out-of-distribution
 populations may still receive a high score.
 
@@ -55,18 +69,23 @@ populations may still receive a high score.
 
 | Metric | Recording level | Patient level |
 |---|---:|---:|
-| Accuracy | 77.36% | 75.51% (95% CI 63.3–87.8%) |
-| Balanced accuracy | 71.42% | 73.72% |
-| Macro F1 | 0.690 | 0.737 |
-| Macro one-vs-rest AUROC | 0.927 | 0.932 |
-| Expected calibration error | 0.074 | 0.148 |
+| Accuracy | 84.46% | 77.55% (95% CI 65.3–89.8%) |
+| Balanced accuracy | 79.87% | 76.22% |
+| Macro F1 | 0.782 | 0.763 |
+| Macro one-vs-rest AUROC | 0.971 | 0.953 |
+| Expected calibration error | 0.031 | 0.088 |
 
-Patient-level sensitivity / specificity: asthma 91.7% / 97.3% (12 patients), bronchial 50.0% /
-97.6% (8), copd 76.9% / 97.2% (13), healthy 75.0% / 82.9% (8), pneumonia 75.0% / 95.1% (8).
+Patient-level sensitivity / specificity: asthma 91.7% / 94.6% (12 patients), bronchial 75.0% /
+90.2% (8), copd 76.9% / 94.4% (13), healthy 62.5% / 95.1% (8), pneumonia 75.0% / 97.6% (8).
 
-By source (patient-level accuracy): ICBHI 65.4% (26 patients; reliable identities but only one
-asthma and one pneumonia patient), Kaggle 87.0% (23 patient groups; identities unverified, likely
-optimistic). Source: `backend/artifacts/latest/test_metrics.json`.
+By source (recording / patient accuracy): ICBHI 82.97% / 65.38% (26 patients; reliable identities
+but only one asthma and one pneumonia patient), Kaggle 86.84% / 91.30% (23 patient groups;
+identities unverified, likely optimistic). Source: `backend/artifacts/latest/test_metrics.json`.
+
+Against the previous RespiNet-only model on the same test split, the gain is large at recording
+level (+7.1 accuracy, +8.5 balanced accuracy) but only one patient (+2.0) at patient level. The
+evidence that the improvement is real is the cross-validation over 194 development patients
+(+4.6 balanced accuracy, P = 0.97), described in `ACCURACY_EXPERIMENTS_REPORT.md`.
 
 ## Evaluation requirement
 
@@ -92,8 +111,9 @@ before augmentation, with no audio shared across partitions. Report at least:
 - Patient-level labels may not describe every recorded respiratory cycle. `bronchial` groups
   several distinct conditions.
 - Inference-time denoising is disabled by default because it is not part of training.
-- No dedicated OOD detector. Explanation overlays show time-only gradient sensitivity, not causal
-  or frequency-specific clinical evidence.
+- No dedicated OOD detector. Explanation overlays show time-only gradient sensitivity of the
+  RespiNet member only (not YAMNet), not causal or frequency-specific clinical evidence.
+- YAMNet was pretrained on general sounds (AudioSet), not on stethoscope recordings.
 
 ## Artifact requirements
 

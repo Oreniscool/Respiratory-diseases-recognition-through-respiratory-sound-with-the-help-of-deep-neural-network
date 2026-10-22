@@ -213,7 +213,7 @@ export const LandingPage = () => {
             { 
               step: 2, 
               title: "Analyze patterns", 
-              desc: "Conv1D + BiGRU model processes 40 MFCC features.",
+              desc: "Conv1D + BiGRU model on 40 MFCC features, averaged with pretrained YAMNet audio embeddings.",
               icon: <Activity size={32} />
             },
             { 
@@ -313,7 +313,7 @@ export const LandingPage = () => {
         <div className="stats-grid">
           <StatCard end={5} label="Disease Categories" />
           {/* backend/artifacts/latest/test_metrics.json, 49 held-out patients (2026-10-22) */}
-          <StatCard end={75.5} label="Patient-Level Test Accuracy" suffix="%" decimals={1} />
+          <StatCard end={77.6} label="Patient-Level Test Accuracy" suffix="%" decimals={1} />
           <StatCard end={40} label="MFCC Features Extracted" />
           <StatCard end={120} label="Feature Dimensions" />
         </div>
@@ -363,7 +363,7 @@ export const LandingPage = () => {
         </FadeInWhenVisible>
 
         <div className="pipeline-visual">
-          {["Audio Input", "MFCC + Δ + Δ²", "Conv1D", "BiGRU", "Dual Pooling", "Softmax"].map((stage, i) => (
+          {["Audio Input", "MFCC + Δ + Δ²", "Conv1D", "BiGRU", "Dual Pooling", "Softmax", "YAMNet Fusion"].map((stage, i) => (
             <React.Fragment key={stage}>
               <motion.div 
                 className="pipeline-stage"

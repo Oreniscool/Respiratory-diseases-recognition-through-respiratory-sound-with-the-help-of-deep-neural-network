@@ -6,7 +6,7 @@ hold module-level detail. The full verified reference (history, exact architectu
 verified metrics, discrepancy register) is
 [`documentation/PROJECT_CONTEXT.md`](documentation/PROJECT_CONTEXT.md).
 
-Last verified against source and on-disk artifacts: **2026-10-22** (branch `final-phase-improvements`).
+Last verified against source and on-disk artifacts: **2026-10-22** (branch `accuracy-experiments`, stacked on `final-phase-improvements`).
 
 ---
 
@@ -27,8 +27,9 @@ clinical confidence. This is enforced in UI copy and docs; keep it that way.
 
 The **currently trained model** is a 5-class classifier
 (`asthma`, `bronchial`, `copd`, `healthy`, `pneumonia`) trained on the **Kaggle Asthma
-Detection V2 dataset merged with ICBHI 2017** (ICBHI re-mapped to 5 classes). The
-original 2021 project targeted the 8 ICBHI classes; that model (`backend/best_model.h5`)
+Detection V2 dataset merged with ICBHI 2017** (ICBHI re-mapped to 5 classes). It is a **late
+fusion** of the RespiNet network (MFCC windows) and a logistic-regression head over frozen YAMNet
+embeddings (`backend/pretrained.py`). The original 2021 project targeted the 8 ICBHI classes; that model (`backend/best_model.h5`)
 is legacy.
 
 ---
@@ -99,13 +100,15 @@ current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 │   ├── reorganize_icbhi.py      # ICBHI flat dir → 5-class folders (symlink/copy), authentic labels only
 │   ├── cross_dataset_overlap.py # finds Kaggle clips cut from ICBHI recordings (NCC) → data/kaggle_icbhi_overlap.csv
 │   ├── data/                    # TRACKED evidence: kaggle_icbhi_overlap.csv (+ .summary.json)
+│   ├── pretrained.py            # YAMNet embeddings, logistic head export (Keras, no pickle), fusion math
+│   ├── experiments/cv.py        # patient-grouped CV harness (test split locked) → artifacts/experiments/
 │   ├── server.py                # Flask API
 │   ├── wsgi.py / validate.py    # WSGI entry / standalone predict helper
 │   ├── submit.sh / download_dataset.sh  # SLURM jobs for the SPIT GPU cluster
 │   ├── best_model.h5, scaler.pkl        # LEGACY 2021 artifacts (8-class, no contract; do not load scaler.pkl)
 │   ├── patient_diagnosis.csv            # DELIBERATELY SCRAMBLED historical labels; never train on it
 │   ├── dataset_provenance.json          # stale provenance for an older scrambled CSV (checksum mismatch → rejected)
-│   ├── tests/                   # 70 dataset-free pytest tests
+│   ├── tests/                   # 87 dataset-free pytest tests
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
 │                                #   patient_diagnosis_authentic.csv  ← the REAL ICBHI labels
@@ -145,7 +148,7 @@ pip install -r requirements-dev.txt   # includes nvidia-cuda-nvcc-cu12 (ptxas/li
 
 # --- static checks (what CI runs; no dataset or model needed) ---
 ruff check .                # clean
-pytest                      # 70 tests pass (pyproject sets pythonpath=["."], so bare pytest works)
+pytest                      # 87 tests pass (pyproject sets pythonpath=["."], so bare pytest works)
 
 # --- datasets (into backend/dataset/) ---
 ./download_dataset.sh all   # Kaggle CLI or curl; also runs under sbatch
@@ -157,10 +160,19 @@ python reorganize_icbhi.py \
 # --- inspect a split without training ---
 python main.py --dataset-format folder --merge-icbhi --prepare-only --output-dir artifacts/split-check
 
-# --- train the current configuration (Kaggle V2 + ICBHI, 5 classes) ---
+# --- YAMNet (once; public TF2 SavedModel, 14 MB) into artifacts/pretrained/yamnet ---
+mkdir -p artifacts/pretrained/yamnet && curl -sSL \
+  https://www.kaggle.com/api/v1/models/google/yamnet/tensorFlow2/yamnet/1/download \
+  | tar xz -C artifacts/pretrained/yamnet
+
+# --- train the current configuration (Kaggle V2 + ICBHI, 5 classes, RespiNet + YAMNet fusion) ---
 python main.py --dataset-format folder --merge-icbhi \
-  --output-dir artifacts/latest --epochs 80 --batch-size 64 --seed 42 \
-  --source-revision "$(git rev-parse HEAD)"
+  --output-dir artifacts/latest --epochs 80 --batch-size 64 --seed 42 --fusion yamnet
+  # source_revision is filled from git automatically; commit first so it isn't "-dirty"
+
+# --- compare variants without touching the test split (see experiments/cv.py docstring) ---
+python -m experiments.cv cache --feature-type mfcc && python -m experiments.cv deep --variant D0
+python -m experiments.cv yamnet && python -m experiments.cv report
 
 # --- serve ---
 python server.py            # binds RESPINET_HOST:RESPINET_PORT (default 127.0.0.1:5001)
@@ -184,27 +196,30 @@ Docker images use **5000**. Keep them consistent when you change one.
 
 ## 6. Current verified state (from `backend/artifacts/latest/`, trained 2026-10-22)
 
-The leakage-free retrain (final-phase item 9). The previous 2026-08-14 model is archived in
-`backend/artifacts/v3-2026-08-14/`. **Its metrics (e.g. 82.09%) are contaminated by
-cross-dataset leakage and must not be cited as performance.**
+**RespiNet + YAMNet late fusion** (branch `accuracy-experiments`; see
+`documentation/ACCURACY_EXPERIMENTS_REPORT.md`), chosen by 3-fold patient-grouped CV on the
+development patients before the test split was used. The RespiNet-only leakage-free model
+(75.51% patient accuracy) is archived in `backend/artifacts/v3-2026-10-22-leakfree/`; the
+2026-08-14 model in `backend/artifacts/v3-2026-08-14/`. **The latter's metrics (e.g. 82.09%) are
+contaminated by cross-dataset leakage and must not be cited as performance.**
 
 | Fact | Value | Source |
 |---|---|---|
 | Classes (ordered) | `asthma, bronchial, copd, healthy, pneumonia` | `model_metadata.json` |
-| Parameters | 458,701 (≈1.75 MB) | `model_summary.txt` |
+| Members | RespiNet-Attention v3, 458,701 parameters (`model_summary.txt`) + frozen YAMNet (`yamnet/`) → logistic head, 2,048 → 5 (`yamnet_head.keras`, C = 0.01) | `model_metadata.json["fusion"]` |
 | Cohort | 1,488 recordings / 243 patients (ICBHI 920 / 126 real patients + Kaggle remainder 568 / 117 pseudo-patients), after dropping 631 Kaggle copies of ICBHI audio and 12 byte duplicates | `dataset_audit.json` |
 | Split (patients) | train 145 / val 49 / test 49; recordings 864 / 328 / 296 | `split_summary.json` |
-| Epochs run | 69 (early stop); best epoch 51, val_acc 0.7346, train_acc 0.8174 | `training_history.json` |
-| Temperature | **0.7133** | `calibration.json` |
-| Abstention | min_conf 0.5727, max_norm_entropy 0.5826, 80% target coverage | `calibration.json` |
-| Test acc (recording / patient) | **77.36% / 75.51%** | `test_metrics.json` |
-| Balanced acc | 71.42% / 73.72% | `test_metrics.json` |
-| Macro F1 | 0.6897 / 0.7374 | `test_metrics.json` |
-| ECE | 0.0741 / 0.1479 | `test_metrics.json` |
-| Macro OvR AUROC | 0.9266 / 0.9318 | `test_metrics.json` |
-| Patient-bootstrap 95% CI (acc) | 63.3% – 87.8% (1,000 samples) | `test_metrics.json` |
-| By source, accuracy rec. / patient | ICBHI (26 real patients) 75.82% / 65.38%; Kaggle (23 pseudo-patients, IDs unverified) 79.82% / 86.96% | `test_metrics.json["by_source"]` |
-| Code revision | trained at `1a03f37` (metadata records `0bed762`, docs-only difference) | `model_metadata.json` |
+| Epochs run (RespiNet) | 62 (early stop); best epoch 44, val_acc 0.7461, train_acc 0.8026 | `training_history.json` |
+| Temperatures | RespiNet 0.7133, YAMNet 0.9992 (`model_metadata.json["fusion"]`); fused **0.6744** (`calibration.json`) | |
+| Abstention | min_conf 0.6481, max_norm_entropy 0.5185, 80% target coverage | `calibration.json` |
+| Test acc (recording / patient) | **84.46% / 77.55%** | `test_metrics.json` |
+| Balanced acc | 79.87% / 76.22% | `test_metrics.json` |
+| Macro F1 | 0.7815 / 0.7627 | `test_metrics.json` |
+| ECE | 0.0309 / 0.0878 | `test_metrics.json` |
+| Macro OvR AUROC | 0.9705 / 0.9532 | `test_metrics.json` |
+| Patient-bootstrap 95% CI (acc) | 65.3% – 89.8% (1,000 samples) | `test_metrics.json` |
+| By source, accuracy rec. / patient | ICBHI (26 real patients) 82.97% / 65.38%; Kaggle (23 pseudo-patients, IDs unverified) 86.84% / 91.30% | `test_metrics.json["by_source"]` |
+| Code revision | `30f58ca` | `model_metadata.json` |
 
 **Historical numbers in docs:** The chronicle keeps superseded figures (T ≈ 1.54, the §7.1
 "refactored" table, the ~136K-parameter layer table, the never-merged "Option C" dropout values,
@@ -244,6 +259,17 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 ---
 
 ## 8. Top gotchas (details in subdirectory CLAUDE.md files)
+
+- **The served model is a two-member fusion.** The artifact dir must contain `yamnet/` (SavedModel)
+  and `yamnet_head.keras`; `model_metadata.json["fusion"]` pins their SHA-256 and the member
+  temperatures, and `load_verified_contract` refuses the artifact if either changes. The server
+  decodes uploads twice (22.05 kHz for RespiNet, 16 kHz for YAMNet). `/explain` saliency covers
+  RespiNet only. Artifacts without `fusion` work as before.
+- **Never pick variants on the test split.** It has 49 patients (±12-point CI). Compare with
+  `backend/experiments/cv.py` (3-fold patient-grouped CV on the development patients, test
+  patients asserted absent) and touch the test set once per adopted configuration.
+- **GPU TF32:** Keras Dense layers on the RTX 4060 differ from scikit-learn by up to ~3e-4 in
+  probability; equivalence checks use 1e-3 plus identical argmax.
 
 - **The pre-2026-10-22 metrics are contaminated.** 52% of Kaggle Asthma V2 (631 clips, including
   all 401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort,
