@@ -17,6 +17,7 @@ class ModelContract:
     classes: list[str]
     preprocessing: PreprocessingConfig
     metadata: dict[str, object]
+    fusion: dict[str, object] | None = None
 
 
 def _sha256(path: Path) -> str:
@@ -85,4 +86,28 @@ def load_verified_contract(model_path: str | Path, metadata_path: str | Path) ->
     audit_name = metadata["data_provenance"].get("dataset_audit_file")
     if not isinstance(audit_name, str) or not (metadata_path.parent / audit_name).is_file():
         raise FileNotFoundError("Model metadata references a missing dataset audit")
-    return ModelContract(model_path, metadata_path, list(classes), preprocessing, metadata)
+    fusion = _verify_fusion(metadata.get("fusion"), metadata_path.parent)
+    return ModelContract(model_path, metadata_path, list(classes), preprocessing, metadata, fusion)
+
+
+def _verify_fusion(fusion: object, artifact_dir: Path) -> dict[str, object] | None:
+    """A fusion artifact must ship a hash-matching YAMNet SavedModel and classifier head."""
+    if fusion is None:
+        return None
+    from pretrained import FUSION_TYPE, directory_sha256
+
+    if not isinstance(fusion, dict) or fusion.get("type") != FUSION_TYPE:
+        raise ValueError("Model metadata contains an unsupported fusion definition")
+    weights = fusion.get("weights")
+    if not (isinstance(weights, list) and len(weights) == 2 and all(float(w) >= 0 for w in weights)):
+        raise ValueError("Fusion weights must be two non-negative numbers")
+    for key in ("respinet_temperature", "yamnet_temperature"):
+        if not float(fusion.get(key, 0)) > 0:
+            raise ValueError(f"Fusion {key} must be positive")
+    head = artifact_dir / str(fusion.get("head_filename"))
+    if not head.is_file() or _sha256(head) != fusion.get("head_sha256"):
+        raise ValueError("Fusion head is missing or its hash does not match model_metadata.json")
+    yamnet = artifact_dir / str(fusion.get("yamnet_dir"))
+    if not yamnet.is_dir() or directory_sha256(yamnet) != fusion.get("yamnet_sha256"):
+        raise ValueError("YAMNet model is missing or its hash does not match model_metadata.json")
+    return fusion

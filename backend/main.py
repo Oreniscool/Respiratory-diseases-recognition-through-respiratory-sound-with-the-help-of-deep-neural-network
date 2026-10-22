@@ -191,6 +191,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--n-mels", type=int, default=64, help="Mel bands for --feature-type logmel (default: 64)"
     )
     parser.add_argument(
+        "--fusion",
+        choices=["none", "yamnet"],
+        default="none",
+        help="Late-fuse RespiNet with a YAMNet-embedding logistic head (see pretrained.py)",
+    )
+    parser.add_argument(
+        "--yamnet-dir",
+        default="artifacts/pretrained/yamnet",
+        help="YAMNet TF2 SavedModel directory (Kaggle Models google/yamnet/tensorFlow2/yamnet/1)",
+    )
+    parser.add_argument(
         "--merge-icbhi",
         action="store_true",
         help="Automatically merge the ICBHI dataset (backend/dataset/ICBHI_as_folders) into the training cohort",
@@ -550,9 +561,30 @@ def run_training(args: argparse.Namespace) -> None:
     )
 
     validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))
-    validation_targets, validation_probabilities, _ = aggregate_probabilities_by_group(
-        y_validation, validation_raw_probabilities, validation_data.source_paths
+    validation_targets, validation_probabilities, validation_paths = (
+        aggregate_probabilities_by_group(
+            y_validation, validation_raw_probabilities, validation_data.source_paths
+        )
     )
+    test_window_probabilities = np.asarray(model.predict(test_data.X, verbose=0))
+    test_targets, test_probabilities, test_sources = aggregate_probabilities_by_group(
+        y_test, test_window_probabilities, test_data.source_paths
+    )
+    fusion = None
+    if args.fusion == "yamnet":
+        fusion, validation_probabilities, test_probabilities = fit_yamnet_fusion(
+            args,
+            splits,
+            class_names,
+            output_dir,
+            validation_targets=validation_targets,
+            validation_paths=validation_paths,
+            validation_respinet=validation_probabilities,
+            test_paths=test_sources,
+            test_respinet=test_probabilities,
+        )
+
+    # For a fusion artifact this final temperature calibrates the fused probabilities.
     calibration = fit_temperature(validation_targets, validation_probabilities)
     calibration["abstention"] = fit_abstention_policy(
         apply_temperature(validation_probabilities, calibration["temperature"]),
@@ -560,11 +592,6 @@ def run_training(args: argparse.Namespace) -> None:
     )
     with (output_dir / "calibration.json").open("w", encoding="utf-8") as handle:
         json.dump(calibration, handle, indent=2)
-
-    test_window_probabilities = np.asarray(model.predict(test_data.X, verbose=0))
-    test_targets, test_probabilities, test_sources = aggregate_probabilities_by_group(
-        y_test, test_window_probabilities, test_data.source_paths
-    )
     test_probabilities = apply_temperature(test_probabilities, calibration["temperature"])
     source_patient_ids = np.asarray(
         [
@@ -607,10 +634,90 @@ def run_training(args: argparse.Namespace) -> None:
         dataset_audit=dataset_audit,
         calibration=calibration,
         use_online_spec_augment=use_online_spec,
+        fusion=fusion,
     )
     with (output_dir / "model_metadata.json").open("w", encoding="utf-8") as handle:
         json.dump(metadata, handle, indent=2)
     print(f"Saved model and evaluation artifacts to {output_dir}")
+
+
+def fit_yamnet_fusion(
+    args: argparse.Namespace,
+    splits: dict[str, list[AudioRecord]],
+    class_names: list[str],
+    output_dir: Path,
+    *,
+    validation_targets: np.ndarray,
+    validation_paths: np.ndarray,
+    validation_respinet: np.ndarray,
+    test_paths: np.ndarray,
+    test_respinet: np.ndarray,
+) -> tuple[dict[str, object], np.ndarray, np.ndarray]:
+    """Fit the YAMNet logistic head on the training split and fuse it with RespiNet.
+
+    Each member is temperature-calibrated on the validation split, the calibrated vectors are
+    averaged 50/50 (the weight fixed before the cross-validation results were seen), and the
+    caller fits one more temperature on the fused validation probabilities.
+    """
+    import shutil
+
+    from pretrained import (
+        FUSION_TYPE,
+        YAMNET_SAMPLE_RATE,
+        directory_sha256,
+        export_logistic_head,
+        fit_logistic_head,
+        fuse_probabilities,
+        load_yamnet,
+        load_yamnet_audio,
+        yamnet_embedding,
+    )
+
+    yamnet = load_yamnet(args.yamnet_dir)
+    records = [*splits["train"], *splits["validation"], *splits["test"]]
+    print(f"[fusion] Computing YAMNet embeddings for {len(records)} recordings")
+    embeddings = {str(r.path): yamnet_embedding(yamnet, load_yamnet_audio(r.path)) for r in records}
+    labels = {str(r.path): r.disease for r in records}
+
+    def matrix(paths):
+        return np.stack([embeddings[str(path)] for path in paths])
+
+    train_paths = [str(r.path) for r in splits["train"]]
+    pipeline, chosen = fit_logistic_head(
+        matrix(train_paths),
+        [labels[p] for p in train_paths],
+        matrix(validation_paths),
+        [labels[str(p)] for p in validation_paths],
+    )
+    head = export_logistic_head(pipeline, class_names, output_dir / "yamnet_head.keras")
+    order = [list(pipeline.classes_).index(name) for name in class_names]
+    validation_head = np.asarray(head.predict(matrix(validation_paths), verbose=0))
+    if not np.allclose(validation_head, pipeline.predict_proba(matrix(validation_paths))[:, order], atol=1e-4):
+        raise RuntimeError("Exported YAMNet head does not reproduce the fitted logistic regression")
+    test_head = np.asarray(head.predict(matrix(test_paths), verbose=0))
+
+    yamnet_copy = output_dir / "yamnet"
+    shutil.copytree(args.yamnet_dir, yamnet_copy, dirs_exist_ok=True)
+    fusion = {
+        "type": FUSION_TYPE,
+        "weights": [0.5, 0.5],
+        "respinet_temperature": fit_temperature(validation_targets, validation_respinet)["temperature"],
+        "yamnet_temperature": fit_temperature(validation_targets, validation_head)["temperature"],
+        "head_filename": "yamnet_head.keras",
+        "head_sha256": hashlib.sha256((output_dir / "yamnet_head.keras").read_bytes()).hexdigest(),
+        "head_logistic_C": chosen["C"],
+        "yamnet_dir": yamnet_copy.name,
+        "yamnet_sha256": directory_sha256(yamnet_copy),
+        "yamnet_source": "Kaggle Models google/yamnet/tensorFlow2/yamnet/1",
+        "yamnet_sample_rate": YAMNET_SAMPLE_RATE,
+        "embedding": "mean and std of YAMNet frame embeddings (2,048 values), no band-pass",
+        "aggregation": "weighted mean of member-calibrated probabilities, then the calibration.json temperature",
+    }
+    return (
+        fusion,
+        fuse_probabilities(validation_respinet, validation_head, fusion),
+        fuse_probabilities(test_respinet, test_head, fusion),
+    )
 
 
 def resolve_source_revision(explicit: str) -> str:
@@ -652,6 +759,7 @@ def build_model_metadata(
     dataset_audit: dict[str, object],
     calibration: dict[str, object],
     use_online_spec_augment: bool,
+    fusion: dict[str, object] | None = None,
 ) -> dict[str, object]:
     """Assemble the schema-2 artifact contract, recording every setting the run depended on."""
     from train import (
@@ -728,6 +836,7 @@ def build_model_metadata(
             "audio_inventory_sha256": dataset_audit["audio_inventory_sha256"],
         },
         "uncertainty": calibration["abstention"],
+        **({"fusion": fusion} if fusion is not None else {}),
         "runtime": {**_library_versions(), "platform": sys.platform},
         "limitations": [
             "Research use only; not clinically validated.",

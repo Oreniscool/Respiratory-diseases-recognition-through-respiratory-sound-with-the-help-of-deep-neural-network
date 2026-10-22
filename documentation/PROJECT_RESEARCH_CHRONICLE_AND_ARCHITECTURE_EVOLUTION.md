@@ -816,6 +816,19 @@ split is used once, only for an adopted configuration. Full method and results:
    calibrated out-of-fold probabilities for all 1,192 recordings (`artifacts/experiments/oof_*.csv`).
    `report` computes recording-, patient- and per-source metrics with `evaluate.py` and a paired
    patient bootstrap of the difference from the current configuration (D0).
+4. **RespiNet + YAMNet late fusion (`pretrained.py`, `main.py --fusion yamnet`, `server.py`,
+   `artifact_contract.py`):** YAMNet (Google's AudioSet model, TF2 SavedModel from Kaggle Models
+   `google/yamnet/tensorFlow2/yamnet/1`, 14.2 MB) embeds 16 kHz mono audio without band-pass; a
+   recording is the mean + std of its 1,024-d frame embeddings (2,048 values). A standardized,
+   class-balanced logistic regression (C picked by validation log loss) maps that to the 5 classes
+   and is exported as a one-layer Keras Dense-softmax model with the standardization folded into
+   its weights (no pickle; `main.py` checks it reproduces scikit-learn within 1e-4). Each member is
+   temperature-calibrated on validation, the two are averaged 50/50, and `calibration.json` holds
+   a final temperature for the fused vector. The artifact ships `yamnet/` and `yamnet_head.keras`;
+   `model_metadata.json["fusion"]` records both SHA-256 hashes (the SavedModel as a hash over every
+   file), which `load_verified_contract` checks before the server will load anything. The server
+   decodes uploads a second time at 16 kHz for YAMNet. Saliency (`/explain`) still covers the
+   RespiNet member only. Artifacts without `fusion` behave exactly as before.
 
 ---
 

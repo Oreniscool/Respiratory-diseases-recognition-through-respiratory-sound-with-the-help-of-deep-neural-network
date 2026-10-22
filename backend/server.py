@@ -43,6 +43,13 @@ from preprocessing import (
 from artifact_contract import ModelContract, load_verified_contract
 from audio_validation import validate_audio_upload
 from calibration import apply_temperature, is_uncertain
+from pretrained import (
+    YAMNET_SAMPLE_RATE,
+    fuse_probabilities,
+    load_yamnet,
+    load_yamnet_audio,
+    yamnet_embedding,
+)
 from model import (
     FeatureValidityMask,
     MaskedGlobalAveragePooling1D,
@@ -120,6 +127,8 @@ MODEL_CONTRACT_STATUS = "unknown"
 MODEL_CONTRACT_ERROR = None
 CONTRACT: ModelContract | None = None
 _MODEL_LOCK = threading.Lock()
+FUSION_HEAD = None   # YAMNet logistic head (Keras), only for fusion artifacts
+YAMNET = None        # YAMNet SavedModel, only for fusion artifacts
 _RATE_LIMIT_LOCK = threading.Lock()
 _RATE_LIMIT_REQUESTS: dict[str, list[float]] = {}
 logger = logging.getLogger("respinet")
@@ -174,9 +183,23 @@ def load_model_once():
                     f"Model output dimension {output_dim} does not match "
                     f"the {len(CLASSES)} configured classes"
                 )
+            if CONTRACT.fusion is not None:
+                _load_fusion_members(output_dim)
             model = loaded_model
             print("[RespiNet] Model loaded ✓")
     return model
+
+
+def _load_fusion_members(output_dim: int) -> None:
+    """Load YAMNet and its classifier head; both were hash-checked by the contract."""
+    global FUSION_HEAD, YAMNET
+    artifact_dir = CONTRACT.metadata_path.parent
+    head = load_model(artifact_dir / str(CONTRACT.fusion["head_filename"]))
+    if int(head.output_shape[-1]) != output_dim:
+        raise RuntimeError("YAMNet head and RespiNet disagree on the number of classes")
+    YAMNET = load_yamnet(artifact_dir / str(CONTRACT.fusion["yamnet_dir"]))
+    FUSION_HEAD = head
+    print("[RespiNet] YAMNet fusion member loaded ✓")
 
 
 def extract_mfcc(
@@ -190,7 +213,8 @@ def extract_mfcc(
             - optional noise cancellation (spectral gating)
             - MFCC + delta + delta-delta
             - split the complete recording into overlapping model windows
-        Returns all model windows plus their valid frame lengths and starts.
+        Returns all model windows plus their valid frame lengths and starts, and (fusion
+        artifacts only) the recording decoded at 16 kHz for YAMNet, else None.
     """
     # Write bytes to a temp file so librosa can open it
     suffix = os.path.splitext(filename)[1].lower()
@@ -200,6 +224,9 @@ def extract_mfcc(
 
     try:
         data_x, sampling_rate = load_audio(tmp_path, config=PREPROCESSING)
+        yamnet_audio = (
+            load_yamnet_audio(tmp_path) if CONTRACT is not None and CONTRACT.fusion else None
+        )
     finally:
         os.unlink(tmp_path)
 
@@ -207,6 +234,8 @@ def extract_mfcc(
         raise ValueError(DENOISE_DISABLED_MESSAGE)
     if denoise:
         data_x = _apply_noise_reduction(data_x, sampling_rate)
+        if yamnet_audio is not None:
+            yamnet_audio = _apply_noise_reduction(yamnet_audio, YAMNET_SAMPLE_RATE)
 
     duration_seconds = float(len(data_x)) / sampling_rate
     if duration_seconds < 1.0:
@@ -218,7 +247,7 @@ def extract_mfcc(
 
     sequence = extract_feature_sequence(data_x, sampling_rate, config=PREPROCESSING)
     windows, valid_lengths, starts = window_feature_sequence(sequence, config=PREPROCESSING)
-    return windows, data_x, sampling_rate, valid_lengths, starts
+    return windows, data_x, sampling_rate, valid_lengths, starts, yamnet_audio
 
 
 def _normalize_array(arr: np.ndarray) -> np.ndarray:
@@ -258,9 +287,17 @@ def _predict_probabilities(m, features: np.ndarray) -> np.ndarray:
     return raw / totals
 
 
-def _aggregate_window_probabilities(window_probabilities: np.ndarray) -> np.ndarray:
-    """Average every window, then apply the validation-fitted temperature."""
+def _aggregate_window_probabilities(
+    window_probabilities: np.ndarray, yamnet_audio: np.ndarray | None = None
+) -> np.ndarray:
+    """Average every window, fuse with YAMNet if the artifact is a fusion, then apply temperature."""
     aggregated = np.mean(window_probabilities, axis=0, keepdims=True)
+    if CONTRACT is not None and CONTRACT.fusion is not None:
+        if yamnet_audio is None or FUSION_HEAD is None or YAMNET is None:
+            raise RuntimeError("Fusion artifact requires YAMNet audio and its loaded members")
+        embedding = yamnet_embedding(YAMNET, yamnet_audio)[None, :]
+        head_probabilities = np.asarray(FUSION_HEAD.predict(embedding, verbose=0))
+        aggregated = fuse_probabilities(aggregated, head_probabilities, CONTRACT.fusion)
     temperature = 1.0
     if CONTRACT is not None:
         calibration_path = CONTRACT.metadata_path.parent / str(CONTRACT.metadata["calibration_file"])
@@ -277,9 +314,10 @@ def _prediction_payload(
     valid_lengths: np.ndarray,
     *,
     denoise: bool,
+    yamnet_audio: np.ndarray | None = None,
 ) -> tuple[dict[str, object], np.ndarray, np.ndarray]:
     window_probabilities = _predict_probabilities(m, windows)
-    probabilities = _aggregate_window_probabilities(window_probabilities)
+    probabilities = _aggregate_window_probabilities(window_probabilities, yamnet_audio)
     pred_idx = int(np.argmax(probabilities))
     policy = MODEL_METADATA.get("uncertainty", {}) if MODEL_METADATA else {}
     uncertain, uncertainty = is_uncertain(probabilities, policy)
@@ -710,7 +748,7 @@ def predict_sample(disease):
     try:
         with open(chosen_file, "rb") as f:
             audio_bytes = f.read()
-        X, data_x, sr, valid_lengths, _ = extract_mfcc(
+        X, data_x, sr, valid_lengths, _, yamnet_audio = extract_mfcc(
             audio_bytes, denoise=denoise, filename=os.path.basename(chosen_file)
         )
     except Exception as e:
@@ -719,7 +757,7 @@ def predict_sample(disease):
 
     try:
         response, _, _ = _prediction_payload(
-            m, X, data_x, sr, valid_lengths, denoise=denoise
+            m, X, data_x, sr, valid_lengths, denoise=denoise, yamnet_audio=yamnet_audio
         )
         response["filename"] = os.path.basename(chosen_file)
         response["requested_disease"] = canonical
@@ -752,7 +790,7 @@ def predict():
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr, valid_lengths, _ = extract_mfcc(
+        X, data_x, sr, valid_lengths, _, yamnet_audio = extract_mfcc(
             audio_bytes, denoise=denoise, filename=filename
         )
     except Exception as e:
@@ -761,7 +799,7 @@ def predict():
 
     try:
         response, _, _ = _prediction_payload(
-            m, X, data_x, sr, valid_lengths, denoise=denoise
+            m, X, data_x, sr, valid_lengths, denoise=denoise, yamnet_audio=yamnet_audio
         )
         return jsonify(response)
 
@@ -800,7 +838,7 @@ def explain():
         return jsonify({"error": str(e)}), 503
 
     try:
-        X, data_x, sr, valid_lengths, starts = extract_mfcc(
+        X, data_x, sr, valid_lengths, starts, yamnet_audio = extract_mfcc(
             audio_bytes, denoise=denoise, filename=filename
         )
     except Exception as e:
@@ -809,7 +847,7 @@ def explain():
 
     try:
         prediction, probs, window_probabilities = _prediction_payload(
-            m, X, data_x, sr, valid_lengths, denoise=denoise
+            m, X, data_x, sr, valid_lengths, denoise=denoise, yamnet_audio=yamnet_audio
         )
         pred_idx = int(np.argmax(probs))
         pred_label = CLASSES[pred_idx]

@@ -267,21 +267,10 @@ def run_deep(variant: str, records: list[AudioRecord]) -> None:
 
 
 def _fit_logistic(x_fit, y_fit, x_inner, y_inner):
-    """Standardized, class-balanced logistic regression; C chosen on the inner validation split."""
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import log_loss
-    from sklearn.pipeline import make_pipeline
-    from sklearn.preprocessing import StandardScaler
+    """The production YAMNet head (standardized, balanced logistic regression; C on inner val)."""
+    from pretrained import fit_logistic_head
 
-    best = None
-    for c in (0.001, 0.01, 0.1, 1.0):
-        model = make_pipeline(
-            StandardScaler(), LogisticRegression(C=c, class_weight="balanced", max_iter=5000)
-        ).fit(x_fit, y_fit)
-        loss = log_loss(y_inner, model.predict_proba(x_inner), labels=model.classes_)
-        if best is None or loss < best[0]:
-            best = (loss, c, model)
-    return best[2], {"C": best[1]}
+    return fit_logistic_head(x_fit, y_fit, x_inner, y_inner)
 
 
 def _fit_boosting(x_fit, y_fit, x_inner, y_inner):
@@ -341,17 +330,13 @@ def yamnet_embeddings(records: list[AudioRecord]) -> dict[str, np.ndarray]:
     if target.is_file():
         cached = np.load(target, allow_pickle=False)
         return dict(zip(cached["paths"].tolist(), cached["embeddings"]))
-    import librosa
-    import tensorflow as tf
+    from pretrained import load_yamnet, load_yamnet_audio, yamnet_embedding
 
-    model = tf.saved_model.load(str(YAMNET_DIR))
+    model = load_yamnet(YAMNET_DIR)
     paths, embeddings = [], []
     for index, record in enumerate(records):
-        waveform, _ = librosa.load(str(record.path), sr=16_000, mono=True)
-        _, frame_embeddings, _ = model(tf.constant(waveform, dtype=tf.float32))
-        frame_embeddings = frame_embeddings.numpy()
         paths.append(str(record.path))
-        embeddings.append(np.concatenate([frame_embeddings.mean(0), frame_embeddings.std(0)]))
+        embeddings.append(yamnet_embedding(model, load_yamnet_audio(record.path)))
         if index % 200 == 0:
             print(f"[yamnet] {index}/{len(records)}", flush=True)
     target.parent.mkdir(parents=True, exist_ok=True)
