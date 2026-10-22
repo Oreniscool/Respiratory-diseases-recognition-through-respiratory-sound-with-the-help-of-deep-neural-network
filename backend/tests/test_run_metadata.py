@@ -104,3 +104,24 @@ def test_feature_type_flag_reaches_the_persisted_contract(tmp_path, monkeypatch)
     )
     assert metadata["preprocessing"]["feature_type"] == "logmel"
     assert metadata["preprocessing"]["n_mels"] == 48
+
+
+def test_round2_training_options_are_recorded(tmp_path, monkeypatch):
+    args = _args(monkeypatch, "--cudnn-gru", "--spec-augment-mode", "sample", "--mixup-alpha", "0.4",
+                 "--device-augment", "--multitask")
+    model_path = tmp_path / "best_model.keras"
+    model_path.write_bytes(b"m")
+    hyper = main.build_model_metadata(
+        args, model_path=model_path, class_names=["a", "b"], class_weights={0: 1.0, 1: 1.0},
+        manifest_hash="f" * 64, dataset_audit={"diagnosis_sha256": "x", "audio_inventory_sha256": "y"},
+        calibration={"abstention": {}}, use_online_spec_augment=True,
+    )["training"]["hyperparameters"]
+    assert hyper["cudnn_gru"] is True and hyper["mixup_alpha"] == 0.4 and hyper["device_augment"] is True
+    assert hyper["multitask"]["targets"] == ["crackles", "wheezes"]
+    assert hyper["spec_augment"]["masks"] == "per sample"
+    defaults = main.build_model_metadata(
+        _args(monkeypatch), model_path=model_path, class_names=["a", "b"], class_weights={0: 1.0, 1: 1.0},
+        manifest_hash="f" * 64, dataset_audit={"diagnosis_sha256": "x", "audio_inventory_sha256": "y"},
+        calibration={"abstention": {}}, use_online_spec_augment=True,
+    )["training"]["hyperparameters"]
+    assert defaults["cudnn_gru"] is False and defaults["multitask"] is None

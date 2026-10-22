@@ -201,6 +201,30 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--n-mels", type=int, default=64, help="Mel bands for --feature-type logmel (default: 64)"
     )
     parser.add_argument(
+        "--cudnn-gru",
+        action="store_true",
+        help="tanh GRUs (cuDNN-compatible) instead of the original linear-candidate GRUs",
+    )
+    parser.add_argument(
+        "--spec-augment-mode",
+        choices=["batch", "sample"],
+        default="batch",
+        help="Online SpecAugment: one mask per batch (original) or per sample within valid frames",
+    )
+    parser.add_argument("--mixup-alpha", type=float, default=0.0, help="Mixup Beta(α, α); 0 = off")
+    parser.add_argument(
+        "--device-augment",
+        action="store_true",
+        help="Add two simulated-stethoscope variants per training recording",
+    )
+    parser.add_argument(
+        "--multitask",
+        action="store_true",
+        help="Auxiliary crackle/wheeze head trained on ICBHI cycle annotations",
+    )
+    parser.add_argument("--multitask-weight", type=float, default=0.5)
+    parser.add_argument("--icbhi-annotations", default="dataset/ICBHI_final_dataset")
+    parser.add_argument(
         "--fusion",
         choices=["none", "yamnet"],
         default="none",
@@ -593,6 +617,7 @@ def run_training(args: argparse.Namespace) -> None:
         max_waveform_variants=args.max_waveform_variants,
         seed=args.seed,
         config=config,
+        device_augment=args.device_augment,
     )
     validation_data = extract_manifest(
         splits["validation"], augment=False, use_spec_augment=False, seed=args.seed, config=config
@@ -615,6 +640,17 @@ def run_training(args: argparse.Namespace) -> None:
     healthy_index = next(
         (index for index, name in enumerate(class_names) if name.lower() == "healthy"), None
     )
+    aux_train = aux_validation = None
+    if args.multitask:
+        from featureExtraction import cycle_annotation_targets
+
+        aux_train, aux_validation = (
+            cycle_annotation_targets(
+                data.source_paths, data.variants, data.window_starts, data.valid_lengths,
+                args.icbhi_annotations, config=config,
+            )
+            for data in (train_data, validation_data)
+        )
     model, _, model_path, class_weights = train_model(
         train_data.X,
         y_train,
@@ -634,6 +670,12 @@ def run_training(args: argparse.Namespace) -> None:
         num_time_masks=args.num_time_masks,
         max_time_mask=args.max_time_mask,
         seed=args.seed,
+        cudnn_gru=args.cudnn_gru,
+        spec_augment_mode=args.spec_augment_mode,
+        mixup_alpha=args.mixup_alpha,
+        aux_train=aux_train,
+        aux_val=aux_validation,
+        aux_weight=args.multitask_weight,
     )
 
     validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))
@@ -893,8 +935,16 @@ def build_model_metadata(
                 "waveform_variants": (
                     "off" if args.no_augmentation else (args.max_waveform_variants or "all")
                 ),
+                "cudnn_gru": args.cudnn_gru,
+                "mixup_alpha": args.mixup_alpha,
+                "device_augment": args.device_augment,
+                "multitask": (
+                    {"targets": ["crackles", "wheezes"], "weight": args.multitask_weight}
+                    if args.multitask else None
+                ),
                 "spec_augment": {
                     "mode": spec_augment_mode,
+                    "masks": "per sample" if args.spec_augment_mode == "sample" else "per batch",
                     "num_freq_masks": args.num_freq_masks,
                     "max_freq_mask": args.max_freq_mask,
                     "num_time_masks": args.num_time_masks,
