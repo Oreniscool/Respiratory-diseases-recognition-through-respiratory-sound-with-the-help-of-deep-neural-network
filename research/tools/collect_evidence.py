@@ -264,10 +264,7 @@ def registry() -> list[dict[str, object]]:
                             artifact=f"backend/artifacts/experiments/oof_{variant}.csv",
                             decision="pending", justification="GPU queue"))
     rows += [
-        row("X1", "Leakage ladder: original protocol → leak-free", hypothesis="H1", status="approved",
-            code="(to be written: backend/experiments/leakage_ladder.py)", seed="20 repeats per rung",
-            interpretation="", limitations="Original data subset must follow the paper (6 classes, COPD cap).",
-            decision="run after round 2b", justification="Central test of H1."),
+        ladder_row(),
         row("X2", "Site vs sample-rate/bandwidth diagnostic", hypothesis="H2 (competing explanation)", status="approved",
             decision="run after round 2b", justification="Distinguishes shortcut from a 4 kHz artifact."),
         row("X3", "Source-mixing mitigation on the KAUH holdout", hypothesis="H3", status="running",
@@ -276,6 +273,33 @@ def registry() -> list[dict[str, object]]:
             decision="descriptive analysis after X3", justification="Uses existing external outputs."),
     ]
     return rows
+
+
+def ladder_row() -> dict[str, object]:
+    """X1: filled from backend/artifacts/experiments/leakage_ladder/summary.json once it exists."""
+    summary_path = ART / "experiments" / "leakage_ladder" / "summary.json"
+    metrics = {}
+    status = "running"
+    if summary_path.is_file():
+        summary = json.loads(summary_path.read_text())
+        complete = all(summary.get(r, {}).get("repeats") == 20 for r in ("L0", "L1", "L2", "L3"))
+        status = "completed" if complete else "running"
+        if "L3" in summary:
+            metrics = {
+                "primary_metric": "mean accuracy drop L0 → L3 (paired by seed)",
+                "primary_value": r4(summary.get("drop_L0_to_L3", {}).get("mean")),
+                "secondary": {k: v for k, v in summary.items()},
+            }
+    return row("X1", "Leakage ladder: original 2021 protocol → leak-free", hypothesis="H1", status=status,
+               code="experiments/leakage_ladder.py", seed="0-19 per rung", metrics=metrics,
+               artifact="backend/artifacts/experiments/leakage_ladder/{features_summary,summary}.json, results.csv",
+               interpretation="",
+               limitations=("Re-implementation of git 3ec7dc6 with authentic labels; batch size 32 assumed (not stated); "
+                            "released-code class sizes match the paper for Healthy/COPD/Pneumonia but are half for "
+                            "Bronchiectasis/Bronchiolitis (paper Fig. 1); model matches every layer of the paper's "
+                            "Fig. 3 (328,726 parameters; the figure's printed total 320,726 does not match its rows); "
+                            "COPD cap applied in sorted file order (original used os.listdir order)."),
+               decision="pending", justification="Central test of H1.")
 
 
 def render(rows: list[dict[str, object]]) -> str:

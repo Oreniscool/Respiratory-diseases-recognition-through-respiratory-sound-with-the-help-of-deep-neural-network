@@ -994,6 +994,20 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   and superseded runs included). Also: dataset audit, decision log and claim–evidence matrix.
 - **Agents:** an independent literature review and a separate adversarial novelty review were
   commissioned (outputs `research/LITERATURE_REVIEW.md`, `research/NOVELTY_REVIEW.md`).
+- **X1 leakage ladder (`backend/experiments/leakage_ladder.py`).** A re-implementation of the 2021
+  pipeline: the original selection rules, mean MFCC-40, augmentation, and the GRU network with
+  `reset_after=False`, which reproduces every per-layer count in the paper's Fig. 3 (328,726 in
+  total; the figure's printed total of 320,726 does not match its own rows). It runs four rungs × 20
+  seeds:
+  - L0: the original protocol;
+  - L1: selection on a validation split;
+  - L2: augmentation after a recording-level split;
+  - L3: a patient-disjoint split (L4 = L3 scored per patient).
+
+  It uses authentic labels: the repository's scrambled `patient_diagnosis.csv` entered git in 2026
+  (`1809b94`) and does not match the paper's class sizes. With authentic labels, the released code
+  gives the paper's Healthy/COPD/Pneumonia sizes but half its Bronchiectasis/Bronchiolitis sizes. The
+  batch size (not stated) is 32. Pilot: L0 seed 0 reached 0.865 accuracy against the reported 0.957.
 
 ---
 
