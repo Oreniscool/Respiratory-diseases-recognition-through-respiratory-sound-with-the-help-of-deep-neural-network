@@ -1,8 +1,8 @@
 {
   "dataset": "Class-folder audio datasets",
   "dataset_dirs": [
-    "/mnt/SSD2/repos/Respiratory-diseases-recognition-through-respiratory-sound-with-the-help-of-deep-neural-network/backend/dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2",
-    "/mnt/SSD2/repos/Respiratory-diseases-recognition-through-respiratory-sound-with-the-help-of-deep-neural-network/backend/dataset/ICBHI_as_folders"
+    "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2",
+    "dataset/ICBHI_as_folders"
   ],
   "diagnosis_sha256": "not-applicable: labels come from class folder names",
   "recordings": 1488,
