@@ -211,3 +211,28 @@ In order of expected value:
    has been run.
 4. Adopt whatever passes the rule, retrain with `main.py --fusion members --fusion-members … --cudnn-gru
    --spec-augment-mode sample [--ensemble-seeds 3]`, and run `experiments/external.py` once on it.
+
+## 9. Round 2b: breaking the KAUH confound (decided 2026-10-22, 22:40, before any 2b result)
+
+**Decision (user):** split the 45 in-label external KAUH patients about 50/50.
+`kauh.py --split-for-training` (seeded shuffle per class) moved **21 patients (17 healthy, 4 COPD;
+63 recordings)** into the cohort as source `kauh` (`data/kauh_cohort_manifest.csv`,
+`main.py --merge-kauh`). **51 patients stay external** (`data/kauh_external_holdout_manifest.csv`:
+18 healthy, 5 COPD, 1 bronchial, and the 27 out-of-label patients). The new cohort has 1,551
+recordings / 244 patients, split 146 / 49 / 49 with seed 42. That is again a new locked test set,
+and `experiments/external.py` refuses to evaluate any patient that appears in the artifact's own
+split.
+
+**Pre-registered plan and rules (fixed before any round-2b result):**
+- Reference **R′** = D0 + YAMNet re-run on the new folds. Deep candidates: D3, D3_x3 (3 seeds),
+  D3_devaug, D3_mtl, D3_ce, D3_mixup. Embedding members: YAMNet, OPERA-CE, and HeAR if the login
+  happens. Fusions (equal weights): the best D3-family member (highest OOF patient balanced accuracy)
+  with YAMNet, plus OPERA-CE and/or HeAR.
+- **Adopt** a configuration only if its OOF patient balanced accuracy and macro F1 are both ≥ +2
+  points over R′ with paired-bootstrap P(Δ > 0) ≥ 0.90, and neither its off-device COPD sensitivity
+  nor its OOF accuracy on the in-cohort KAUH recordings is more than 5 points worse than R′'s.
+  Otherwise retrain R′.
+- The adopted model is trained once with `main.py … --merge-kauh`, evaluated once on the locked test
+  split, and once on the KAUH holdout. For comparison, the model served before 2b (trained without
+  KAUH) is also evaluated once on the same holdout. The holdout result is reported, not used to
+  choose.

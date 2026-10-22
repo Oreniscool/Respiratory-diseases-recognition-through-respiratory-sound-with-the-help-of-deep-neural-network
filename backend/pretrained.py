@@ -170,6 +170,30 @@ def opera_embedding(model, name: str, waveform: np.ndarray) -> np.ndarray:
     return features.numpy()[0].astype(np.float32)
 
 
+HEAR_CLIP_SAMPLES = 2 * YAMNET_SAMPLE_RATE  # HeAR embeds 2-second clips of 16 kHz audio
+
+
+def load_hear(directory: str | Path):
+    """Google HeAR (Health Acoustic Representations) TF SavedModel from Hugging Face google/hear."""
+    import tensorflow as tf
+
+    return tf.saved_model.load(str(directory)).signatures["serving_default"]
+
+
+def hear_embedding(infer, waveform: np.ndarray) -> np.ndarray:
+    """Mean and std of HeAR's 512-d embeddings over consecutive 2 s clips (last clip zero-padded)."""
+    import tensorflow as tf
+
+    clips = max(1, int(np.ceil(len(waveform) / HEAR_CLIP_SAMPLES)))
+    padded = np.zeros(clips * HEAR_CLIP_SAMPLES, dtype=np.float32)
+    padded[: len(waveform)] = waveform
+    batch = padded.reshape(clips, HEAR_CLIP_SAMPLES)
+    input_name = next(iter(infer.structured_input_signature[1]))
+    output = infer(**{input_name: tf.constant(batch)})
+    frames = next(iter(output.values())).numpy().reshape(clips, -1)
+    return np.concatenate([frames.mean(axis=0), frames.std(axis=0)]).astype(np.float32)
+
+
 class Extractor:
     """Recording → fixed-size embedding for one frozen pretrained model."""
 
@@ -184,6 +208,8 @@ class Extractor:
                 self._model = load_yamnet(self.model_dir)
             elif self.name.startswith("opera"):
                 self._model = load_opera(self.model_dir, self.name)
+            elif self.name == "hear":
+                self._model = load_hear(self.model_dir)
         return self._model
 
     @property
@@ -202,6 +228,8 @@ class Extractor:
             from preprocessing import apply_bandpass_filter
 
             return yamnet_embedding(model, apply_bandpass_filter(waveform, YAMNET_SAMPLE_RATE, 100.0, 2000.0))
+        if self.name == "hear":
+            return hear_embedding(model, waveform)
         return opera_embedding(model, self.name, waveform)
 
 
@@ -211,6 +239,7 @@ EXTRACTORS = {
     "yamnet_bandpass": "artifacts/pretrained/yamnet",
     "opera_ct": "artifacts/pretrained/opera",
     "opera_ce": "artifacts/pretrained/opera",
+    "hear": "artifacts/pretrained/hear",  # gated: accept the terms on Hugging Face, then hf auth login
 }
 
 

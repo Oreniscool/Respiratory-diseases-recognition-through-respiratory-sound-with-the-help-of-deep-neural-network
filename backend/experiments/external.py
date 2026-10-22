@@ -71,10 +71,26 @@ def summarize(rows: list[dict[str, object]], classes: list[str]) -> dict[str, ob
     }
 
 
+def assert_not_in_training(manifest: list[dict[str, str]], split_manifest: Path) -> None:
+    """Refuse to call a patient "external" if the artifact's own split contains them."""
+    if not split_manifest.is_file():
+        return
+    with split_manifest.open(newline="", encoding="utf-8") as handle:
+        cohort = {int(row["patient_id"]) for row in csv.DictReader(handle)}
+    shared = cohort & {int(row["patient_id"]) for row in manifest}
+    if shared:
+        raise SystemExit(f"{len(shared)} 'external' patients are in this model's cohort: {sorted(shared)[:5]}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--name", required=True, help="label for the output file, e.g. current")
-    parser.add_argument("--manifest", default="data/kauh_external_manifest.csv")
+    parser.add_argument(
+        "--manifest",
+        default="data/kauh_external_holdout_manifest.csv",
+        help="KAUH patients to evaluate (the holdout half since round 2b; the full 72-patient "
+        "manifest was used before the split)",
+    )
     args = parser.parse_args()
 
     import server
@@ -84,6 +100,7 @@ def main() -> None:
         raise SystemExit(f"Model contract not verified: {server.MODEL_CONTRACT_ERROR}")
     with Path(args.manifest).open(newline="", encoding="utf-8") as handle:
         manifest = list(csv.DictReader(handle))
+    assert_not_in_training(manifest, server.CONTRACT.metadata_path.parent / "split_manifest.csv")
     rows = []
     for index, entry in enumerate(manifest):
         path = Path(entry["path"])

@@ -28,3 +28,15 @@ def test_patients_are_scored_on_the_mean_of_their_recordings():
     assert result["recording_accuracy"] == 3 / 4
     assert result["out_of_label_abstention"] == 0.5
     assert result["out_of_label_predictions"] == {"asthma": 1, "copd": 1}
+
+
+def test_external_patients_must_not_be_in_the_models_cohort(tmp_path):
+    import pytest
+
+    from experiments.external import assert_not_in_training
+
+    split = tmp_path / "split_manifest.csv"
+    split.write_text("split,patient_id,disease,source,path\ntrain,900005,healthy,kauh,a.wav\n")
+    assert_not_in_training([{"patient_id": "900006"}], split)
+    with pytest.raises(SystemExit, match="in this model's cohort"):
+        assert_not_in_training([{"patient_id": "900005"}], split)

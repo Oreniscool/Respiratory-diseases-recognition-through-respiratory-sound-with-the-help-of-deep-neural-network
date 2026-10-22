@@ -177,6 +177,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--merge-kauh",
+        action="store_true",
+        help="Add the KAUH healthy/COPD patients of --kauh-cohort-manifest to the cohort (round 2b)",
+    )
+    parser.add_argument("--kauh-cohort-manifest", default="data/kauh_cohort_manifest.csv")
+    parser.add_argument(
         "--kauh-overlap-csv",
         default="data/kaggle_kauh_overlap.csv",
         help="Evidence file listing Kaggle V2 clips cut from KAUH recordings (real patient IDs)",
@@ -443,6 +449,23 @@ def assign_kauh_patient_ids(
     return updated, report
 
 
+def load_kauh_cohort(manifest: str | Path) -> list[AudioRecord]:
+    """KAUH patients chosen for training by ``kauh.py --split-for-training`` (source "kauh")."""
+    import csv as csv_module
+
+    manifest = Path(manifest)
+    if not manifest.is_absolute() and not manifest.is_file():
+        manifest = Path(__file__).resolve().parent / manifest
+    if not manifest.is_file():
+        raise FileNotFoundError(f"--merge-kauh needs {manifest}; run kauh.py --split-for-training")
+    with manifest.open(newline="", encoding="utf-8") as handle:
+        rows = list(csv_module.DictReader(handle))
+    base = Path(__file__).resolve().parent
+    return [
+        AudioRecord(base / row["path"], int(row["patient_id"]), row["label"], "kauh") for row in rows
+    ]
+
+
 def portable_path(path: str | Path) -> str:
     """Path relative to backend/ when possible, so manifest hashes don't depend on the machine."""
     backend_dir = os.path.abspath(Path(__file__).parent)
@@ -507,6 +530,13 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
             f"[extra-dataset] Merged {len(extra_records)} recordings "
             f"from {extra_dir}"
         )
+    if args.merge_kauh:
+        kauh_records = load_kauh_cohort(args.kauh_cohort_manifest)
+        records.extend(kauh_records)
+        print(
+            f"[kauh] Merged {len(kauh_records)} recordings of "
+            f"{len({r.patient_id for r in kauh_records})} KAUH patients (healthy/COPD) into the cohort"
+        )
 
     # 52% of Kaggle V2 (incl. all of its COPD class) is cut from ICBHI recordings. When both are
     # merged, keep the full ICBHI recording (real patient ID) and drop the Kaggle copy.
@@ -539,7 +569,8 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
     # Audit the cohort that is actually split and trained on (after merging and dedup).
     if provenance is None:
         dataset_audit = build_folder_dataset_audit(
-            records, [args.dataset_dir, *args.extra_dataset_dir]
+            records,
+            [args.dataset_dir, *args.extra_dataset_dir, *(["dataset/KAUH/audio"] if args.merge_kauh else [])],
         )
     else:
         dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)

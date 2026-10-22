@@ -1,0 +1,64 @@
+path,patient_id,filter,diagnosis,label
+"dataset/KAUH/audio/BP108_COPD,E W,P R L ,63,M.wav",900108,bell,copd,copd
+"dataset/KAUH/audio/BP109_N,N,P L M,26,M.wav",900109,bell,n,healthy
+"dataset/KAUH/audio/BP110_COPD,E W,P L L,62,M.wav",900110,bell,copd,copd
+"dataset/KAUH/audio/BP31_N,N,P L M,27,F.wav",900031,bell,n,healthy
+"dataset/KAUH/audio/BP48_N,N,P L U,31,M.wav",900048,bell,n,healthy
+"dataset/KAUH/audio/BP49_N,N,P R M,21,M.wav",900049,bell,n,healthy
+"dataset/KAUH/audio/BP61_COPD,E W,P R L ,53,M.wav",900061,bell,copd,copd
+"dataset/KAUH/audio/BP62_COPD,E W,P L M,53,M.wav",900062,bell,copd,copd
+"dataset/KAUH/audio/BP71_N,N,P R U,36,M.wav",900071,bell,n,healthy
+"dataset/KAUH/audio/BP72_N,N,P R U,24,F.wav",900072,bell,n,healthy
+"dataset/KAUH/audio/BP73_N,N,P L L,32,M.wav",900073,bell,n,healthy
+"dataset/KAUH/audio/BP74_N,N,P R M,74,M.wav",900074,bell,n,healthy
+"dataset/KAUH/audio/BP75_N,N,P L U,73,F.wav",900075,bell,n,healthy
+"dataset/KAUH/audio/BP82_N,N,P L U,38,M.wav",900082,bell,n,healthy
+"dataset/KAUH/audio/BP85_N,N,A R U,33,M.wav",900085,bell,n,healthy
+"dataset/KAUH/audio/BP88_N,N,A R U,29,M.wav",900088,bell,n,healthy
+"dataset/KAUH/audio/BP89_N,N,P L M,70,M.wav",900089,bell,n,healthy
+"dataset/KAUH/audio/BP93_N,N,P R M,75,M.wav",900093,bell,n,healthy
+"dataset/KAUH/audio/BP94_N,N,P L L,24,M.wav",900094,bell,n,healthy
+"dataset/KAUH/audio/BP95_N,N,P L M,18,M.wav",900095,bell,n,healthy
+"dataset/KAUH/audio/BP99_N,N,P R M,50,M.wav",900099,bell,n,healthy
+"dataset/KAUH/audio/DP108_COPD,E W,P R L ,63,M.wav",900108,diaphragm,copd,copd
+"dataset/KAUH/audio/DP109_N,N,P L M,26,M.wav",900109,diaphragm,n,healthy
+"dataset/KAUH/audio/DP110_COPD,E W,P L L,62,M.wav",900110,diaphragm,copd,copd
+"dataset/KAUH/audio/DP31_N,N,P L M,27,F.wav",900031,diaphragm,n,healthy
+"dataset/KAUH/audio/DP48_N,N,P L U,31,M.wav",900048,diaphragm,n,healthy
+"dataset/KAUH/audio/DP49_N,N,P R M,21,M.wav",900049,diaphragm,n,healthy
+"dataset/KAUH/audio/DP61_COPD,E W,P R L ,53,M.wav",900061,diaphragm,copd,copd
+"dataset/KAUH/audio/DP62_COPD,E W,P L M,53,M.wav",900062,diaphragm,copd,copd
+"dataset/KAUH/audio/DP71_N,N,P R U,36,M.wav",900071,diaphragm,n,healthy
+"dataset/KAUH/audio/DP72_N,N,P R U,24,F.wav",900072,diaphragm,n,healthy
+"dataset/KAUH/audio/DP73_N,N,P L L,32,M.wav",900073,diaphragm,n,healthy
+"dataset/KAUH/audio/DP74_N,N,P R M,74,M.wav",900074,diaphragm,n,healthy
+"dataset/KAUH/audio/DP75_N,N,P L U,73,F.wav",900075,diaphragm,n,healthy
+"dataset/KAUH/audio/DP82_N,N,P L U,38,M.wav",900082,diaphragm,n,healthy
+"dataset/KAUH/audio/DP85_N,N,A R U,33,M.wav",900085,diaphragm,n,healthy
+"dataset/KAUH/audio/DP88_N,N,A R U,29,M.wav",900088,diaphragm,n,healthy
+"dataset/KAUH/audio/DP89_N,N,P L M,70,M.wav",900089,diaphragm,n,healthy
+"dataset/KAUH/audio/DP93_N,N,P R M,75,M.wav",900093,diaphragm,n,healthy
+"dataset/KAUH/audio/DP94_N,N,P L L,24,M.wav",900094,diaphragm,n,healthy
+"dataset/KAUH/audio/DP95_N,N,P L M,18,M.wav",900095,diaphragm,n,healthy
+"dataset/KAUH/audio/DP99_N,N,P R M,50,M.wav",900099,diaphragm,n,healthy
+"dataset/KAUH/audio/EP108_COPD,E W,P R L ,63,M.wav",900108,extended,copd,copd
+"dataset/KAUH/audio/EP109_N,N,P L M,26,M.wav",900109,extended,n,healthy
+"dataset/KAUH/audio/EP110_COPD,E W,P L L,62,M.wav",900110,extended,copd,copd
+"dataset/KAUH/audio/EP31_N,N,P L M,27,F.wav",900031,extended,n,healthy
+"dataset/KAUH/audio/EP48_N,N,P L U,31,M.wav",900048,extended,n,healthy
+"dataset/KAUH/audio/EP49_N,N,P R M,21,M.wav",900049,extended,n,healthy
+"dataset/KAUH/audio/EP61_COPD,E W,P R L ,53,M.wav",900061,extended,copd,copd
+"dataset/KAUH/audio/EP62_COPD,E W,P L M,53,M.wav",900062,extended,copd,copd
+"dataset/KAUH/audio/EP71_N,N,P R U,36,M.wav",900071,extended,n,healthy
+"dataset/KAUH/audio/EP72_N,N,P R U,24,F.wav",900072,extended,n,healthy
+"dataset/KAUH/audio/EP73_N,N,P L L,32,M.wav",900073,extended,n,healthy
+"dataset/KAUH/audio/EP74_N,N,P R M,74,M.wav",900074,extended,n,healthy
+"dataset/KAUH/audio/EP75_N,N,P L U,73,F.wav",900075,extended,n,healthy
+"dataset/KAUH/audio/EP82_N,N,P L U,38,M.wav",900082,extended,n,healthy
+"dataset/KAUH/audio/EP85_N,N,A R U,33,M.wav",900085,extended,n,healthy
+"dataset/KAUH/audio/EP88_N,N,A R U,29,M.wav",900088,extended,n,healthy
+"dataset/KAUH/audio/EP89_N,N,P L M,70,M.wav",900089,extended,n,healthy
+"dataset/KAUH/audio/EP93_N,N,P R M,75,M.wav",900093,extended,n,healthy
+"dataset/KAUH/audio/EP94_N,N,P L L,24,M.wav",900094,extended,n,healthy
+"dataset/KAUH/audio/EP95_N,N,P L M,18,M.wav",900095,extended,n,healthy
+"dataset/KAUH/audio/EP99_N,N,P R M,50,M.wav",900099,extended,n,healthy

@@ -91,7 +91,7 @@ def development_split(
 def load_development_records() -> tuple[list[AudioRecord], set[int]]:
     from main import build_cohort, parse_args, resolve_dataset_paths
 
-    args = parse_args(["--dataset-format", "folder", "--merge-icbhi", "--seed", str(SEED)])
+    args = parse_args(["--dataset-format", "folder", "--merge-icbhi", "--merge-kauh", "--seed", str(SEED)])
     resolve_dataset_paths(args)
     records, _ = build_cohort(args)
     return development_split(
@@ -402,10 +402,13 @@ def embeddings(records: list[AudioRecord], name: str) -> dict[str, np.ndarray]:
 
 
 def recording_device(path: str) -> str:
-    """ICBHI device from the file name (e.g. ..._AKGC417L.wav); everything else is 'kaggle'."""
+    """ICBHI device from the file name (e.g. ..._AKGC417L.wav), "kauh" for KAUH recordings
+    (Littmann 3200 at a different hospital), and "kaggle" for everything else."""
     stem = Path(path).stem
     device = stem.rsplit("_", 1)[-1]
-    return device if device in {"AKGC417L", "LittC2SE", "Litt3200", "Meditron"} else "kaggle"
+    if device in {"AKGC417L", "LittC2SE", "Litt3200", "Meditron"}:
+        return device
+    return "kauh" if "/KAUH/" in str(path) else "kaggle"
 
 
 def shortcut_metrics(class_names: list[str], table: dict[str, np.ndarray]) -> dict[str, object]:
@@ -420,7 +423,10 @@ def shortcut_metrics(class_names: list[str], table: dict[str, np.ndarray]) -> di
     copd = class_names.index("copd")
     off_device = (table["y"] == copd) & (devices != "AKGC417L") & (devices != "kaggle")
     meditron = devices == "Meditron"
+    kauh = devices == "kauh"
     return {
+        "kauh_recordings": int(kauh.sum()),
+        "kauh_accuracy": float(np.mean(predicted[kauh] == table["y"][kauh])) if kauh.any() else None,
         "off_device_copd_recordings": int(off_device.sum()),
         "off_device_copd_sensitivity": float(np.mean(predicted[off_device] == copd)) if off_device.any() else None,
         "meditron_recordings": int(meditron.sum()),
@@ -536,8 +542,8 @@ def report(fusions: tuple[str, ...] = (), reference: str = "D0") -> dict[str, ob
     out = OUTPUT_DIR / "results.json"
     out.write_text(json.dumps(finite_or_none(results), indent=2, allow_nan=False), encoding="utf-8")
     print(f"| Variant | Rec. acc | Patient acc | Patient bal. acc | Patient macro F1 | AUROC (pat.) | ECE (rec.) "
-          f"| Off-device COPD sens. | Meditron acc. | Δ bal. acc vs {reference} [95% CI], P(>0) |")
-    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---|")
+          f"| Off-device COPD sens. | Meditron acc. | KAUH acc. | Δ bal. acc vs {reference} [95% CI], P(>0) |")
+    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|")
     for name, r in results.items():
         rec, pat, cut = r["recording_level"], r["patient_level"], r["shortcut"]
         delta = r.get(f"vs_{reference}", {}).get("balanced_accuracy")
@@ -550,7 +556,8 @@ def report(fusions: tuple[str, ...] = (), reference: str = "D0") -> dict[str, ob
             f"| {name} | {rec['accuracy'] * 100:.1f}% | {pat['accuracy'] * 100:.1f}% | "
             f"{pat['balanced_accuracy'] * 100:.1f}% | {pat['macro_f1']:.3f} | "
             f"{'n/a' if auroc is None else f'{auroc:.3f}'} | {rec['expected_calibration_error']:.3f} | "
-            f"{pct(cut['off_device_copd_sensitivity'])} | {pct(cut['meditron_accuracy'])} | {delta_text} |"
+            f"{pct(cut['off_device_copd_sensitivity'])} | {pct(cut['meditron_accuracy'])} | "
+            f"{pct(cut['kauh_accuracy'])} | {delta_text} |"
         )
     return results
 

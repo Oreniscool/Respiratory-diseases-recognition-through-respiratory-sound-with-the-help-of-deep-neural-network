@@ -97,21 +97,69 @@ def external_manifest(audio_dir: str | Path, evidence_csv: str | Path) -> list[d
     return rows
 
 
+def split_for_training(
+    rows: list[dict[str, object]], fraction: float = 0.5, seed: int = 42
+) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
+    """Move about ``fraction`` of the in-label patients of each class into the training cohort.
+
+    The external KAUH set has healthy and COPD patients but every KAUH-recorded training clip is
+    asthma, pneumonia or bronchial, so a model learns "KAUH recording → asthma". Putting some KAUH
+    healthy/COPD patients into the cohort breaks that confound; the rest (and every out-of-label
+    patient) stays external. Selection is per class, by a seeded shuffle of patient IDs; a class
+    with a single patient stays external.
+    """
+    import random
+
+    by_label: dict[str, list[int]] = {}
+    for row in rows:
+        if row["label"] != OUT_OF_LABEL:
+            by_label.setdefault(str(row["label"]), [])
+            if int(row["patient_id"]) not in by_label[str(row["label"])]:
+                by_label[str(row["label"])].append(int(row["patient_id"]))
+    rng = random.Random(seed)
+    chosen: set[int] = set()
+    for label in sorted(by_label):
+        patients = sorted(by_label[label])
+        rng.shuffle(patients)
+        chosen.update(patients[: int(len(patients) * fraction)])
+    cohort = [row for row in rows if int(row["patient_id"]) in chosen]
+    external = [row for row in rows if int(row["patient_id"]) not in chosen]
+    return cohort, external
+
+
+def _write(path: str | Path, rows: list[dict[str, object]]) -> None:
+    with Path(path).open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def _describe(name: str, rows: list[dict[str, object]]) -> None:
+    patients = {row["patient_id"]: row["label"] for row in rows}
+    print(f"{name}: {len(rows)} recordings, {len(patients)} patients: {dict(Counter(patients.values()))}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--audio", default="dataset/KAUH/audio")
     parser.add_argument("--evidence", default="data/kaggle_kauh_overlap.csv")
     parser.add_argument("--output", default="data/kauh_external_manifest.csv")
+    parser.add_argument(
+        "--split-for-training",
+        action="store_true",
+        help="Also write data/kauh_cohort_manifest.csv (about half of the in-label patients per "
+        "class, for training) and data/kauh_external_holdout_manifest.csv (the rest)",
+    )
     args = parser.parse_args()
     rows = external_manifest(args.audio, args.evidence)
-    with Path(args.output).open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
-    patients = {}
-    for row in rows:
-        patients[row["patient_id"]] = row["label"]
-    print(f"{len(rows)} recordings, {len(patients)} patients: {dict(Counter(patients.values()))}")
+    if args.split_for_training:
+        cohort, holdout = split_for_training(rows)
+        _write("data/kauh_cohort_manifest.csv", cohort)
+        _write("data/kauh_external_holdout_manifest.csv", holdout)
+        _describe("cohort", cohort)
+        _describe("external holdout", holdout)
+    _write(args.output, rows)
+    _describe("external (all)", rows)
 
 
 if __name__ == "__main__":

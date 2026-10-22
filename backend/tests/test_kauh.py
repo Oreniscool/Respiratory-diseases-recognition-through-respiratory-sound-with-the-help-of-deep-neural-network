@@ -80,3 +80,16 @@ def test_external_manifest_excludes_patients_used_by_kaggle(tmp_path):
     assert sorted((r["patient_id"] - KAUH_ID_BASE, r["label"]) for r in rows) == [
         (9, "healthy"), (9, "healthy"), (11, OUT_OF_LABEL)
     ]
+
+
+def test_training_split_takes_half_of_each_class_and_keeps_out_of_label_external():
+    from kauh import split_for_training
+
+    rows = [{"patient_id": KAUH_ID_BASE + i, "label": label}
+            for i, label in enumerate(["healthy"] * 6 + ["copd"] * 4 + ["bronchial"] + [OUT_OF_LABEL] * 3)]
+    cohort, external = split_for_training(rows)
+    cohort_labels = sorted(r["label"] for r in cohort)
+    assert cohort_labels == ["copd", "copd", "healthy", "healthy", "healthy"]
+    assert {r["patient_id"] for r in cohort}.isdisjoint({r["patient_id"] for r in external})
+    assert sum(r["label"] == OUT_OF_LABEL for r in external) == 3
+    assert split_for_training(rows) == (cohort, external)  # deterministic
