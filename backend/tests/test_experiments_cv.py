@@ -99,3 +99,15 @@ def test_shallow_run_and_report_produce_paired_results(tmp_path, monkeypatch):
     assert results["D0"]["patient_level"]["accuracy"] > 0.8
     assert "vs_D0" in results["C1_test"]
     assert (tmp_path / "results.json").is_file()
+
+
+def test_shortcut_probe_detects_a_recoverable_source():
+    from experiments.shortcut import probe
+
+    rng = np.random.default_rng(4)
+    groups = np.repeat(np.arange(30), 2)
+    source = np.where(groups % 2 == 0, "icbhi", "kaggle")
+    informative = rng.standard_normal((60, 5)) + (source == "icbhi")[:, None] * 4.0
+    noise = rng.standard_normal((60, 5))
+    assert probe(informative, source, groups) > 0.95
+    assert probe(noise, source, groups) < 0.8

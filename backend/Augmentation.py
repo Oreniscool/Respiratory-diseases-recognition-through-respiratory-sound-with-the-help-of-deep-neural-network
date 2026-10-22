@@ -150,3 +150,48 @@ def spec_augment_tf(
     return features
 
 
+
+
+def _biquad(b, a, data: np.ndarray) -> np.ndarray:
+    from scipy.signal import lfilter
+
+    return lfilter(np.asarray(b) / a[0], np.asarray(a) / a[0], data)
+
+
+def device_response(data: np.ndarray, sample_rate: int, rng: np.random.Generator) -> np.ndarray:
+    """Simulate a different stethoscope: random peaking EQ, spectral tilt and optional low-pass.
+
+    Two peaking filters (150–1,800 Hz, ±6 dB, Q 0.7–2) and a 500 Hz low-shelf (±6 dB) reshape
+    the in-band response (RBJ audio-EQ cookbook biquads); half of the time a 1.2–2 kHz low-pass
+    mimics a band-limited device. Loudness is restored to the input RMS, so only the colour of the
+    recording changes, not its content.
+    """
+    out = np.asarray(data, dtype=np.float64)
+    for _ in range(2):
+        f0, gain, q = rng.uniform(150, 1800), rng.uniform(-6, 6), rng.uniform(0.7, 2.0)
+        amp, w0 = 10 ** (gain / 40), 2 * np.pi * f0 / sample_rate
+        alpha = np.sin(w0) / (2 * q)
+        out = _biquad(
+            [1 + alpha * amp, -2 * np.cos(w0), 1 - alpha * amp],
+            [1 + alpha / amp, -2 * np.cos(w0), 1 - alpha / amp],
+            out,
+        )
+    gain = rng.uniform(-6, 6)
+    amp, w0 = 10 ** (gain / 40), 2 * np.pi * 500 / sample_rate
+    alpha = np.sin(w0) / 2 * np.sqrt(2)
+    cos, root = np.cos(w0), 2 * np.sqrt(amp) * alpha
+    out = _biquad(
+        [amp * ((amp + 1) - (amp - 1) * cos + root), 2 * amp * ((amp - 1) - (amp + 1) * cos),
+         amp * ((amp + 1) - (amp - 1) * cos - root)],
+        [(amp + 1) + (amp - 1) * cos + root, -2 * ((amp - 1) + (amp + 1) * cos),
+         (amp + 1) + (amp - 1) * cos - root],
+        out,
+    )
+    if rng.random() < 0.5:
+        from scipy.signal import butter, sosfilt
+
+        cutoff = rng.uniform(1200, 2000)
+        out = sosfilt(butter(4, cutoff, btype="lowpass", fs=sample_rate, output="sos"), out)
+    original_rms = np.sqrt(np.mean(np.square(data))) + 1e-12
+    out *= original_rms / (np.sqrt(np.mean(np.square(out))) + 1e-12)
+    return out.astype(np.float32)

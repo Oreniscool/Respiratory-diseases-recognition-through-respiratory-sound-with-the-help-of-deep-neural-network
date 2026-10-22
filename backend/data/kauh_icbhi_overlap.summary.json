@@ -1,0 +1,13 @@
+{
+  "threshold": 0.75,
+  "clips": 336,
+  "overlaps": 0,
+  "by_class": {
+    "audio": {
+      "clips": 336,
+      "overlaps": 0
+    }
+  },
+  "min_overlap_ncc": null,
+  "max_non_overlap_ncc": 0.5513
+}

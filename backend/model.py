@@ -232,7 +232,7 @@ class MaskedDualTemporalPooling1D(Layer):
 # Model assembly
 # ------------------------------------------------------------
 
-def instantiate_model(in_, num_classes):
+def instantiate_model(in_, num_classes, *, cudnn_gru=False, aux_outputs=0):
     """Architecture of the Deep Learning Model (RespiNet-Attention v3).
 
     Layer graph
@@ -249,7 +249,14 @@ def instantiate_model(in_, num_classes):
          → Dense(128) + GELU + Dropout(0.3)
          → Dense(64)  + GELU + Dropout(0.4)
          → Dense(num_classes, softmax)
+
+    ``cudnn_gru=True`` uses the default tanh GRU activation (GELU still follows), which lets
+    TensorFlow run the GRUs with cuDNN. ``aux_outputs=n`` adds a sigmoid head with n outputs on
+    the pooled context (used for crackle/wheeze multi-task training) and returns
+    ``(class_output, aux_output)``; the served model keeps only the class output. The defaults
+    build exactly the original v3 graph.
     """
+    gru_activation = "tanh" if cudnn_gru else None
     l2 = tf.keras.regularizers.l2(1e-4)
 
     # Validity mask for zero-padded frames
@@ -263,7 +270,7 @@ def instantiate_model(in_, num_classes):
 
     # BiGRU layer 1 — 128 units → output width 256 (Bidirectional doubles)
     gru1 = Bidirectional(
-        GRU(128, return_sequences=True, activation=None, kernel_regularizer=l2),
+        GRU(128, return_sequences=True, activation=gru_activation, kernel_regularizer=l2),
         name="bigru_1",
     )(conv_out, mask=mask)
     gru1 = tf.keras.activations.gelu(gru1)
@@ -278,7 +285,7 @@ def instantiate_model(in_, num_classes):
 
     # BiGRU layer 2 — 64 units → output width 128 (Bidirectional doubles)
     gru2 = Bidirectional(
-        GRU(64, return_sequences=True, activation=None, kernel_regularizer=l2),
+        GRU(64, return_sequences=True, activation=gru_activation, kernel_regularizer=l2),
         name="bigru_2",
     )(gru1_residual, mask=mask)
     gru2 = tf.keras.activations.gelu(gru2)
@@ -287,6 +294,7 @@ def instantiate_model(in_, num_classes):
     # Dual temporal pooling: soft attention + masked max-pooling
     # Output shape: (batch, 256)
     x = MaskedDualTemporalPooling1D(attn_units=128)([gru2, mask])
+    context = x
 
     # Classification head — two Dense layers with progressive dropout
     x = Dense(128, activation=None, kernel_regularizer=l2)(x)
@@ -296,6 +304,11 @@ def instantiate_model(in_, num_classes):
     x = Dense(64, activation=None, kernel_regularizer=l2)(x)
     x = tf.keras.activations.gelu(x)
     x = Dropout(0.4)(x)
+
+    if aux_outputs:
+        output = Dense(num_classes, activation="softmax", kernel_regularizer=l2, name="class_output")(x)
+        aux = Dense(aux_outputs, activation="sigmoid", kernel_regularizer=l2, name="aux_output")(context)
+        return output, aux
 
     output = Dense(num_classes, activation="softmax", kernel_regularizer=l2)(x)
 

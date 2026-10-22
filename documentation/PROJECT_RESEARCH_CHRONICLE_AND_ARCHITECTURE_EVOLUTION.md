@@ -880,6 +880,35 @@ before tuning for accuracy.
    diagnoses), kept to test abstention. It is never used for training or for choosing between
    models. Every asthma and pneumonia patient in KAUH is already in Kaggle, so the external set
    tests healthy vs COPD on a different stethoscope — the device shortcut case.
+3. **Shortcut measurement (`experiments/shortcut.py`, `experiments/cv.shortcut_metrics`).** Probes
+   (patient-grouped logistic regression) test whether a representation can identify the dataset of
+   origin or the ICBHI device. Every CV variant now also reports **off-device COPD sensitivity**
+   (COPD recordings not made on the AKG C417L) and **Meditron accuracy** (the one device shared by
+   healthy, bronchial and COPD), which a device-recognizing model cannot pass. KAUH vs ICBHI was also
+   checked with `cross_dataset_overlap.py`: 0 of 336 KAUH recordings match ICBHI
+   (`backend/data/kauh_icbhi_overlap.csv`).
+4. **Candidate code (all off by default; defaults reproduce the previous graph and training):**
+   - `model.instantiate_model(cudnn_gru=True)`: tanh GRUs that TensorFlow can run with cuDNN
+     (same 458,701 parameters); `aux_outputs=n`: a sigmoid head on the pooled context.
+   - `train.train_model`: `spec_augment_mode="sample"` (independent masks per window, time masks
+     only inside valid frames, filled with 1e-3 so `FeatureValidityMask` does not mistake them for
+     padding — the batch mode can, a known quirk), `mixup_alpha`, multi-task training with masked
+     binary cross-entropy (`aux_train`/`aux_val`, class weights passed as sample weights, the saved
+     model keeps only the class output).
+   - `featureExtraction.cycle_annotation_targets`: window-level [crackle, wheeze] targets from the
+     ICBHI cycle annotations (cycle must overlap the window by ≥ 50%; Kaggle windows unlabeled).
+   - `Augmentation.device_response`: simulated stethoscope (two random peaking EQs, 500 Hz shelf,
+     50% chance of a 1.2–2 kHz low-pass, RMS preserved), as two extra training variants
+     (`extract_manifest(device_augment=True)`).
+   - `pretrained.Extractor`: one interface for frozen embedding models — YAMNet, YAMNet on the
+     100–2,000 Hz band-passed signal, and OPERA-CT / OPERA-CE (respiratory foundation models,
+     Zhang et al. 2024; MIT-licensed model code vendored in `backend/third_party/opera/` from commit
+     `3622310`, weights from Hugging Face `evelyn0414/OPERA`, loaded with `weights_only=True` and a
+     check that every encoder weight is present). OPERA's input preparation is re-implemented and
+     verified identical (max difference 0.0) to the original `get_entire_signal_librosa`. OPERA was
+     self-supervised on ICBHI's official training split (no labels) but not on KAUH.
+   - PyTorch 2.14.1 (CPU build, to avoid clashing with TensorFlow's CUDA libraries) plus
+     efficientnet_pytorch, torchlibrosa, pytorch_lightning in the training environment.
 
 ---
 

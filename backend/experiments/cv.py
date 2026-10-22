@@ -9,11 +9,11 @@ recording, on identical folds, so variants can be compared pairwise and fused.
 
 Usage (from ``backend/``)::
 
-    python -m experiments.cv cache --feature-type mfcc
+    python -m experiments.cv cache --cache mfcc
     python -m experiments.cv deep --variant D0
     python -m experiments.cv classical
-    python -m experiments.cv yamnet
-    python -m experiments.cv report
+    python -m experiments.cv embed --extractor yamnet
+    python -m experiments.cv report --fuse D0+E_yamnet --reference D0+E_yamnet
 """
 
 from __future__ import annotations
@@ -35,17 +35,27 @@ from evaluate import evaluate_by_group, evaluate_model, evaluate_patient_level, 
 from featureExtraction import AudioRecord
 
 OUTPUT_DIR = Path("artifacts/experiments")
-YAMNET_DIR = Path("artifacts/pretrained/yamnet")
 SEED = 42
 FOLDS = 3
 INNER_VALIDATION_SIZE = 0.20
 
 # Deep variants differ from the current model (D0) in exactly one setting.
-DEEP_VARIANTS: dict[str, dict[str, object]] = {
-    "D0": {"feature_type": "mfcc", "use_focal_loss": True},
-    "D1": {"feature_type": "mfcc", "use_focal_loss": False},
-    "D2": {"feature_type": "logmel", "use_focal_loss": True},
+DEEP_DEFAULTS: dict[str, object] = {
+    "cache": "mfcc",  # "<feature_type>" or "<feature_type>_devaug" (adds simulated-device variants)
+    "use_focal_loss": True,
+    "cudnn_gru": False,
+    "spec_augment_mode": "batch",
+    "mixup_alpha": 0.0,
+    "multitask": False,
+    "seeds": [SEED],  # several seeds = an ensemble averaged before calibration
 }
+DEEP_VARIANTS: dict[str, dict[str, object]] = {
+    "D0": {},
+    "D1": {"use_focal_loss": False},
+    "D2": {"cache": "logmel"},
+    "D3": {"cudnn_gru": True},
+}
+ICBHI_ANNOTATIONS = Path("dataset/ICBHI_final_dataset")
 # Training settings of the current model (artifacts/latest/model_metadata.json).
 TRAINING = {"batch_size": 64, "epochs": 80, "learning_rate": 3e-4, "label_smoothing": 0.1}
 
@@ -116,18 +126,21 @@ def make_folds(
 # --------------------------------------------------------------------------- feature cache
 
 
-def cache_dir(feature_type: str) -> Path:
-    return OUTPUT_DIR / "cache" / feature_type
+def cache_dir(name: str) -> Path:
+    return OUTPUT_DIR / "cache" / name
 
 
-def build_cache(records: list[AudioRecord], feature_type: str) -> None:
+def build_cache(records: list[AudioRecord], name: str) -> None:
     """Extract every development recording once, with the same augmentation as training."""
     from featureExtraction import extract_manifest
     from preprocessing import PreprocessingConfig
 
+    feature_type, _, suffix = name.partition("_")
     config = PreprocessingConfig(feature_type=feature_type)
-    data = extract_manifest(records, augment=True, seed=SEED, config=config)
-    target = cache_dir(feature_type)
+    data = extract_manifest(
+        records, augment=True, seed=SEED, config=config, device_augment=suffix == "devaug"
+    )
+    target = cache_dir(name)
     target.mkdir(parents=True, exist_ok=True)
     np.save(target / "X.npy", data.X)
     np.savez(
@@ -137,9 +150,10 @@ def build_cache(records: list[AudioRecord], feature_type: str) -> None:
         source_paths=data.source_paths,
         variants=data.variants,
         valid_lengths=data.valid_lengths,
+        window_starts=data.window_starts,
     )
     (target / "config.json").write_text(json.dumps(config.to_dict(), indent=2), encoding="utf-8")
-    print(f"[cache] {feature_type}: {data.X.shape} windows from {len(records)} recordings")
+    print(f"[cache] {name}: {data.X.shape} windows from {len(records)} recordings")
 
 
 def load_cache(feature_type: str) -> tuple[np.ndarray, dict[str, np.ndarray]]:
@@ -216,12 +230,19 @@ def run_deep(variant: str, records: list[AudioRecord]) -> None:
     import tensorflow as tf
     from tensorflow.keras.utils import set_random_seed
 
+    from featureExtraction import cycle_annotation_targets
     from train import train_model
 
     for gpu in tf.config.list_physical_devices("GPU"):
         tf.config.experimental.set_memory_growth(gpu, True)
-    settings = DEEP_VARIANTS[variant]
-    X, meta = load_cache(str(settings["feature_type"]))
+    settings = {**DEEP_DEFAULTS, **DEEP_VARIANTS[variant]}
+    X, meta = load_cache(str(settings["cache"]))
+    aux = None
+    if settings["multitask"]:
+        aux = cycle_annotation_targets(
+            meta["source_paths"], meta["variants"], meta["window_starts"], meta["valid_lengths"],
+            ICBHI_ANNOTATIONS,
+        )
     class_names = sorted({record.disease for record in records})
     identity = np.eye(len(class_names), dtype=np.float32)
     labels = {str(record.path): record.disease for record in records}
@@ -229,30 +250,43 @@ def run_deep(variant: str, records: list[AudioRecord]) -> None:
     rows, fold_log = [], []
     for fold, parts in enumerate(make_folds(records)):
         started = time.time()
-        set_random_seed(SEED + fold)
         fit = window_mask(meta, parts["fit"], original_only=False)
         inner = window_mask(meta, parts["inner_validation"], original_only=True)
         scored = window_mask(meta, parts["scored"], original_only=True)
         targets = lambda mask: identity[[class_names.index(c) for c in meta["y"][mask]]]  # noqa: E731
-        model, history, _, _ = train_model(
-            np.asarray(X[fit]), targets(fit), np.asarray(X[inner]), targets(inner),
-            output_dir=out / f"fold{fold}",
-            healthy_class_index=class_names.index("healthy"),
-            use_focal_loss=bool(settings["use_focal_loss"]),
-            use_spec_augment=True,
-            seed=SEED + fold,
-            **TRAINING,
-        )
-        inner_probs = _recording_means(model.predict(np.asarray(X[inner]), verbose=0), meta["source_paths"][inner])
-        scored_probs = _recording_means(model.predict(np.asarray(X[scored]), verbose=0), meta["source_paths"][scored])
+        inner_runs, scored_runs, seed_log = [], [], []
+        for seed in settings["seeds"]:
+            set_random_seed(int(seed) + fold)
+            model, history, _, _ = train_model(
+                np.asarray(X[fit]), targets(fit), np.asarray(X[inner]), targets(inner),
+                output_dir=out / f"fold{fold}" / f"seed{seed}",
+                healthy_class_index=class_names.index("healthy"),
+                use_focal_loss=bool(settings["use_focal_loss"]),
+                use_spec_augment=True,
+                seed=int(seed) + fold,
+                cudnn_gru=bool(settings["cudnn_gru"]),
+                spec_augment_mode=str(settings["spec_augment_mode"]),
+                mixup_alpha=float(settings["mixup_alpha"]),
+                aux_train=None if aux is None else aux[fit],
+                aux_val=None if aux is None else aux[inner],
+                **TRAINING,
+            )
+            inner_runs.append(_recording_means(model.predict(np.asarray(X[inner]), verbose=0), meta["source_paths"][inner]))
+            scored_runs.append(_recording_means(model.predict(np.asarray(X[scored]), verbose=0), meta["source_paths"][scored]))
+            val_accuracy = history.history["val_accuracy"]
+            seed_log.append({
+                "seed": int(seed), "epochs_run": len(val_accuracy),
+                "best_epoch": int(np.argmax(val_accuracy)) + 1,
+                "best_inner_val_accuracy": float(np.max(val_accuracy)),
+            })
+            tf.keras.backend.clear_session()
+        inner_probs = {k: np.mean([run[k] for run in inner_runs], axis=0) for k in inner_runs[0]}
+        scored_probs = {k: np.mean([run[k] for run in scored_runs], axis=0) for k in scored_runs[0]}
         calibrated, temperature = _calibrate(inner_probs, scored_probs, labels, class_names)
         rows += _oof_rows(fold, records, calibrated, class_names)
-        val_accuracy = history.history["val_accuracy"]
         fold_log.append({
-            "fold": fold, "epochs_run": len(val_accuracy),
-            "best_epoch": int(np.argmax(val_accuracy)) + 1,
-            "best_inner_val_accuracy": float(np.max(val_accuracy)),
-            "temperature": temperature, "minutes": round((time.time() - started) / 60, 1),
+            "fold": fold, "seeds": seed_log, "temperature": temperature,
+            "minutes": round((time.time() - started) / 60, 1),
             "fit_windows": int(fit.sum()), "scored_recordings": len(scored_probs),
         })
         print(f"[{variant}] fold {fold}: {fold_log[-1]}", flush=True)
@@ -324,24 +358,62 @@ def summary_statistics(X: np.ndarray, meta: dict[str, np.ndarray]) -> dict[str, 
     return stats
 
 
-def yamnet_embeddings(records: list[AudioRecord]) -> dict[str, np.ndarray]:
-    """Mean and std of YAMNet's 1,024-d frame embeddings (16 kHz mono audio, no band-pass)."""
-    target = OUTPUT_DIR / "cache" / "yamnet.npz"
-    if target.is_file():
-        cached = np.load(target, allow_pickle=False)
-        return dict(zip(cached["paths"].tolist(), cached["embeddings"]))
-    from pretrained import load_yamnet, load_yamnet_audio, yamnet_embedding
+def embeddings(records: list[AudioRecord], name: str) -> dict[str, np.ndarray]:
+    """Embeddings of every record for one pretrained extractor, cached (and extended) on disk."""
+    from pretrained import EXTRACTORS, Extractor
 
-    model = load_yamnet(YAMNET_DIR)
-    paths, embeddings = [], []
-    for index, record in enumerate(records):
-        paths.append(str(record.path))
-        embeddings.append(yamnet_embedding(model, load_yamnet_audio(record.path)))
-        if index % 200 == 0:
-            print(f"[yamnet] {index}/{len(records)}", flush=True)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    np.savez(target, paths=np.asarray(paths), embeddings=np.stack(embeddings))
-    return dict(zip(paths, embeddings))
+    target = OUTPUT_DIR / "cache" / f"emb_{name}.npz"
+    cached: dict[str, np.ndarray] = {}
+    if target.is_file():
+        stored = np.load(target, allow_pickle=False)
+        cached = dict(zip(stored["paths"].tolist(), stored["embeddings"]))
+    missing = [record for record in records if str(record.path) not in cached]
+    if missing:
+        if name.startswith("opera"):
+            import os
+
+            import torch
+
+            torch.set_num_threads(int(os.environ.get("RESPINET_TORCH_THREADS", "8")))
+        extractor = Extractor(name, EXTRACTORS[name])
+        started = time.time()
+        for index, record in enumerate(missing):
+            cached[str(record.path)] = extractor.embed(record.path)
+            if index % 100 == 0:
+                print(f"[{name}] {index}/{len(missing)} ({time.time() - started:.0f}s)", flush=True)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        np.savez(target, paths=np.asarray(list(cached)), embeddings=np.stack(list(cached.values())))
+    return cached
+
+
+# --------------------------------------------------------------------------- shortcut metrics
+
+
+def recording_device(path: str) -> str:
+    """ICBHI device from the file name (e.g. ..._AKGC417L.wav); everything else is 'kaggle'."""
+    stem = Path(path).stem
+    device = stem.rsplit("_", 1)[-1]
+    return device if device in {"AKGC417L", "LittC2SE", "Litt3200", "Meditron"} else "kaggle"
+
+
+def shortcut_metrics(class_names: list[str], table: dict[str, np.ndarray]) -> dict[str, object]:
+    """Recording-level checks that cannot be passed by recognising the device.
+
+    - off-device COPD sensitivity: COPD recordings not made on the AKG C417L, the stethoscope that
+      in this cohort records COPD only;
+    - Meditron accuracy: recordings from the one device shared by healthy, bronchial and COPD.
+    """
+    devices = np.asarray([recording_device(path) for path in table["path"]])
+    predicted = table["probabilities"].argmax(1)
+    copd = class_names.index("copd")
+    off_device = (table["y"] == copd) & (devices != "AKGC417L") & (devices != "kaggle")
+    meditron = devices == "Meditron"
+    return {
+        "off_device_copd_recordings": int(off_device.sum()),
+        "off_device_copd_sensitivity": float(np.mean(predicted[off_device] == copd)) if off_device.any() else None,
+        "meditron_recordings": int(meditron.sum()),
+        "meditron_accuracy": float(np.mean(predicted[meditron] == table["y"][meditron])) if meditron.any() else None,
+    }
 
 
 # --------------------------------------------------------------------------- comparison
@@ -397,45 +469,53 @@ def _metrics(class_names, table):
     }
 
 
-def report() -> dict[str, object]:
+def report(fusions: tuple[str, ...] = (), reference: str = "D0") -> dict[str, object]:
+    """Metrics for every OOF file and equal-weight fusion, compared with D0 and ``reference``.
+
+    A fusion is written as member names joined by "+", e.g. "D0+E_yamnet".
+    """
     tables = {}
     for path in sorted(OUTPUT_DIR.glob("oof_*.csv")):
         class_names, tables[path.stem[4:]] = read_oof(path)
-    reference = tables.get("D0")
+    first = next(iter(tables.values()))
     for name, table in tables.items():
-        if reference is not None and not np.array_equal(table["path"], reference["path"]):
-            raise ValueError(f"{name} does not cover the same recordings as D0")
-    deep = [name for name in tables if name in DEEP_VARIANTS]
-    if deep and "C2_yamnet_lr" in tables:
-        best_deep = max(deep, key=lambda n: evaluate_patient_level(
-            tables[n]["y"], tables[n]["probabilities"], tables[n]["patient_id"], class_names
-        )["balanced_accuracy"])
-        fused = dict(tables[best_deep])
-        fused["probabilities"] = 0.5 * tables[best_deep]["probabilities"] + 0.5 * tables["C2_yamnet_lr"]["probabilities"]
-        tables[f"F1_{best_deep}+yamnet"] = fused
+        if not np.array_equal(table["path"], first["path"]):
+            raise ValueError(f"{name} does not cover the same recordings as the other variants")
+    for fusion in fusions:
+        members = fusion.split("+")
+        if all(member in tables for member in members):
+            fused = dict(tables[members[0]])
+            fused["probabilities"] = np.mean([tables[m]["probabilities"] for m in members], axis=0)
+            tables[fusion] = fused
 
     results = {}
     for name, table in tables.items():
         results[name] = _metrics(class_names, table)
-        if reference is not None and name != "D0":
-            results[name]["vs_D0"] = paired_patient_bootstrap(
-                reference["y"], reference["probabilities"], table["probabilities"], reference["patient_id"]
-            )
+        results[name]["shortcut"] = shortcut_metrics(class_names, table)
+        for base in dict.fromkeys(("D0", reference)):
+            if base in tables and name != base:
+                results[name][f"vs_{base}"] = paired_patient_bootstrap(
+                    tables[base]["y"], tables[base]["probabilities"], table["probabilities"],
+                    tables[base]["patient_id"],
+                )
     out = OUTPUT_DIR / "results.json"
     out.write_text(json.dumps(finite_or_none(results), indent=2, allow_nan=False), encoding="utf-8")
-    print("| Variant | Rec. acc | Patient acc | Patient bal. acc | Patient macro F1 | AUROC (pat.) | ECE (rec.) | Δ bal. acc vs D0 [95% CI], P(>0) |")
-    print("|---|---:|---:|---:|---:|---:|---:|---|")
+    print(f"| Variant | Rec. acc | Patient acc | Patient bal. acc | Patient macro F1 | AUROC (pat.) | ECE (rec.) "
+          f"| Off-device COPD sens. | Meditron acc. | Δ bal. acc vs {reference} [95% CI], P(>0) |")
+    print("|---|---:|---:|---:|---:|---:|---:|---:|---:|---|")
     for name, r in results.items():
-        rec, pat = r["recording_level"], r["patient_level"]
-        delta = r.get("vs_D0", {}).get("balanced_accuracy")
-        delta_text = "reference" if name == "D0" else (
+        rec, pat, cut = r["recording_level"], r["patient_level"], r["shortcut"]
+        delta = r.get(f"vs_{reference}", {}).get("balanced_accuracy")
+        delta_text = "reference" if name == reference else (
             f"[{delta['lower'] * 100:+.1f}, {delta['upper'] * 100:+.1f}], {delta['p_improvement']:.2f}" if delta else "–"
         )
         auroc = pat["macro_ovr_roc_auc"]
+        pct = lambda v: "n/a" if v is None else f"{v * 100:.1f}%"  # noqa: E731
         print(
             f"| {name} | {rec['accuracy'] * 100:.1f}% | {pat['accuracy'] * 100:.1f}% | "
             f"{pat['balanced_accuracy'] * 100:.1f}% | {pat['macro_f1']:.3f} | "
-            f"{'n/a' if auroc is None else f'{auroc:.3f}'} | {rec['expected_calibration_error']:.3f} | {delta_text} |"
+            f"{'n/a' if auroc is None else f'{auroc:.3f}'} | {rec['expected_calibration_error']:.3f} | "
+            f"{pct(cut['off_device_copd_sensitivity'])} | {pct(cut['meditron_accuracy'])} | {delta_text} |"
         )
     return results
 
@@ -445,12 +525,15 @@ def report() -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["folds", "cache", "deep", "classical", "yamnet", "report"])
-    parser.add_argument("--feature-type", default="mfcc")
+    parser.add_argument("command", choices=["folds", "cache", "deep", "classical", "embed", "report"])
+    parser.add_argument("--cache", default="mfcc", help='cache name: "mfcc", "mfcc_devaug", ...')
     parser.add_argument("--variant", choices=sorted(DEEP_VARIANTS))
+    parser.add_argument("--extractor", help="pretrained.EXTRACTORS name, for the embed command")
+    parser.add_argument("--fuse", action="append", default=[], help='e.g. "D0+E_yamnet" (repeatable)')
+    parser.add_argument("--reference", default="D0")
     args = parser.parse_args()
     if args.command == "report":
-        report()
+        report(tuple(args.fuse), args.reference)
         return
     records, test_patients = load_development_records()
     print(f"[dev] {len(records)} recordings, {len({r.patient_id for r in records})} patients; "
@@ -460,7 +543,7 @@ def main() -> None:
             print(fold, {name: (len(rs), len({r.patient_id for r in rs}), dict(Counter(r.disease for r in rs)))
                          for name, rs in parts.items()})
     elif args.command == "cache":
-        build_cache(records, args.feature_type)
+        build_cache(records, args.cache)
     elif args.command == "deep":
         run_deep(args.variant, records)
     elif args.command == "classical":
@@ -468,8 +551,8 @@ def main() -> None:
         stats = summary_statistics(X, meta)
         run_shallow("C1_mfccstats_lr", stats, records, _fit_logistic)
         run_shallow("C1_mfccstats_gbt", stats, records, _fit_boosting)
-    elif args.command == "yamnet":
-        run_shallow("C2_yamnet_lr", yamnet_embeddings(records), records, _fit_logistic)
+    elif args.command == "embed":
+        run_shallow(f"E_{args.extractor}", embeddings(records, args.extractor), records, _fit_logistic)
 
 
 if __name__ == "__main__":

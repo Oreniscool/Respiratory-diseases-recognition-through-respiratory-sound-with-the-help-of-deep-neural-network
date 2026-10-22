@@ -16,7 +16,7 @@ from typing import Iterable, Sequence
 import numpy as np
 import pandas as pd
 
-from Augmentation import add_noise, shift, spec_augment, stretch
+from Augmentation import add_noise, device_response, shift, spec_augment, stretch
 from preprocessing import (
     DEFAULT_PREPROCESSING,
     PreprocessingConfig,
@@ -203,6 +203,9 @@ def _variants(
     augment: bool,
     rng: np.random.Generator,
     max_variants: int | None = None,
+    *,
+    device_augment: bool = False,
+    sample_rate: int = 22_050,
 ) -> Sequence[tuple[str, np.ndarray]]:
     variants: list[tuple[str, np.ndarray]] = [("original", data)]
     if augment:
@@ -216,6 +219,10 @@ def _variants(
             chosen_indices = rng.choice(len(augmented), size=max_variants, replace=False)
             augmented = [augmented[i] for i in sorted(chosen_indices)]
         variants.extend(augmented)
+        if device_augment:
+            variants.extend(
+                (f"device_{index}", device_response(data, sample_rate, rng)) for index in (1, 2)
+            )
     return variants
 
 
@@ -231,7 +238,13 @@ def extract_manifest(
     max_waveform_variants: int | None = None,
     seed: int = 42,
     config: PreprocessingConfig = DEFAULT_PREPROCESSING,
+    device_augment: bool = False,
 ) -> ExtractedDataset:
+    """Extract every window of every recording; ``augment`` adds waveform variants (training only).
+
+    ``device_augment`` adds two simulated-stethoscope variants per recording
+    (``Augmentation.device_response``).
+    """
     import gc
 
     rng = np.random.default_rng(seed)
@@ -248,7 +261,8 @@ def extract_manifest(
         record_windows: list[np.ndarray] = []
 
         for variant_name, variant_audio in _variants(
-            data, augment, rng, max_variants=max_waveform_variants
+            data, augment, rng, max_variants=max_waveform_variants,
+            device_augment=device_augment, sample_rate=sample_rate,
         ):
             sequence = extract_feature_sequence(variant_audio, sample_rate, config=config)
             windows, lengths, starts = window_feature_sequence(sequence, config=config)
@@ -304,3 +318,53 @@ def extract_manifest(
         valid_lengths=np.asarray(valid_lengths, dtype=np.int32),
     )
 
+
+
+# Time scale of each waveform variant relative to the original recording (stretch changes speed).
+_VARIANT_TIME_SCALE = {"stretch_1.2": 1 / 1.2, "stretch_0.8": 1 / 0.8}
+
+
+def load_cycle_annotations(annotation_path: str | Path) -> np.ndarray:
+    """ICBHI ``.txt`` rows: cycle start (s), end (s), crackles (0/1), wheezes (0/1)."""
+    rows = np.loadtxt(annotation_path, ndmin=2)
+    if rows.size == 0 or rows.shape[1] != 4:
+        raise ValueError(f"Unexpected ICBHI annotation format: {annotation_path}")
+    return rows
+
+
+def cycle_annotation_targets(
+    source_paths: np.ndarray,
+    variants: np.ndarray,
+    window_starts: np.ndarray,
+    valid_lengths: np.ndarray,
+    annotation_dir: str | Path,
+    config: PreprocessingConfig = DEFAULT_PREPROCESSING,
+    min_overlap: float = 0.5,
+) -> np.ndarray:
+    """Per-window [crackles, wheezes] targets from ICBHI respiratory-cycle annotations.
+
+    A window is positive for a sound when an annotated cycle containing it overlaps the window by
+    at least ``min_overlap`` of the cycle's length. Windows without an annotation file (Kaggle)
+    or without any sufficiently overlapping cycle are NaN, i.e. excluded from the auxiliary loss.
+    """
+    annotation_dir = Path(annotation_dir)
+    seconds_per_frame = config.hop_length / config.sample_rate
+    cache: dict[str, np.ndarray | None] = {}
+    targets = np.full((len(source_paths), 2), np.nan, dtype=np.float32)
+    for index, (path, variant) in enumerate(zip(source_paths, variants)):
+        stem = Path(str(path)).stem
+        if stem not in cache:
+            annotation = annotation_dir / f"{stem}.txt"
+            cache[stem] = load_cycle_annotations(annotation) if annotation.is_file() else None
+        cycles = cache[stem]
+        if cycles is None:
+            continue
+        scale = _VARIANT_TIME_SCALE.get(str(variant).removesuffix("_spec_aug"), 1.0)
+        start = window_starts[index] * seconds_per_frame
+        end = (window_starts[index] + valid_lengths[index]) * seconds_per_frame
+        cycle_start, cycle_end = cycles[:, 0] * scale, cycles[:, 1] * scale
+        overlap = np.clip(np.minimum(end, cycle_end) - np.maximum(start, cycle_start), 0, None)
+        covered = overlap >= min_overlap * np.maximum(cycle_end - cycle_start, 1e-6)
+        if covered.any():
+            targets[index] = cycles[covered, 2:4].max(axis=0)
+    return targets

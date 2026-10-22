@@ -46,6 +46,114 @@ def yamnet_embedding(model, waveform: np.ndarray) -> np.ndarray:
     return np.concatenate([frames.mean(axis=0), frames.std(axis=0)]).astype(np.float32)
 
 
+# --------------------------------------------------------------------------- extractor registry
+
+OPERA_SAMPLE_RATE = 16_000
+OPERA_MIN_SECONDS = 8
+OPERA_MODELS = {  # name -> (checkpoint file, Cola encoder, embedding size)
+    "opera_ct": ("encoder-operaCT.ckpt", "htsat", 768),
+    "opera_ce": ("encoder-operaCE.ckpt", "efficientnet", 1280),
+}
+
+
+def load_yamnet_bandpass_audio(path: str | Path) -> np.ndarray:
+    """16 kHz audio with RespiNet's 100–2,000 Hz band-pass, removing out-of-band device cues."""
+    from preprocessing import apply_bandpass_filter
+
+    return apply_bandpass_filter(load_yamnet_audio(path), YAMNET_SAMPLE_RATE, 100.0, 2000.0)
+
+
+def opera_input(waveform: np.ndarray) -> np.ndarray:
+    """OPERA's whole-recording input: trim silence, repeat-pad to 8 s, 64-band log-mel scaled to [0, 1].
+
+    Mirrors ``get_entire_signal_librosa(..., spectrogram=True, pad=True)`` and
+    ``pre_process_audio_mel_t(f_max=8000)`` from the OPERA repository.
+    """
+    import random
+
+    import librosa
+
+    frame = OPERA_SAMPLE_RATE // 10
+    trimmed, _ = librosa.effects.trim(waveform, frame_length=frame, hop_length=frame // 2)
+    target = OPERA_MIN_SECONDS * OPERA_SAMPLE_RATE
+    if len(trimmed) < target:
+        repeated = trimmed
+        while len(repeated) < target - len(trimmed):
+            repeated = np.concatenate([repeated, repeated])
+        left = target - len(trimmed)
+        padded = np.zeros(target, dtype=np.float32)
+        if random.Random(7456).random() < 0.5:  # OPERA seeds 7456 before choosing the side
+            padded[left:], padded[:left] = trimmed, repeated[len(repeated) - left:]
+        else:
+            padded[: len(trimmed)], padded[len(trimmed):] = trimmed, repeated[:left]
+        trimmed = padded
+    mel = librosa.feature.melspectrogram(
+        y=trimmed, sr=OPERA_SAMPLE_RATE, n_mels=64, fmin=50, fmax=8000, n_fft=1024, hop_length=512
+    )
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+    if mel_db.max() != mel_db.min():
+        mel_db = (mel_db - mel_db.min()) / (mel_db.max() - mel_db.min())
+    return mel_db.T.astype(np.float32)
+
+
+def load_opera(directory: str | Path, name: str):
+    """Load a frozen OPERA encoder; refuses checkpoints whose encoder weights do not all load."""
+    import torch
+
+    from third_party.opera.models_cola import Cola
+
+    filename, encoder, _ = OPERA_MODELS[name]
+    checkpoint = torch.load(Path(directory) / filename, map_location="cpu", weights_only=True)
+    model = Cola(encoder=encoder).eval()
+    result = model.load_state_dict(checkpoint["state_dict"], strict=False)
+    missing = [key for key in result.missing_keys if key.startswith("encoder.")]
+    if missing:
+        raise RuntimeError(f"OPERA checkpoint {filename} lacks encoder weights: {missing[:3]}")
+    return model
+
+
+def opera_embedding(model, name: str, waveform: np.ndarray) -> np.ndarray:
+    import torch
+
+    with torch.no_grad():
+        features = model.extract_feature(torch.tensor(opera_input(waveform)[None]), OPERA_MODELS[name][2])
+    return features.numpy()[0].astype(np.float32)
+
+
+class Extractor:
+    """Recording → fixed-size embedding for one frozen pretrained model."""
+
+    def __init__(self, name: str, model_dir: str | Path):
+        if name not in EXTRACTORS:
+            raise ValueError(f"Unknown extractor {name!r}; choose from {sorted(EXTRACTORS)}")
+        self.name, self.model_dir, self._model = name, Path(model_dir), None
+
+    def _load(self):
+        if self._model is None:
+            if self.name.startswith("yamnet"):
+                self._model = load_yamnet(self.model_dir)
+            elif self.name.startswith("opera"):
+                self._model = load_opera(self.model_dir, self.name)
+        return self._model
+
+    def embed(self, path: str | Path) -> np.ndarray:
+        model = self._load()
+        if self.name == "yamnet":
+            return yamnet_embedding(model, load_yamnet_audio(path))
+        if self.name == "yamnet_bandpass":
+            return yamnet_embedding(model, load_yamnet_bandpass_audio(path))
+        return opera_embedding(model, self.name, load_yamnet_audio(path))
+
+
+# name -> default model directory (relative to backend/)
+EXTRACTORS = {
+    "yamnet": "artifacts/pretrained/yamnet",
+    "yamnet_bandpass": "artifacts/pretrained/yamnet",
+    "opera_ct": "artifacts/pretrained/opera",
+    "opera_ce": "artifacts/pretrained/opera",
+}
+
+
 def fit_logistic_head(x_fit, y_fit, x_validation, y_validation):
     """Standardized, class-balanced logistic regression; C chosen by validation log loss."""
     from sklearn.linear_model import LogisticRegression

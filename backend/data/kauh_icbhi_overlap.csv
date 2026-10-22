@@ -1,0 +1,337 @@
+clip,clip_class,clip_seconds,best_ncc,offset_seconds,reference,second_ncc,second_reference,is_overlap
+"BP100_N,N,P R M,70,F.wav",audio,13.55,0.2193,15.99,166_1p1_Al_sc_Meditron.wav,0.1664,110_1b1_Pr_sc_Meditron.wav,False
+"BP101_Asthma,E W,P L M,12,F.wav",audio,13.55,0.2193,15.99,166_1p1_Al_sc_Meditron.wav,0.1664,110_1b1_Pr_sc_Meditron.wav,False
+"BP102_N,N,P L L,41,M.wav",audio,19.06,0.2124,6.7,166_1p1_Al_sc_Meditron.wav,0.1923,110_1b1_Pr_sc_Meditron.wav,False
+"BP103_N,N,P R U,81,F.wav",audio,12.85,0.2777,14.04,166_1p1_Al_sc_Meditron.wav,0.2643,110_1b1_Pr_sc_Meditron.wav,False
+"BP104_Asthma,E W,P L U,45,F.wav",audio,11.76,0.2848,13.21,166_1p1_Al_sc_Meditron.wav,0.2406,166_1p1_Ll_sc_Meditron.wav,False
+"BP105_Lung Fibrosis,Crep,A U R,44,M.wav",audio,25.26,0.1863,2.57,162_1b2_Lr_mc_AKGC417L.wav,0.1644,166_1p1_Al_sc_Meditron.wav,False
+"BP106_Asthma,E W,P L U,45,F.wav",audio,19.82,0.2246,6.65,166_1p1_Al_sc_Meditron.wav,0.1607,218_1b1_Ar_sc_Meditron.wav,False
+"BP107_Asthma,E W,P L U,59,F.wav",audio,12.66,0.2041,6.25,147_2b2_Al_mc_AKGC417L.wav,0.193,120_1b1_Pr_sc_Meditron.wav,False
+"BP108_COPD,E W,P R L ,63,M.wav",audio,22.83,0.1605,10.42,166_1p1_Al_sc_Meditron.wav,0.1234,154_2b4_Lr_mc_AKGC417L.wav,False
+"BP109_N,N,P L M,26,M.wav",audio,13.23,0.5256,11.44,166_1p1_Al_sc_Meditron.wav,0.4379,218_1b1_Ar_sc_Meditron.wav,False
+"BP10_Asthma,E W,P R U,59,M.wav",audio,5.94,0.2378,19.35,166_1p1_Al_sc_Meditron.wav,0.2353,130_2b3_Tc_mc_AKGC417L.wav,False
+"BP110_COPD,E W,P L L,62,M.wav",audio,12.66,0.1997,2.77,224_1b2_Al_sc_Meditron.wav,0.1974,213_1p2_Pl_mc_AKGC417L.wav,False
+"BP111_COPD,E W,P R L ,51,M.wav",audio,17.07,0.1418,13.39,166_1p1_Al_sc_Meditron.wav,0.1115,147_2b3_Lr_mc_AKGC417L.wav,False
+"BP112_N,N,P L M,30,M.wav",audio,12.66,0.1294,10.41,166_1p1_Pr_sc_Meditron.wav,0.1237,140_2b3_Ll_mc_LittC2SE.wav,False
+"BP11_Heart Failure,C,P L L,53,M.wav",audio,24.62,0.3145,2.72,162_1b2_Lr_mc_AKGC417L.wav,0.2928,166_1p1_Al_sc_Meditron.wav,False
+"BP12_Asthma,E W,P L L,50,F.wav",audio,12.53,0.1759,20.39,166_1p1_Al_sc_Meditron.wav,0.1516,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP13_Heart Failure,C,P L L,55,M.wav",audio,14.58,0.2001,2.27,178_1b2_Pr_mc_AKGC417L.wav,0.1896,110_1p1_Pr_sc_Meditron.wav,False
+"BP14_Heart Failure,C,A R M,54,M.wav",audio,12.78,0.1879,22.22,166_1p1_Al_sc_Meditron.wav,0.1704,130_2b2_Tc_mc_AKGC417L.wav,False
+"BP15_Asthma,E W,P R U,49,F.wav",audio,10.35,0.3813,17.57,110_1b1_Pr_sc_Meditron.wav,0.349,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP16_heart failure,C,P R U,56,M.wav",audio,13.17,0.3216,23.66,166_1p1_Al_sc_Meditron.wav,0.3173,160_1b2_Pr_mc_AKGC417L.wav,False
+"BP17_COPD,E W,A R M,57,M.wav",audio,15.54,0.2589,19.47,166_1p1_Al_sc_Meditron.wav,0.2226,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP18_pneumonia,C,P R U,57,M.wav",audio,23.47,0.1412,1.25,156_2b3_Ar_mc_AKGC417L.wav,0.1356,110_1b1_Pr_sc_Meditron.wav,False
+"BP19_heart failure,C,P R U,70,F.wav",audio,23.86,0.3659,0.35,156_2b3_Ar_mc_AKGC417L.wav,0.2952,219_2b2_Ar_mc_LittC2SE.wav,False
+"BP1_Asthma,I E W,P L L,70,M.wav",audio,30.0,0.2405,0.6,162_1b2_Lr_mc_AKGC417L.wav,0.2163,178_1b2_Pr_mc_AKGC417L.wav,False
+"BP20_Asthma and lung fibrosis,C,A R M,90,M.wav",audio,18.48,0.277,7.44,166_1p1_Al_sc_Meditron.wav,0.2371,218_1b1_Ar_sc_Meditron.wav,False
+"BP21_BRON,Crep,P R L ,20,M.wav",audio,19.38,0.2373,5.19,166_1p1_Al_sc_Meditron.wav,0.229,223_1b1_Pr_sc_Meditron.wav,False
+"BP22_BRON,Crep,P R U,24,M.wav",audio,5.0,0.2573,21.0,166_1p1_Al_sc_Meditron.wav,0.2356,130_1p3_Al_mc_AKGC417L.wav,False
+"BP23_Lung Fibrosis,Crep,P R L ,50,M.wav",audio,11.38,0.2929,0.96,178_1b2_Al_mc_AKGC417L.wav,0.2602,178_1b2_Pr_mc_AKGC417L.wav,False
+"BP24_heart failure,Crep,P R L ,76,F.wav",audio,9.58,0.2694,24.27,166_1p1_Al_sc_Meditron.wav,0.269,166_1p1_Ll_sc_Meditron.wav,False
+"BP25_copd,E W,P L L,76,M.wav",audio,11.44,0.1938,13.33,166_1p1_Al_sc_Meditron.wav,0.1737,166_1p1_Ll_sc_Meditron.wav,False
+"BP26_Lung Fibrosis,Crep,P,90,F.wav",audio,15.73,0.1654,46.28,120_1b1_Ar_sc_Meditron.wav,0.144,223_1b1_Pr_sc_Meditron.wav,False
+"BP27_asthma,E W,P R M,53,F.wav",audio,13.94,0.3694,28.36,110_1b1_Pr_sc_Meditron.wav,0.3107,159_1b1_Ll_sc_Meditron.wav,False
+"BP28_BRON,Crep,P L U,68,F.wav",audio,15.86,0.2444,1.29,151_2p4_Pr_mc_AKGC417L.wav,0.2304,151_2p4_Lr_mc_AKGC417L.wav,False
+"BP29_heart failure,Crep,P L L,57,M.wav",audio,8.37,0.2056,3.74,219_2b3_Tc_mc_LittC2SE.wav,0.1968,218_1b1_Ar_sc_Meditron.wav,False
+"BP2_Asthma,E W,P L L R,52,F.wav",audio,30.0,0.1714,0.45,178_2b2_Al_mc_AKGC417L.wav,0.15,166_1p1_Al_sc_Meditron.wav,False
+"BP30_N,N,P R M,18,F.wav",audio,12.14,0.2049,15.8,166_1p1_Al_sc_Meditron.wav,0.1637,222_1b1_Ar_sc_Meditron.wav,False
+"BP31_N,N,P L M,27,F.wav",audio,20.08,0.09,2.29,124_1b1_Pr_sc_Litt3200.wav,0.0899,185_1b1_Al_sc_Litt3200.wav,False
+"BP32_N,N,A R L,30,M.wav",audio,18.35,0.1728,10.89,166_1p1_Al_sc_Meditron.wav,0.1209,222_1b1_Ar_sc_Meditron.wav,False
+"BP33_Asthma,E W,P R M,43,F.wav",audio,17.57,0.1249,9.3,166_1p1_Al_sc_Meditron.wav,0.1028,218_1b1_Ar_sc_Meditron.wav,False
+"BP34_heart failure,Crep,P R M,78,F.wav",audio,19.18,0.2352,5.48,166_1p1_Al_sc_Meditron.wav,0.2287,223_1b1_Lr_sc_Meditron.wav,False
+"BP35_Asthma,E W,A R L,38,M.wav",audio,15.98,0.3038,23.48,218_1b1_Pr_sc_Meditron.wav,0.291,166_1p1_Al_sc_Meditron.wav,False
+"BP36_pneumonia,Crep,P R M,36,F.wav",audio,30.0,0.1956,5.67,148_1b1_Al_sc_Meditron.wav,0.1688,154_3b3_Ar_mc_AKGC417L.wav,False
+"BP37_pneumonia,Crep,A R L,70,F.wav",audio,11.18,0.2486,7.49,147_2b3_Lr_mc_AKGC417L.wav,0.1876,147_2b3_Ar_mc_AKGC417L.wav,False
+"BP38_Asthma,E W,P R M,38,M.wav",audio,15.98,0.1229,0.99,213_1p2_Pl_mc_AKGC417L.wav,0.1208,223_1b1_Pl_sc_Meditron.wav,False
+"BP39_heart failure,Crep,P R L ,67,M.wav",audio,22.26,0.3012,24.07,166_1p1_Al_sc_Meditron.wav,0.267,110_1b1_Pr_sc_Meditron.wav,False
+"BP3_Asthma,I E W,P L L R,50,F.wav",audio,30.0,0.1381,9.94,122_2b3_Tc_mc_LittC2SE.wav,0.1275,172_1b5_Lr_mc_AKGC417L.wav,False
+"BP40_heart failure,Crep,A R M,26,M.wav",audio,13.36,0.1403,0.94,110_1b1_Pr_sc_Meditron.wav,0.1401,166_1p1_Al_sc_Meditron.wav,False
+"BP41_pneumonia,Crep,P R M,51,M.wav",audio,9.07,0.1981,9.68,219_2b3_Tc_mc_LittC2SE.wav,0.1786,151_2p4_Pr_mc_AKGC417L.wav,False
+"BP42_heart failure,Crep,P L L,56,M.wav",audio,12.66,0.3694,17.34,110_1b1_Pr_sc_Meditron.wav,0.3081,166_1p1_Al_sc_Meditron.wav,False
+"BP43_asthma,E W,P L M,15,M.wav",audio,14.83,0.1827,5.06,148_1b1_Al_sc_Meditron.wav,0.1658,166_1p1_Al_sc_Meditron.wav,False
+"BP44_asthma,E W,P R U,40,M.wav",audio,14.38,0.1551,0.2,156_2b3_Ar_mc_AKGC417L.wav,0.1533,166_1p1_Al_sc_Meditron.wav,False
+"BP45_heart failure,Crep,P R L ,30,M.wav",audio,9.78,0.3217,6.93,162_1b2_Lr_mc_AKGC417L.wav,0.2988,166_1p1_Al_sc_Meditron.wav,False
+"BP46_asthma,E W,P L U,41,F.wav",audio,13.55,0.187,13.64,166_1p1_Al_sc_Meditron.wav,0.1504,174_1p4_Tc_mc_AKGC417L.wav,False
+"BP47_asthma,E W,P L M,60,M.wav",audio,16.94,0.2574,0.28,156_2b3_Ar_mc_AKGC417L.wav,0.255,166_1p1_Al_sc_Meditron.wav,False
+"BP48_N,N,P L U,31,M.wav",audio,15.47,0.2287,46.74,120_1b1_Ar_sc_Meditron.wav,0.2254,166_1p1_Al_sc_Meditron.wav,False
+"BP49_N,N,P R M,21,M.wav",audio,13.36,0.4393,21.64,166_1p1_Al_sc_Meditron.wav,0.4097,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",audio,24.94,0.3244,3.92,162_1b2_Lr_mc_AKGC417L.wav,0.3132,166_1p1_Al_sc_Meditron.wav,False
+"BP50_N,N,P R L ,27,M.wav",audio,19.44,0.2628,23.6,166_1p1_Al_sc_Meditron.wav,0.2017,110_1p1_Pr_sc_Meditron.wav,False
+"BP51_N,N,P L M,30,M.wav",audio,16.69,0.2043,1.47,122_2b3_Tc_mc_LittC2SE.wav,0.1947,109_1b1_Pr_sc_Litt3200.wav,False
+"BP52_Lung Fibrosis,Crep,P L L,76,F.wav",audio,9.26,0.1467,23.93,166_1p1_Al_sc_Meditron.wav,0.1408,157_1b1_Pl_sc_Meditron.wav,False
+"BP53_asthma,E W,P R M,72,F.wav",audio,8.69,0.3948,24.42,166_1p1_Al_sc_Meditron.wav,0.3661,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP54_heart failure,Crep,P R L ,73,F.wav",audio,14.06,0.2532,11.48,166_1p1_Al_sc_Meditron.wav,0.2504,120_1b1_Ar_sc_Meditron.wav,False
+"BP55_asthma,E W,P R U,72,F.wav",audio,9.14,0.1526,1.87,218_1b1_Ar_sc_Meditron.wav,0.1491,166_1p1_Al_sc_Meditron.wav,False
+"BP56_asthma,E W,P R M,56,F.wav",audio,11.95,0.3752,24.54,166_1p1_Al_sc_Meditron.wav,0.3589,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP57_COPD,E W,P R L ,42,M.wav",audio,15.98,0.1967,15.84,166_1p1_Al_sc_Meditron.wav,0.147,222_1b1_Ar_sc_Meditron.wav,False
+"BP58_asthma,E W,P L M,40,M.wav",audio,23.54,0.3425,2.73,156_2b3_Ar_mc_AKGC417L.wav,0.2929,213_1p2_Pl_mc_AKGC417L.wav,False
+"BP59_heart failure,Crep,P R L ,83,F.wav",audio,18.74,0.3597,11.65,166_1p1_Al_sc_Meditron.wav,0.2527,120_1b1_Ar_sc_Meditron.wav,False
+"BP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",audio,27.57,0.1795,3.63,178_1b2_Pr_mc_AKGC417L.wav,0.1538,178_1b2_Al_mc_AKGC417L.wav,False
+"BP60_heart failure,Crep,P L L,83,F.wav",audio,13.36,0.3328,24.35,166_1p1_Al_sc_Meditron.wav,0.3299,213_1p2_Pl_mc_AKGC417L.wav,False
+"BP61_COPD,E W,P R L ,53,M.wav",audio,15.47,0.5513,23.9,166_1p1_Al_sc_Meditron.wav,0.5241,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP62_COPD,E W,P L M,53,M.wav",audio,30.0,0.1145,1.56,166_1p1_Al_sc_Meditron.wav,0.1133,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP63_COPD,E W,P R L ,58,F.wav",audio,17.33,0.2697,11.96,166_1p1_Al_sc_Meditron.wav,0.1899,222_1b1_Ar_sc_Meditron.wav,False
+"BP64_asthma,E W,P L U,60,M.wav",audio,23.09,0.1219,11.31,166_1p1_Al_sc_Meditron.wav,0.12,174_1p4_Tc_mc_AKGC417L.wav,False
+"BP65_asthma,E W,P R L ,60,F.wav",audio,24.94,0.2189,4.94,156_2b3_Ar_mc_AKGC417L.wav,0.2113,213_1p2_Pl_mc_AKGC417L.wav,False
+"BP66_heart failure,Crep,P R L ,43,M.wav",audio,15.54,0.2201,13.44,166_1p1_Al_sc_Meditron.wav,0.1984,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP67_heart failure,Crep,P R L ,24,F.wav",audio,18.86,0.2942,11.34,166_1p1_Al_sc_Meditron.wav,0.1986,166_1p1_Ll_sc_Meditron.wav,False
+"BP68_asthma,E W,P R L ,21,F.wav",audio,19.89,0.228,12.05,166_1p1_Al_sc_Meditron.wav,0.1369,218_1b1_Pr_sc_Meditron.wav,False
+"BP69_pneumonia,Bronchial,P R L ,64,M.wav",audio,24.18,0.3279,0.71,166_1p1_Al_sc_Meditron.wav,0.3058,120_1b1_Ar_sc_Meditron.wav,False
+"BP6_Plueral Effusion,I C B,P L R,81,M.wav",audio,28.53,0.1953,6.29,162_1b2_Lr_mc_AKGC417L.wav,0.1946,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP70_N,N,P L U,52,F.wav",audio,13.74,0.256,23.19,166_1p1_Al_sc_Meditron.wav,0.2407,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP71_N,N,P R U,36,M.wav",audio,14.38,0.3197,24.54,166_1p1_Al_sc_Meditron.wav,0.3176,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP72_N,N,P R U,24,F.wav",audio,24.24,0.402,0.23,156_2b3_Ar_mc_AKGC417L.wav,0.33,219_2b2_Ar_mc_LittC2SE.wav,False
+"BP73_N,N,P L L,32,M.wav",audio,19.57,0.1841,16.95,110_1b1_Pr_sc_Meditron.wav,0.1765,166_1p1_Al_sc_Meditron.wav,False
+"BP74_N,N,P R M,74,M.wav",audio,26.35,0.1706,2.31,166_1p1_Al_sc_Meditron.wav,0.1656,178_2b2_Al_mc_AKGC417L.wav,False
+"BP75_N,N,P L U,73,F.wav",audio,23.47,0.2913,1.08,166_1p1_Al_sc_Meditron.wav,0.2704,223_1b1_Lr_sc_Meditron.wav,False
+"BP76_N,N,A L U,31,M.wav",audio,20.14,0.1096,23.79,166_1p1_Al_sc_Meditron.wav,0.1046,110_1b1_Pr_sc_Meditron.wav,False
+"BP77_Asthma,E W,A R L,40,M.wav",audio,14.58,0.3577,17.52,110_1b1_Pr_sc_Meditron.wav,0.3145,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP78_Asthma,E W,P R M,20,M.wav",audio,20.27,0.3391,15.15,166_1p1_Al_sc_Meditron.wav,0.1985,222_1b1_Ar_sc_Meditron.wav,False
+"BP79_asthma,E W,A R U,46,M.wav",audio,20.34,0.175,19.82,110_1b1_Pr_sc_Meditron.wav,0.1551,166_1p1_Al_sc_Meditron.wav,False
+"BP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",audio,22.13,0.1546,39.87,112_1b1_Ar_sc_Meditron.wav,0.1331,199_2b3_Ll_mc_LittC2SE.wav,False
+"BP80_asthma,E W,A L U,38,M.wav",audio,18.03,0.1211,21.96,166_1p1_Al_sc_Meditron.wav,0.1068,110_1b1_Pr_sc_Meditron.wav,False
+"BP81_N,N,P L U,33,M.wav",audio,23.54,0.2693,9.59,166_1p1_Al_sc_Meditron.wav,0.1943,147_2b3_Lr_mc_AKGC417L.wav,False
+"BP82_N,N,P L U,38,M.wav",audio,18.67,0.2187,6.82,166_1p1_Al_sc_Meditron.wav,0.193,110_1b1_Pr_sc_Meditron.wav,False
+"BP83_N,N,A R U,18,F.wav",audio,25.65,0.1714,4.68,178_2b2_Al_mc_AKGC417L.wav,0.1368,166_1p1_Al_sc_Meditron.wav,False
+"BP84_N,N,A R U,65,F.wav",audio,25.78,0.2986,2.59,156_2b3_Ar_mc_AKGC417L.wav,0.2759,122_2b3_Tc_mc_LittC2SE.wav,False
+"BP85_N,N,A R U,33,M.wav",audio,12.27,0.2639,6.9,162_1b2_Lr_mc_AKGC417L.wav,0.2634,166_1p1_Al_sc_Meditron.wav,False
+"BP86_N,N,P R U,68,F.wav",audio,14.45,0.3359,10.4,166_1p1_Al_sc_Meditron.wav,0.2913,110_1b1_Pr_sc_Meditron.wav,False
+"BP87_N,N,P R M,72,M.wav",audio,17.46,0.3526,1.32,122_2b3_Tc_mc_LittC2SE.wav,0.3225,166_1p1_Al_sc_Meditron.wav,False
+"BP88_N,N,A R U,29,M.wav",audio,23.73,0.1978,0.52,156_2b3_Ar_mc_AKGC417L.wav,0.1646,110_1b1_Pr_sc_Meditron.wav,False
+"BP89_N,N,P L M,70,M.wav",audio,22.06,0.2257,5.62,166_1p1_Al_sc_Meditron.wav,0.1948,147_2b3_Lr_mc_AKGC417L.wav,False
+"BP8_Plueral Effusion,I C B,P L L,70,M.wav",audio,22.06,0.4265,24.51,166_1p1_Al_sc_Meditron.wav,0.3744,110_1b1_Pr_sc_Meditron.wav,False
+"BP90_heart failure,Crep,P L M,74,F.wav",audio,14.96,0.246,24.05,166_1p1_Al_sc_Meditron.wav,0.238,122_2b3_Tc_mc_LittC2SE.wav,False
+"BP91_asthma,E W,P R U,43,F.wav",audio,12.14,0.1188,14.39,166_1p1_Al_sc_Meditron.wav,0.1155,110_1b1_Pr_sc_Meditron.wav,False
+"BP92_N,N,P L L ,43,M.wav",audio,12.46,0.4824,19.13,166_1p1_Al_sc_Meditron.wav,0.3578,162_1b2_Lr_mc_AKGC417L.wav,False
+"BP93_N,N,P R M,75,M.wav",audio,9.84,0.1911,2.57,110_1b1_Pr_sc_Meditron.wav,0.17,218_1b1_Ar_sc_Meditron.wav,False
+"BP94_N,N,P L L,24,M.wav",audio,14.38,0.2436,17.71,110_1b1_Pr_sc_Meditron.wav,0.2386,156_2b3_Ar_mc_AKGC417L.wav,False
+"BP95_N,N,P L M,18,M.wav",audio,13.55,0.3383,14.48,166_1p1_Al_sc_Meditron.wav,0.2623,110_1b1_Pr_sc_Meditron.wav,False
+"BP96_N,N,P R L ,66,F.wav",audio,15.47,0.3772,12.71,166_1p1_Al_sc_Meditron.wav,0.2472,120_1b1_Ar_sc_Meditron.wav,False
+"BP97_Asthma,E W,P R U,24,M.wav",audio,21.94,0.2479,20.18,166_1p1_Al_sc_Meditron.wav,0.2191,110_1b1_Pr_sc_Meditron.wav,False
+"BP98_N,N,P L L,53,M.wav",audio,18.93,0.2446,0.48,156_2b3_Ar_mc_AKGC417L.wav,0.2285,166_1p1_Al_sc_Meditron.wav,False
+"BP99_N,N,P R M,50,M.wav",audio,27.89,0.1933,0.64,156_2b3_Ar_mc_AKGC417L.wav,0.1758,178_2b2_Al_mc_AKGC417L.wav,False
+"BP9_Asthma,E W,P R L ,59,M.wav",audio,15.34,0.115,3.12,159_1b1_Ll_sc_Meditron.wav,0.1142,132_2b2_Lr_mc_LittC2SE.wav,False
+"DP100_N,N,P R M,70,F.wav",audio,13.55,0.1827,15.99,166_1p1_Al_sc_Meditron.wav,0.1769,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP101_Asthma,E W,P L M,12,F.wav",audio,13.55,0.1827,15.99,166_1p1_Al_sc_Meditron.wav,0.1769,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP102_N,N,P L L,41,M.wav",audio,19.06,0.1827,6.7,166_1p1_Al_sc_Meditron.wav,0.1577,218_1b1_Ar_sc_Meditron.wav,False
+"DP103_N,N,P R U,81,F.wav",audio,12.85,0.2213,4.42,224_1b2_Al_sc_Meditron.wav,0.2152,159_1b1_Pr_sc_Meditron.wav,False
+"DP104_Asthma,E W,P L U,45,F.wav",audio,11.76,0.2563,13.21,166_1p1_Al_sc_Meditron.wav,0.2124,218_1b1_Ar_sc_Meditron.wav,False
+"DP105_Lung Fibrosis,Crep,A U R,44,M.wav",audio,25.26,0.1946,14.4,166_1p1_Al_sc_Meditron.wav,0.1707,162_1b2_Lr_mc_AKGC417L.wav,False
+"DP106_Asthma,E W,P L U,45,F.wav",audio,19.82,0.1256,6.65,166_1p1_Al_sc_Meditron.wav,0.1034,218_1b1_Pr_sc_Meditron.wav,False
+"DP107_Asthma,E W,P L U,59,F.wav",audio,12.66,0.176,30.83,120_1b1_Pr_sc_Meditron.wav,0.1707,166_1p1_Al_sc_Meditron.wav,False
+"DP108_COPD,E W,P R L ,63,M.wav",audio,22.83,0.1383,12.9,166_1p1_Al_sc_Meditron.wav,0.1192,218_1b1_Al_sc_Meditron.wav,False
+"DP109_N,N,P L M,26,M.wav",audio,13.23,0.413,11.44,166_1p1_Al_sc_Meditron.wav,0.395,222_1b1_Ar_sc_Meditron.wav,False
+"DP10_Asthma,E W,P R U,59,M.wav",audio,5.94,0.2234,4.03,149_1b1_Pl_sc_Meditron.wav,0.2166,195_1b1_Ll_sc_Litt3200.wav,False
+"DP110_COPD,E W,P L L,62,M.wav",audio,12.66,0.2332,2.77,224_1b2_Al_sc_Meditron.wav,0.2187,172_1b4_Pr_mc_AKGC417L.wav,False
+"DP111_COPD,E W,P R L ,51,M.wav",audio,17.07,0.1271,13.39,166_1p1_Al_sc_Meditron.wav,0.1068,222_1b1_Ar_sc_Meditron.wav,False
+"DP112_N,N,P L M,30,M.wav",audio,12.66,0.0883,22.23,166_1p1_Al_sc_Meditron.wav,0.0839,124_1b1_Pl_sc_Litt3200.wav,False
+"DP11_Heart Failure,C,P L L,53,M.wav",audio,24.62,0.2526,1.66,178_1b2_Al_mc_AKGC417L.wav,0.2477,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP12_Asthma,E W,P L L,50,F.wav",audio,12.53,0.1753,3.12,224_1b2_Al_sc_Meditron.wav,0.1628,166_1p1_Al_sc_Meditron.wav,False
+"DP13_Heart Failure,C,P L L,55,M.wav",audio,14.58,0.2446,2.27,178_1b2_Pr_mc_AKGC417L.wav,0.2072,110_1p1_Pr_sc_Meditron.wav,False
+"DP14_Heart Failure,C,A R M,54,M.wav",audio,12.78,0.1355,31.29,218_1b1_Pr_sc_Meditron.wav,0.1289,110_1p1_Pr_sc_Meditron.wav,False
+"DP15_Asthma,E W,P R U,49,F.wav",audio,10.35,0.2579,8.23,178_1b2_Pr_mc_AKGC417L.wav,0.2298,110_1b1_Pr_sc_Meditron.wav,False
+"DP16_heart failure,C,P R U,56,M.wav",audio,13.17,0.23,23.66,166_1p1_Al_sc_Meditron.wav,0.2164,162_1b2_Lr_mc_AKGC417L.wav,False
+"DP17_COPD,E W,A R M,57,M.wav",audio,15.54,0.2317,19.48,166_1p1_Al_sc_Meditron.wav,0.177,222_1b1_Ar_sc_Meditron.wav,False
+"DP18_pneumonia,C,P R U,57,M.wav",audio,23.47,0.1362,1.79,224_1b2_Al_sc_Meditron.wav,0.1141,166_1p1_Al_sc_Meditron.wav,False
+"DP19_heart failure,C,P R U,70,F.wav",audio,23.86,0.2583,0.35,156_2b3_Ar_mc_AKGC417L.wav,0.2331,166_1p1_Al_sc_Meditron.wav,False
+"DP1_Asthma,I E W,P L L,70,M.wav",audio,30.0,0.2092,3.73,224_1b2_Al_sc_Meditron.wav,0.2036,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP20_Asthma and lung fibrosis,C,A R M,90,M.wav",audio,18.48,0.2343,7.59,166_1p1_Al_sc_Meditron.wav,0.203,218_1b1_Ar_sc_Meditron.wav,False
+"DP21_BRON,Crep,P R L ,20,M.wav",audio,19.38,0.2219,5.19,166_1p1_Al_sc_Meditron.wav,0.2144,166_1p1_Ll_sc_Meditron.wav,False
+"DP22_BRON,Crep,P R U,24,M.wav",audio,5.0,0.2116,3.9,172_1b4_Pr_mc_AKGC417L.wav,0.2078,224_1b2_Al_sc_Meditron.wav,False
+"DP23_Lung Fibrosis,Crep,P R L ,50,M.wav",audio,11.38,0.2753,0.97,178_1b2_Al_mc_AKGC417L.wav,0.2621,195_1b1_Lr_sc_Litt3200.wav,False
+"DP24_heart failure,Crep,P R L ,76,F.wav",audio,9.58,0.2862,8.39,178_1b2_Pr_mc_AKGC417L.wav,0.25,178_1b2_Al_mc_AKGC417L.wav,False
+"DP25_copd,E W,P L L,76,M.wav",audio,11.44,0.1532,13.33,166_1p1_Al_sc_Meditron.wav,0.1355,162_1b2_Lr_mc_AKGC417L.wav,False
+"DP26_Lung Fibrosis,Crep,P,90,F.wav",audio,15.73,0.1102,19.66,166_1p1_Al_sc_Meditron.wav,0.0986,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP27_asthma,E W,P R M,53,F.wav",audio,13.94,0.3047,28.36,110_1b1_Pr_sc_Meditron.wav,0.2498,224_1b2_Al_sc_Meditron.wav,False
+"DP28_BRON,Crep,P L U,68,F.wav",audio,15.86,0.1447,1.47,224_1b2_Al_sc_Meditron.wav,0.144,166_1p1_Al_sc_Meditron.wav,False
+"DP29_heart failure,Crep,P L L,57,M.wav",audio,8.37,0.2119,2.95,224_1b2_Al_sc_Meditron.wav,0.1857,166_1p1_Al_sc_Meditron.wav,False
+"DP2_Asthma,E W,P L L R,52,F.wav",audio,30.0,0.1332,0.45,178_2b2_Al_mc_AKGC417L.wav,0.1313,148_1b1_Al_sc_Meditron.wav,False
+"DP30_N,N,P R M,18,F.wav",audio,12.14,0.2365,15.8,166_1p1_Al_sc_Meditron.wav,0.2176,159_1b1_Pr_sc_Meditron.wav,False
+"DP31_N,N,P L M,27,F.wav",audio,20.08,0.0801,48.43,222_1b1_Ar_sc_Meditron.wav,0.0753,166_1p1_Al_sc_Meditron.wav,False
+"DP32_N,N,A R L,30,M.wav",audio,18.35,0.1206,10.89,166_1p1_Al_sc_Meditron.wav,0.1109,222_1b1_Ar_sc_Meditron.wav,False
+"DP33_Asthma,E W,P R M,43,F.wav",audio,17.57,0.0922,25.16,166_1p1_Ll_sc_Meditron.wav,0.0896,222_1b1_Ar_sc_Meditron.wav,False
+"DP34_heart failure,Crep,P R M,78,F.wav",audio,19.18,0.2267,18.63,166_1p1_Ll_sc_Meditron.wav,0.2169,218_1b1_Al_sc_Meditron.wav,False
+"DP35_Asthma,E W,A R L,38,M.wav",audio,15.98,0.3147,14.27,166_1p1_Al_sc_Meditron.wav,0.3142,218_1b1_Pr_sc_Meditron.wav,False
+"DP36_pneumonia,Crep,P R M,36,F.wav",audio,30.0,0.2129,5.68,148_1b1_Al_sc_Meditron.wav,0.1443,166_1p1_Ll_sc_Meditron.wav,False
+"DP37_pneumonia,Crep,A R L,70,F.wav",audio,11.18,0.1221,7.49,147_2b3_Lr_mc_AKGC417L.wav,0.1209,178_1b2_Al_mc_AKGC417L.wav,False
+"DP38_Asthma,E W,P R M,38,M.wav",audio,15.98,0.1114,1.01,172_1b4_Al_mc_AKGC417L.wav,0.0894,224_1b2_Al_sc_Meditron.wav,False
+"DP39_heart failure,Crep,P R L ,67,M.wav",audio,22.26,0.1829,24.07,166_1p1_Al_sc_Meditron.wav,0.1343,218_1b1_Ar_sc_Meditron.wav,False
+"DP3_Asthma,I E W,P L L R,50,F.wav",audio,30.0,0.1576,0.64,178_1b2_Al_mc_AKGC417L.wav,0.1458,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP40_heart failure,Crep,A R M,26,M.wav",audio,13.36,0.1106,57.01,218_1b1_Al_sc_Meditron.wav,0.1044,159_1b1_Pr_sc_Meditron.wav,False
+"DP41_pneumonia,Crep,P R M,51,M.wav",audio,9.07,0.1542,23.14,166_1p1_Al_sc_Meditron.wav,0.1351,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP42_heart failure,Crep,P L L,56,M.wav",audio,12.66,0.279,3.8,224_1b2_Al_sc_Meditron.wav,0.2564,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP43_asthma,E W,P L M,15,M.wav",audio,14.83,0.2008,5.06,148_1b1_Al_sc_Meditron.wav,0.1364,166_1p1_Ll_sc_Meditron.wav,False
+"DP44_asthma,E W,P R U,40,M.wav",audio,14.38,0.1227,4.23,178_1b2_Pr_mc_AKGC417L.wav,0.1207,178_1b2_Al_mc_AKGC417L.wav,False
+"DP45_heart failure,Crep,P R L ,30,M.wav",audio,9.78,0.3428,4.13,224_1b2_Al_sc_Meditron.wav,0.2977,162_1b2_Lr_mc_AKGC417L.wav,False
+"DP46_asthma,E W,P L U,41,F.wav",audio,13.55,0.101,13.64,166_1p1_Al_sc_Meditron.wav,0.0838,218_1b1_Ar_sc_Meditron.wav,False
+"DP47_asthma,E W,P L M,60,M.wav",audio,16.94,0.2881,11.12,166_1p1_Al_sc_Meditron.wav,0.2507,159_1b1_Pr_sc_Meditron.wav,False
+"DP48_N,N,P L U,31,M.wav",audio,15.47,0.1688,2.98,148_1b1_Al_sc_Meditron.wav,0.1685,166_1p1_Al_sc_Meditron.wav,False
+"DP49_N,N,P R M,21,M.wav",audio,13.36,0.4022,21.64,166_1p1_Al_sc_Meditron.wav,0.3238,224_1b2_Al_sc_Meditron.wav,False
+"DP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",audio,24.94,0.2895,2.87,178_1b2_Pr_mc_AKGC417L.wav,0.2415,166_1p1_Al_sc_Meditron.wav,False
+"DP50_N,N,P R L ,27,M.wav",audio,19.44,0.1863,0.56,156_2b3_Ar_mc_AKGC417L.wav,0.1773,110_1b1_Pr_sc_Meditron.wav,False
+"DP51_N,N,P L M,30,M.wav",audio,16.69,0.1787,10.82,166_1p1_Al_sc_Meditron.wav,0.1675,159_1b1_Pr_sc_Meditron.wav,False
+"DP52_Lung Fibrosis,Crep,P L L,76,F.wav",audio,9.26,0.1468,6.72,159_1b1_Pr_sc_Meditron.wav,0.1354,224_1b2_Al_sc_Meditron.wav,False
+"DP53_asthma,E W,P R M,72,F.wav",audio,8.69,0.4018,4.31,224_1b2_Al_sc_Meditron.wav,0.3837,166_1p1_Al_sc_Meditron.wav,False
+"DP54_heart failure,Crep,P R L ,73,F.wav",audio,14.06,0.2203,22.7,166_1p1_Al_sc_Meditron.wav,0.2197,224_1b2_Al_sc_Meditron.wav,False
+"DP55_asthma,E W,P R U,72,F.wav",audio,9.14,0.1735,6.86,159_1b1_Pr_sc_Meditron.wav,0.1645,149_1b1_Pl_sc_Meditron.wav,False
+"DP56_asthma,E W,P R M,56,F.wav",audio,11.95,0.3873,24.54,166_1p1_Al_sc_Meditron.wav,0.3818,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP57_COPD,E W,P R L ,42,M.wav",audio,15.98,0.1645,15.84,166_1p1_Al_sc_Meditron.wav,0.1433,222_1b1_Ar_sc_Meditron.wav,False
+"DP58_asthma,E W,P L M,40,M.wav",audio,23.54,0.2581,1.24,213_1p2_Pl_mc_AKGC417L.wav,0.2196,178_2b2_Al_mc_AKGC417L.wav,False
+"DP59_heart failure,Crep,P R L ,83,F.wav",audio,18.74,0.2317,11.65,166_1p1_Al_sc_Meditron.wav,0.1771,222_1b1_Ar_sc_Meditron.wav,False
+"DP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",audio,27.57,0.2394,3.62,178_1b2_Pr_mc_AKGC417L.wav,0.2243,178_1b2_Al_mc_AKGC417L.wav,False
+"DP60_heart failure,Crep,P L L,83,F.wav",audio,13.36,0.258,1.84,213_1p2_Pl_mc_AKGC417L.wav,0.2524,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP61_COPD,E W,P R L ,53,M.wav",audio,15.47,0.4912,0.81,156_2b3_Ar_mc_AKGC417L.wav,0.4684,213_1p2_Pl_mc_AKGC417L.wav,False
+"DP62_COPD,E W,P L M,53,M.wav",audio,30.0,0.1257,8.96,162_1b2_Lr_mc_AKGC417L.wav,0.1083,166_1p1_Al_sc_Meditron.wav,False
+"DP63_COPD,E W,P R L ,58,F.wav",audio,17.33,0.3242,11.96,166_1p1_Al_sc_Meditron.wav,0.2299,222_1b1_Ar_sc_Meditron.wav,False
+"DP64_asthma,E W,P L U,60,M.wav",audio,23.09,0.083,0.22,172_1b4_Al_mc_AKGC417L.wav,0.0817,124_1b1_Pr_sc_Litt3200.wav,False
+"DP65_asthma,E W,P R L ,60,F.wav",audio,24.94,0.1724,3.45,213_1p2_Pl_mc_AKGC417L.wav,0.1461,224_1b2_Al_sc_Meditron.wav,False
+"DP66_heart failure,Crep,P R L ,43,M.wav",audio,15.54,0.2231,4.23,224_1b2_Al_sc_Meditron.wav,0.2063,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP67_heart failure,Crep,P R L ,24,F.wav",audio,18.86,0.2459,11.35,166_1p1_Al_sc_Meditron.wav,0.1984,222_1b1_Ar_sc_Meditron.wav,False
+"DP68_asthma,E W,P R L ,21,F.wav",audio,19.89,0.1952,12.05,166_1p1_Al_sc_Meditron.wav,0.1298,218_1b1_Pr_sc_Meditron.wav,False
+"DP69_pneumonia,Bronchial,P R L ,64,M.wav",audio,24.18,0.2178,3.93,178_2b2_Al_mc_AKGC417L.wav,0.1998,166_1p1_Ll_sc_Meditron.wav,False
+"DP6_Plueral Effusion,I C B,P L R,81,M.wav",audio,28.53,0.201,4.88,213_1p2_Pl_mc_AKGC417L.wav,0.19,224_1b2_Al_sc_Meditron.wav,False
+"DP70_N,N,P L U,52,F.wav",audio,13.74,0.2698,3.96,224_1b2_Al_sc_Meditron.wav,0.2584,166_1p1_Al_sc_Meditron.wav,False
+"DP71_N,N,P R U,36,M.wav",audio,14.38,0.2639,1.45,156_2b3_Ar_mc_AKGC417L.wav,0.2634,213_1p2_Pl_mc_AKGC417L.wav,False
+"DP72_N,N,P R U,24,F.wav",audio,24.24,0.249,23.78,166_1p1_Al_sc_Meditron.wav,0.2122,219_2b2_Ar_mc_LittC2SE.wav,False
+"DP73_N,N,P L L,32,M.wav",audio,19.57,0.1787,17.0,110_1b1_Pr_sc_Meditron.wav,0.1724,166_1p1_Al_sc_Meditron.wav,False
+"DP74_N,N,P R M,74,M.wav",audio,26.35,0.1899,2.33,178_2b2_Al_mc_AKGC417L.wav,0.1835,159_1b1_Pr_sc_Meditron.wav,False
+"DP75_N,N,P L U,73,F.wav",audio,23.47,0.3037,1.08,166_1p1_Al_sc_Meditron.wav,0.2683,218_1b1_Pr_sc_Meditron.wav,False
+"DP76_N,N,A L U,31,M.wav",audio,20.14,0.1065,17.21,110_1b1_Pr_sc_Meditron.wav,0.1021,166_1p1_Al_sc_Meditron.wav,False
+"DP77_Asthma,E W,A R L,40,M.wav",audio,14.58,0.143,17.52,110_1b1_Pr_sc_Meditron.wav,0.1354,166_1p1_Al_sc_Meditron.wav,False
+"DP78_Asthma,E W,P R M,20,M.wav",audio,20.27,0.2458,15.15,166_1p1_Al_sc_Meditron.wav,0.1624,222_1b1_Ar_sc_Meditron.wav,False
+"DP79_asthma,E W,A R U,46,M.wav",audio,20.34,0.0972,6.84,124_1b1_Pl_sc_Litt3200.wav,0.0893,166_1p1_Al_sc_Meditron.wav,False
+"DP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",audio,22.13,0.134,17.29,166_1p1_Ll_sc_Meditron.wav,0.1119,124_1b1_Pl_sc_Litt3200.wav,False
+"DP80_asthma,E W,A L U,38,M.wav",audio,18.03,0.0802,1.85,224_1b2_Al_sc_Meditron.wav,0.0751,166_1p1_Al_sc_Meditron.wav,False
+"DP81_N,N,P L U,33,M.wav",audio,23.54,0.1496,9.59,166_1p1_Al_sc_Meditron.wav,0.1375,222_1b1_Ar_sc_Meditron.wav,False
+"DP82_N,N,P L U,38,M.wav",audio,18.67,0.1595,6.82,166_1p1_Al_sc_Meditron.wav,0.1463,218_1b1_Ar_sc_Meditron.wav,False
+"DP83_N,N,A R U,18,F.wav",audio,25.65,0.1699,4.68,178_2b2_Al_mc_AKGC417L.wav,0.1475,166_1p1_Al_sc_Meditron.wav,False
+"DP84_N,N,A R U,65,F.wav",audio,25.78,0.1603,3.29,213_1p2_Pl_mc_AKGC417L.wav,0.1574,224_1b2_Al_sc_Meditron.wav,False
+"DP85_N,N,A R U,33,M.wav",audio,12.27,0.183,6.8,172_1b4_Pr_mc_AKGC417L.wav,0.1788,112_1p1_Ll_sc_Litt3200.wav,False
+"DP86_N,N,P R U,68,F.wav",audio,14.45,0.3227,10.4,166_1p1_Al_sc_Meditron.wav,0.3161,159_1b1_Pr_sc_Meditron.wav,False
+"DP87_N,N,P R M,72,M.wav",audio,17.46,0.2607,23.73,166_1p1_Al_sc_Meditron.wav,0.2459,213_1p2_Pl_mc_AKGC417L.wav,False
+"DP88_N,N,A R U,29,M.wav",audio,23.73,0.1664,24.02,166_1p1_Al_sc_Meditron.wav,0.1507,110_1p1_Pr_sc_Meditron.wav,False
+"DP89_N,N,P L M,70,M.wav",audio,22.06,0.1775,4.7,166_1p1_Al_sc_Meditron.wav,0.1629,218_1b1_Ar_sc_Meditron.wav,False
+"DP8_Plueral Effusion,I C B,P L L,70,M.wav",audio,22.06,0.3294,24.51,166_1p1_Al_sc_Meditron.wav,0.2593,110_1b1_Pr_sc_Meditron.wav,False
+"DP90_heart failure,Crep,P L M,74,F.wav",audio,14.96,0.253,4.09,224_1b2_Al_sc_Meditron.wav,0.2181,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP91_asthma,E W,P R U,43,F.wav",audio,12.14,0.1223,57.65,218_1b1_Al_sc_Meditron.wav,0.1057,178_1b2_Pr_mc_AKGC417L.wav,False
+"DP92_N,N,P L L ,43,M.wav",audio,12.46,0.414,19.13,166_1p1_Al_sc_Meditron.wav,0.3313,222_1b1_Ar_sc_Meditron.wav,False
+"DP93_N,N,P R M,75,M.wav",audio,9.84,0.0999,1.95,172_1b4_Al_mc_AKGC417L.wav,0.0941,178_1b2_Al_mc_AKGC417L.wav,False
+"DP94_N,N,P L L,24,M.wav",audio,14.38,0.1983,17.71,110_1b1_Pr_sc_Meditron.wav,0.1834,224_1b2_Al_sc_Meditron.wav,False
+"DP95_N,N,P L M,18,M.wav",audio,13.55,0.3856,14.48,166_1p1_Al_sc_Meditron.wav,0.2882,159_1b1_Pr_sc_Meditron.wav,False
+"DP96_N,N,P R L ,66,F.wav",audio,15.47,0.27,12.71,166_1p1_Al_sc_Meditron.wav,0.1964,222_1b1_Ar_sc_Meditron.wav,False
+"DP97_Asthma,E W,P R U,24,M.wav",audio,21.94,0.233,20.18,166_1p1_Al_sc_Meditron.wav,0.1975,110_1p1_Pr_sc_Meditron.wav,False
+"DP98_N,N,P L L,53,M.wav",audio,18.93,0.2434,24.49,166_1p1_Al_sc_Meditron.wav,0.1774,156_2b3_Ar_mc_AKGC417L.wav,False
+"DP99_N,N,P R M,50,M.wav",audio,27.89,0.2265,5.26,159_1b1_Pr_sc_Meditron.wav,0.15,178_2b2_Al_mc_AKGC417L.wav,False
+"DP9_Asthma,E W,P R L ,59,M.wav",audio,15.34,0.115,3.12,159_1b1_Ll_sc_Meditron.wav,0.1142,132_2b2_Lr_mc_LittC2SE.wav,False
+"EP100_N,N,P R M,70,F.wav",audio,14.96,0.3771,24.14,166_1p1_Al_sc_Meditron.wav,0.375,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP101_Asthma,E W,P L M,12,F.wav",audio,13.55,0.1982,15.99,166_1p1_Al_sc_Meditron.wav,0.1463,147_2b3_Lr_mc_AKGC417L.wav,False
+"EP102_N,N,P L L,41,M.wav",audio,19.06,0.2186,6.71,166_1p1_Al_sc_Meditron.wav,0.2,110_1b1_Pr_sc_Meditron.wav,False
+"EP103_N,N,P R U,81,F.wav",audio,12.85,0.258,14.04,166_1p1_Al_sc_Meditron.wav,0.2563,110_1b1_Pr_sc_Meditron.wav,False
+"EP104_Asthma,E W,P L U,45,F.wav",audio,11.76,0.2969,13.21,166_1p1_Al_sc_Meditron.wav,0.2531,120_1b1_Ar_sc_Meditron.wav,False
+"EP105_Lung Fibrosis,Crep,A U R,44,M.wav",audio,25.26,0.1936,2.56,162_1b2_Lr_mc_AKGC417L.wav,0.1764,166_1p1_Al_sc_Meditron.wav,False
+"EP106_Asthma,E W,P L U,45,F.wav",audio,19.82,0.2257,6.65,166_1p1_Al_sc_Meditron.wav,0.1675,120_1b1_Ar_sc_Meditron.wav,False
+"EP107_Asthma,E W,P L U,59,F.wav",audio,12.66,0.2274,30.83,120_1b1_Pr_sc_Meditron.wav,0.2201,147_2b2_Al_mc_AKGC417L.wav,False
+"EP108_COPD,E W,P R L ,63,M.wav",audio,22.83,0.1359,10.42,166_1p1_Al_sc_Meditron.wav,0.1305,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP109_N,N,P L M,26,M.wav",audio,13.23,0.5089,11.45,166_1p1_Al_sc_Meditron.wav,0.4542,120_1b1_Ar_sc_Meditron.wav,False
+"EP10_Asthma,E W,P R U,59,M.wav",audio,5.94,0.1911,19.35,166_1p1_Al_sc_Meditron.wav,0.1827,130_2b3_Tc_mc_AKGC417L.wav,False
+"EP110_COPD,E W,P L L,62,M.wav",audio,12.66,0.208,22.92,166_1p1_Al_sc_Meditron.wav,0.2001,110_1b1_Pr_sc_Meditron.wav,False
+"EP111_COPD,E W,P R L ,51,M.wav",audio,17.07,0.1321,7.36,124_1b1_Pr_sc_Litt3200.wav,0.1257,166_1p1_Al_sc_Meditron.wav,False
+"EP112_N,N,P L M,30,M.wav",audio,12.66,0.1242,0.02,140_2b3_Ll_mc_LittC2SE.wav,0.1221,192_2b1_Ar_mc_LittC2SE.wav,False
+"EP11_Heart Failure,C,P L L,53,M.wav",audio,24.62,0.2946,2.72,162_1b2_Lr_mc_AKGC417L.wav,0.2191,166_1p1_Al_sc_Meditron.wav,False
+"EP12_Asthma,E W,P L L,50,F.wav",audio,12.53,0.1818,23.23,166_1p1_Al_sc_Meditron.wav,0.1479,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP13_Heart Failure,C,P L L,55,M.wav",audio,14.58,0.1879,4.36,149_1b1_Pl_sc_Meditron.wav,0.1841,110_1p1_Pr_sc_Meditron.wav,False
+"EP14_Heart Failure,C,A R M,54,M.wav",audio,12.78,0.1943,22.22,166_1p1_Al_sc_Meditron.wav,0.1789,110_1b1_Pr_sc_Meditron.wav,False
+"EP15_Asthma,E W,P R U,49,F.wav",audio,10.35,0.2371,8.43,112_1p1_Ll_sc_Litt3200.wav,0.2149,110_1b1_Pr_sc_Meditron.wav,False
+"EP16_heart failure,C,P R U,56,M.wav",audio,13.17,0.3431,6.44,160_1b2_Pr_mc_AKGC417L.wav,0.3337,166_1p1_Al_sc_Meditron.wav,False
+"EP17_COPD,E W,A R M,57,M.wav",audio,15.54,0.2651,19.48,166_1p1_Al_sc_Meditron.wav,0.2279,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP18_pneumonia,C,P R U,57,M.wav",audio,23.47,0.1334,1.37,156_2b3_Ar_mc_AKGC417L.wav,0.1212,110_1b1_Pr_sc_Meditron.wav,False
+"EP19_heart failure,C,P R U,70,F.wav",audio,23.86,0.3556,0.35,156_2b3_Ar_mc_AKGC417L.wav,0.2911,166_1p1_Al_sc_Meditron.wav,False
+"EP1_Asthma,I E W,P L L,70,M.wav",audio,30.0,0.2162,0.6,162_1b2_Lr_mc_AKGC417L.wav,0.1823,210_1b1_Al_sc_Meditron.wav,False
+"EP20_Asthma and lung fibrosis,C,A R M,90,M.wav",audio,18.48,0.279,6.71,166_1p1_Al_sc_Meditron.wav,0.2623,120_1b1_Ar_sc_Meditron.wav,False
+"EP21_BRON,Crep,P R L ,20,M.wav",audio,19.38,0.2689,41.04,120_1b1_Ar_sc_Meditron.wav,0.2563,223_1b1_Pr_sc_Meditron.wav,False
+"EP22_BRON,Crep,P R U,24,M.wav",audio,5.0,0.1896,21.0,166_1p1_Al_sc_Meditron.wav,0.172,195_1b1_Ll_sc_Litt3200.wav,False
+"EP23_Lung Fibrosis,Crep,P R L ,50,M.wav",audio,11.38,0.1871,0.97,178_1b2_Al_mc_AKGC417L.wav,0.1753,159_1b1_Pr_sc_Meditron.wav,False
+"EP24_heart failure,Crep,P R L ,76,F.wav",audio,9.58,0.2442,24.28,166_1p1_Al_sc_Meditron.wav,0.2295,178_1b2_Al_mc_AKGC417L.wav,False
+"EP25_copd,E W,P L L,76,M.wav",audio,11.44,0.1749,13.33,166_1p1_Al_sc_Meditron.wav,0.1567,218_1b1_Ar_sc_Meditron.wav,False
+"EP26_Lung Fibrosis,Crep,P,90,F.wav",audio,15.73,0.1455,46.28,120_1b1_Ar_sc_Meditron.wav,0.1297,223_1b1_Pr_sc_Meditron.wav,False
+"EP27_asthma,E W,P R M,53,F.wav",audio,13.94,0.3546,28.36,110_1b1_Pr_sc_Meditron.wav,0.2992,159_1b1_Ll_sc_Meditron.wav,False
+"EP28_BRON,Crep,P L U,68,F.wav",audio,15.86,0.2128,1.29,151_2p4_Pr_mc_AKGC417L.wav,0.2013,151_2p4_Lr_mc_AKGC417L.wav,False
+"EP29_heart failure,Crep,P L L,57,M.wav",audio,8.37,0.2095,4.05,218_1b1_Ar_sc_Meditron.wav,0.2059,110_1b1_Pr_sc_Meditron.wav,False
+"EP2_Asthma,E W,P L L R,52,F.wav",audio,30.0,0.1555,7.06,162_1b2_Lr_mc_AKGC417L.wav,0.1434,132_2b2_Lr_mc_LittC2SE.wav,False
+"EP30_N,N,P R M,18,F.wav",audio,12.14,0.2489,15.8,166_1p1_Al_sc_Meditron.wav,0.175,197_1b1_Al_sc_Meditron.wav,False
+"EP31_N,N,P L M,27,F.wav",audio,20.08,0.0987,2.29,124_1b1_Pr_sc_Litt3200.wav,0.0791,185_1b1_Al_sc_Litt3200.wav,False
+"EP32_N,N,A R L,30,M.wav",audio,18.35,0.1778,10.89,166_1p1_Al_sc_Meditron.wav,0.1068,222_1b1_Ar_sc_Meditron.wav,False
+"EP33_Asthma,E W,P R M,43,F.wav",audio,17.57,0.1289,9.3,166_1p1_Al_sc_Meditron.wav,0.1042,218_1b1_Ar_sc_Meditron.wav,False
+"EP34_heart failure,Crep,P R M,78,F.wav",audio,19.18,0.16,13.8,223_1b1_Lr_sc_Meditron.wav,0.1525,120_1b1_Ar_sc_Meditron.wav,False
+"EP35_Asthma,E W,A R L,38,M.wav",audio,15.98,0.2566,23.48,218_1b1_Pr_sc_Meditron.wav,0.2539,166_1p1_Al_sc_Meditron.wav,False
+"EP36_pneumonia,Crep,P R M,36,F.wav",audio,30.0,0.2033,1.24,154_3b3_Ar_mc_AKGC417L.wav,0.1851,147_2b3_Ar_mc_AKGC417L.wav,False
+"EP37_pneumonia,Crep,A R L,70,F.wav",audio,11.18,0.243,7.49,147_2b3_Lr_mc_AKGC417L.wav,0.1866,147_2b3_Ar_mc_AKGC417L.wav,False
+"EP38_Asthma,E W,P R M,38,M.wav",audio,15.98,0.1256,23.32,166_1p1_Al_sc_Meditron.wav,0.1193,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP39_heart failure,Crep,P R L ,67,M.wav",audio,22.26,0.2991,24.07,166_1p1_Al_sc_Meditron.wav,0.2536,110_1b1_Pr_sc_Meditron.wav,False
+"EP3_Asthma,I E W,P L L R,50,F.wav",audio,30.0,0.1223,8.3,159_1b1_Pr_sc_Meditron.wav,0.1216,124_1b1_Pr_sc_Litt3200.wav,False
+"EP40_heart failure,Crep,A R M,26,M.wav",audio,13.36,0.1468,14.98,166_1p1_Al_sc_Meditron.wav,0.1432,110_1b1_Pr_sc_Meditron.wav,False
+"EP41_pneumonia,Crep,P R M,51,M.wav",audio,9.07,0.1879,9.69,219_2b3_Tc_mc_LittC2SE.wav,0.1781,166_1p1_Al_sc_Meditron.wav,False
+"EP42_heart failure,Crep,P L L,56,M.wav",audio,12.66,0.3587,17.35,110_1b1_Pr_sc_Meditron.wav,0.3118,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP43_asthma,E W,P L M,15,M.wav",audio,14.83,0.195,23.82,166_1p1_Al_sc_Meditron.wav,0.185,213_1p2_Pl_mc_AKGC417L.wav,False
+"EP44_asthma,E W,P R U,40,M.wav",audio,14.38,0.1465,0.2,156_2b3_Ar_mc_AKGC417L.wav,0.1343,110_1b1_Pr_sc_Meditron.wav,False
+"EP45_heart failure,Crep,P R L ,30,M.wav",audio,9.78,0.3009,6.93,162_1b2_Lr_mc_AKGC417L.wav,0.2604,166_1p1_Al_sc_Meditron.wav,False
+"EP46_asthma,E W,P L U,41,F.wav",audio,13.55,0.1623,13.64,166_1p1_Al_sc_Meditron.wav,0.1267,120_1b1_Ar_sc_Meditron.wav,False
+"EP47_asthma,E W,P L M,60,M.wav",audio,16.94,0.2552,24.29,166_1p1_Al_sc_Meditron.wav,0.2418,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP48_N,N,P L U,31,M.wav",audio,15.47,0.2136,10.89,166_1p1_Al_sc_Meditron.wav,0.2133,218_1p1_Ar_sc_Litt3200.wav,False
+"EP49_N,N,P R M,21,M.wav",audio,13.36,0.3627,21.64,166_1p1_Al_sc_Meditron.wav,0.2838,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP4_Heart Failure + Lung Fibrosis ,I C,P L R,72,F.wav",audio,24.94,0.2244,13.04,166_1p1_Al_sc_Meditron.wav,0.2205,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP50_N,N,P R L ,27,M.wav",audio,19.44,0.1957,23.6,166_1p1_Al_sc_Meditron.wav,0.1736,110_1b1_Pr_sc_Meditron.wav,False
+"EP51_N,N,P L M,30,M.wav",audio,16.69,0.1978,10.82,166_1p1_Al_sc_Meditron.wav,0.1862,122_2b3_Tc_mc_LittC2SE.wav,False
+"EP52_Lung Fibrosis,Crep,P L L,76,F.wav",audio,9.26,0.1507,23.93,166_1p1_Al_sc_Meditron.wav,0.1447,223_1b1_Lr_sc_Meditron.wav,False
+"EP53_asthma,E W,P R M,72,F.wav",audio,8.69,0.2866,24.42,166_1p1_Al_sc_Meditron.wav,0.2775,224_1b2_Al_sc_Meditron.wav,False
+"EP54_heart failure,Crep,P R L ,73,F.wav",audio,14.06,0.2507,11.48,166_1p1_Al_sc_Meditron.wav,0.2453,120_1b1_Ar_sc_Meditron.wav,False
+"EP55_asthma,E W,P R U,72,F.wav",audio,9.14,0.1969,15.54,166_1p1_Al_sc_Meditron.wav,0.164,218_1b1_Ar_sc_Meditron.wav,False
+"EP56_asthma,E W,P R M,56,F.wav",audio,11.95,0.4316,24.54,166_1p1_Al_sc_Meditron.wav,0.4062,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP57_COPD,E W,P R L ,42,M.wav",audio,15.98,0.173,15.84,166_1p1_Al_sc_Meditron.wav,0.1372,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP58_asthma,E W,P L M,40,M.wav",audio,23.54,0.2866,2.73,156_2b3_Ar_mc_AKGC417L.wav,0.2566,213_1p2_Pl_mc_AKGC417L.wav,False
+"EP59_heart failure,Crep,P R L ,83,F.wav",audio,18.74,0.3301,11.65,166_1p1_Al_sc_Meditron.wav,0.2539,120_1b1_Ar_sc_Meditron.wav,False
+"EP5_Heart Failure + COPD,I C E W,P L R ,71,M.wav",audio,27.57,0.1815,4.78,124_1b1_Pr_sc_Litt3200.wav,0.175,124_1b1_Ar_sc_Litt3200.wav,False
+"EP60_heart failure,Crep,P L L,83,F.wav",audio,13.36,0.2494,1.25,156_2b3_Ar_mc_AKGC417L.wav,0.2395,110_1b1_Pr_sc_Meditron.wav,False
+"EP61_COPD,E W,P R L ,53,M.wav",audio,15.47,0.4505,23.9,166_1p1_Al_sc_Meditron.wav,0.4462,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP62_COPD,E W,P L M,53,M.wav",audio,30.0,0.1267,6.05,124_1b1_Pr_sc_Litt3200.wav,0.1052,166_1p1_Al_sc_Meditron.wav,False
+"EP63_COPD,E W,P R L ,58,F.wav",audio,17.33,0.284,11.96,166_1p1_Al_sc_Meditron.wav,0.1919,120_1b1_Ar_sc_Meditron.wav,False
+"EP64_asthma,E W,P L U,60,M.wav",audio,23.09,0.1299,4.92,124_1b1_Pr_sc_Litt3200.wav,0.1154,120_1b1_Pr_sc_Meditron.wav,False
+"EP65_asthma,E W,P R L ,60,F.wav",audio,24.94,0.2024,4.94,156_2b3_Ar_mc_AKGC417L.wav,0.1969,213_1p2_Pl_mc_AKGC417L.wav,False
+"EP66_heart failure,Crep,P R L ,43,M.wav",audio,15.54,0.2267,13.45,166_1p1_Al_sc_Meditron.wav,0.183,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP67_heart failure,Crep,P R L ,24,F.wav",audio,18.86,0.3102,11.35,166_1p1_Al_sc_Meditron.wav,0.2237,120_1b1_Ar_sc_Meditron.wav,False
+"EP68_asthma,E W,P R L ,21,F.wav",audio,19.89,0.2635,12.05,166_1p1_Al_sc_Meditron.wav,0.138,222_1b1_Ar_sc_Meditron.wav,False
+"EP69_pneumonia,Bronchial,P R L ,64,M.wav",audio,24.18,0.3009,3.93,178_2b2_Al_mc_AKGC417L.wav,0.2722,166_1p1_Al_sc_Meditron.wav,False
+"EP6_Plueral Effusion,I C B,P L R,81,M.wav",audio,28.53,0.2347,6.37,156_2b3_Ar_mc_AKGC417L.wav,0.2246,213_1p2_Pl_mc_AKGC417L.wav,False
+"EP70_N,N,P L U,52,F.wav",audio,13.74,0.2579,5.97,160_1b2_Pr_mc_AKGC417L.wav,0.2521,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP71_N,N,P R U,36,M.wav",audio,14.38,0.3084,24.54,166_1p1_Al_sc_Meditron.wav,0.3008,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP72_N,N,P R U,24,F.wav",audio,24.24,0.2783,0.23,156_2b3_Ar_mc_AKGC417L.wav,0.2501,219_2b2_Ar_mc_LittC2SE.wav,False
+"EP73_N,N,P L L,32,M.wav",audio,19.57,0.2028,16.95,110_1b1_Pr_sc_Meditron.wav,0.1743,166_1p1_Al_sc_Meditron.wav,False
+"EP74_N,N,P R M,74,M.wav",audio,26.35,0.184,2.32,166_1p1_Al_sc_Meditron.wav,0.1728,132_2b2_Lr_mc_LittC2SE.wav,False
+"EP75_N,N,P L U,73,F.wav",audio,23.47,0.2484,0.18,178_2b2_Al_mc_AKGC417L.wav,0.2483,166_1p1_Al_sc_Meditron.wav,False
+"EP76_N,N,A L U,31,M.wav",audio,14.58,0.2843,17.52,110_1b1_Pr_sc_Meditron.wav,0.2548,166_1p1_Al_sc_Meditron.wav,False
+"EP77_Asthma,E W,A R L,40,M.wav",audio,14.58,0.2843,17.52,110_1b1_Pr_sc_Meditron.wav,0.2548,166_1p1_Al_sc_Meditron.wav,False
+"EP78_Asthma,E W,P R M,20,M.wav",audio,20.27,0.3395,15.16,166_1p1_Al_sc_Meditron.wav,0.2149,110_1b1_Pr_sc_Meditron.wav,False
+"EP79_asthma,E W,A R U,46,M.wav",audio,20.34,0.1593,19.83,110_1b1_Pr_sc_Meditron.wav,0.154,120_1b1_Ar_sc_Meditron.wav,False
+"EP7_Heart Failure + COPD,I C E W,P L R,65,M.wav",audio,22.13,0.1736,39.87,112_1b1_Ar_sc_Meditron.wav,0.1347,110_1b1_Pr_sc_Meditron.wav,False
+"EP80_asthma,E W,A L U,38,M.wav",audio,18.03,0.0993,21.96,166_1p1_Al_sc_Meditron.wav,0.0897,110_1b1_Pr_sc_Meditron.wav,False
+"EP81_N,N,P L U,33,M.wav",audio,23.54,0.2692,9.59,166_1p1_Al_sc_Meditron.wav,0.1803,147_2b3_Lr_mc_AKGC417L.wav,False
+"EP82_N,N,P L U,38,M.wav",audio,18.67,0.2089,6.82,166_1p1_Al_sc_Meditron.wav,0.1953,120_1b1_Ar_sc_Meditron.wav,False
+"EP83_N,N,A R U,18,F.wav",audio,25.65,0.1918,4.68,178_2b2_Al_mc_AKGC417L.wav,0.1429,166_1p1_Al_sc_Meditron.wav,False
+"EP84_N,N,A R U,65,F.wav",audio,25.78,0.283,2.59,156_2b3_Ar_mc_AKGC417L.wav,0.2328,122_2b3_Tc_mc_LittC2SE.wav,False
+"EP85_N,N,A R U,33,M.wav",audio,12.27,0.2195,12.49,166_1p1_Al_sc_Meditron.wav,0.1935,120_1b1_Ar_sc_Meditron.wav,False
+"EP86_N,N,P R U,68,F.wav",audio,14.45,0.352,10.4,166_1p1_Al_sc_Meditron.wav,0.3242,218_1b1_Ar_sc_Meditron.wav,False
+"EP87_N,N,P R M,72,M.wav",audio,17.46,0.3215,16.9,110_1b1_Pr_sc_Meditron.wav,0.3002,122_2b3_Tc_mc_LittC2SE.wav,False
+"EP88_N,N,A R U,29,M.wav",audio,23.73,0.1827,0.51,156_2b3_Ar_mc_AKGC417L.wav,0.1535,110_1b1_Pr_sc_Meditron.wav,False
+"EP89_N,N,P L M,70,M.wav",audio,22.06,0.1866,1.99,147_2b3_Lr_mc_AKGC417L.wav,0.1795,166_1p1_Al_sc_Meditron.wav,False
+"EP8_Plueral Effusion,I C B,P L L,70,M.wav",audio,22.06,0.4419,24.51,166_1p1_Al_sc_Meditron.wav,0.3826,110_1b1_Pr_sc_Meditron.wav,False
+"EP90_heart failure,Crep,P L M,74,F.wav",audio,14.96,0.2367,24.2,166_1p1_Al_sc_Meditron.wav,0.2253,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP91_asthma,E W,P R U,43,F.wav",audio,12.14,0.0967,0.36,110_1b1_Pr_sc_Meditron.wav,0.0944,147_2b3_Lr_mc_AKGC417L.wav,False
+"EP92_N,N,P L L ,43,M.wav",audio,12.46,0.5229,19.14,166_1p1_Al_sc_Meditron.wav,0.4469,162_1b2_Lr_mc_AKGC417L.wav,False
+"EP93_N,N,P R M,75,M.wav",audio,9.84,0.1508,2.58,110_1b1_Pr_sc_Meditron.wav,0.1264,218_1b1_Ar_sc_Meditron.wav,False
+"EP94_N,N,P L L,24,M.wav",audio,14.38,0.2599,17.7,110_1b1_Pr_sc_Meditron.wav,0.2376,156_2b3_Ar_mc_AKGC417L.wav,False
+"EP95_N,N,P L M,18,M.wav",audio,13.55,0.3285,14.48,166_1p1_Al_sc_Meditron.wav,0.2659,110_1b1_Pr_sc_Meditron.wav,False
+"EP96_N,N,P R L ,66,F.wav",audio,15.47,0.3317,12.71,166_1p1_Al_sc_Meditron.wav,0.2615,120_1b1_Ar_sc_Meditron.wav,False
+"EP97_Asthma,E W,P R U,24,M.wav",audio,21.94,0.2825,20.18,166_1p1_Al_sc_Meditron.wav,0.1916,110_1b1_Pr_sc_Meditron.wav,False
+"EP98_N,N,P L L,53,M.wav",audio,18.93,0.2476,0.49,156_2b3_Ar_mc_AKGC417L.wav,0.2461,166_1p1_Al_sc_Meditron.wav,False
+"EP99_N,N,P R M,50,M.wav",audio,27.89,0.204,5.26,159_1b1_Pr_sc_Meditron.wav,0.1822,178_2b2_Al_mc_AKGC417L.wav,False
+"EP9_Asthma,E W,P R L ,59,M.wav",audio,15.34,0.1285,2.16,122_2b3_Tc_mc_LittC2SE.wav,0.1161,135_2b3_Pl_mc_LittC2SE.wav,False
