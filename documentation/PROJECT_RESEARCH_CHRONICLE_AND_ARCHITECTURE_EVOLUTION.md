@@ -922,6 +922,14 @@ before tuning for accuracy.
    test those two categories directly.
 6. **External evaluation tool (`experiments/external.py`).** Runs the KAUH external manifest
    through the served prediction path (fusion, temperature, abstention) for a chosen artifact.
+7. **Generalized fusion artifacts (`fusion.type = "late_fusion_members"`).** `main.py --fusion
+   members --fusion-members yamnet,opera_ce --ensemble-seeds N` trains N RespiNets (seed, seed+1, …;
+   their window probabilities are averaged) and one logistic head per frozen extractor; each member
+   is temperature-calibrated on validation, members are averaged with equal weights, and
+   `calibration.json` calibrates the result. The contract checks the SHA-256 of every RespiNet file,
+   every extractor directory (OPERA members ship only their own checkpoint) and every head; the
+   server loads all members and computes embeddings from the 16 kHz decode. The 2026-10-22
+   `respinet+yamnet_logistic` format still loads unchanged. Saliency still uses the first RespiNet.
 
 ---
 

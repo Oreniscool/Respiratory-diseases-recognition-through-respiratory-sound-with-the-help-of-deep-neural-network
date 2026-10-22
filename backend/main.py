@@ -226,9 +226,20 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--icbhi-annotations", default="dataset/ICBHI_final_dataset")
     parser.add_argument(
         "--fusion",
-        choices=["none", "yamnet"],
+        choices=["none", "yamnet", "members"],
         default="none",
-        help="Late-fuse RespiNet with a YAMNet-embedding logistic head (see pretrained.py)",
+        help=(
+            "Late fusion: 'yamnet' (RespiNet + YAMNet head, the 2026-10-22 format) or 'members' "
+            "(RespiNet ensemble + one head per --fusion-members extractor)"
+        ),
+    )
+    parser.add_argument(
+        "--fusion-members",
+        default="yamnet",
+        help="Comma-separated pretrained.EXTRACTORS names for --fusion members (e.g. yamnet,opera_ce)",
+    )
+    parser.add_argument(
+        "--ensemble-seeds", type=int, default=1, help="Train N RespiNets (seed, seed+1, …) and average them"
     )
     parser.add_argument(
         "--yamnet-dir",
@@ -602,7 +613,6 @@ def run_training(args: argparse.Namespace) -> None:
 
     from train import train_model
 
-    set_random_seed(args.seed)
 
     offline_spec = args.offline_spec_augment and (not args.no_spec_augment)
     config = preprocessing_config(args)
@@ -651,45 +661,76 @@ def run_training(args: argparse.Namespace) -> None:
             )
             for data in (train_data, validation_data)
         )
-    model, _, model_path, class_weights = train_model(
-        train_data.X,
-        y_train,
-        validation_data.X,
-        y_validation,
-        output_dir=output_dir,
-        batch_size=args.batch_size,
-        epochs=args.epochs,
-        learning_rate=args.learning_rate,
-        healthy_class_index=healthy_index,
-        healthy_class_multiplier=args.healthy_class_multiplier,
-        use_focal_loss=args.use_focal_loss,
-        label_smoothing=args.label_smoothing,
-        use_spec_augment=use_online_spec,
-        num_freq_masks=args.num_freq_masks,
-        max_freq_mask=args.max_freq_mask,
-        num_time_masks=args.num_time_masks,
-        max_time_mask=args.max_time_mask,
-        seed=args.seed,
-        cudnn_gru=args.cudnn_gru,
-        spec_augment_mode=args.spec_augment_mode,
-        mixup_alpha=args.mixup_alpha,
-        aux_train=aux_train,
-        aux_val=aux_validation,
-        aux_weight=args.multitask_weight,
-    )
+    def train_respinet(seed: int, directory: Path):
+        set_random_seed(seed)
+        return train_model(
+            train_data.X,
+            y_train,
+            validation_data.X,
+            y_validation,
+            output_dir=directory,
+            batch_size=args.batch_size,
+            epochs=args.epochs,
+            learning_rate=args.learning_rate,
+            healthy_class_index=healthy_index,
+            healthy_class_multiplier=args.healthy_class_multiplier,
+            use_focal_loss=args.use_focal_loss,
+            label_smoothing=args.label_smoothing,
+            use_spec_augment=use_online_spec,
+            num_freq_masks=args.num_freq_masks,
+            max_freq_mask=args.max_freq_mask,
+            num_time_masks=args.num_time_masks,
+            max_time_mask=args.max_time_mask,
+            seed=seed,
+            cudnn_gru=args.cudnn_gru,
+            spec_augment_mode=args.spec_augment_mode,
+            mixup_alpha=args.mixup_alpha,
+            aux_train=aux_train,
+            aux_val=aux_validation,
+            aux_weight=args.multitask_weight,
+        )
 
-    validation_raw_probabilities = np.asarray(model.predict(validation_data.X, verbose=0))
+    model, _, model_path, class_weights = train_respinet(args.seed, output_dir)
+    # Extra ensemble members are trained with seed+1, seed+2, … and stored next to the main model.
+    ensemble = [model]
+    ensemble_files = [model_path.name]
+    for offset in range(1, args.ensemble_seeds):
+        import shutil
+
+        member_seed = args.seed + offset
+        member, _, member_path, _ = train_respinet(member_seed, output_dir / "ensemble" / f"seed{member_seed}")
+        shutil.copyfile(member_path, output_dir / f"respinet_seed{member_seed}.keras")
+        ensemble.append(member)
+        ensemble_files.append(f"respinet_seed{member_seed}.keras")
+
+    def respinet_predict(features: np.ndarray) -> np.ndarray:
+        return np.mean([np.asarray(m.predict(features, verbose=0)) for m in ensemble], axis=0)
+
+    validation_raw_probabilities = respinet_predict(validation_data.X)
     validation_targets, validation_probabilities, validation_paths = (
         aggregate_probabilities_by_group(
             y_validation, validation_raw_probabilities, validation_data.source_paths
         )
     )
-    test_window_probabilities = np.asarray(model.predict(test_data.X, verbose=0))
+    test_window_probabilities = respinet_predict(test_data.X)
     test_targets, test_probabilities, test_sources = aggregate_probabilities_by_group(
         y_test, test_window_probabilities, test_data.source_paths
     )
     fusion = None
-    if args.fusion == "yamnet":
+    if args.fusion == "members" or args.ensemble_seeds > 1:
+        fusion, validation_probabilities, test_probabilities = fit_members_fusion(
+            args,
+            splits,
+            class_names,
+            output_dir,
+            respinet_files=ensemble_files,
+            validation_targets=validation_targets,
+            validation_paths=validation_paths,
+            validation_respinet=validation_probabilities,
+            test_paths=test_sources,
+            test_respinet=test_probabilities,
+        )
+    elif args.fusion == "yamnet":
         fusion, validation_probabilities, test_probabilities = fit_yamnet_fusion(
             args,
             splits,
@@ -843,6 +884,98 @@ def fit_yamnet_fusion(
     )
 
 
+def fit_members_fusion(
+    args: argparse.Namespace,
+    splits: dict[str, list[AudioRecord]],
+    class_names: list[str],
+    output_dir: Path,
+    *,
+    respinet_files: list[str],
+    validation_targets: np.ndarray,
+    validation_paths: np.ndarray,
+    validation_respinet: np.ndarray,
+    test_paths: np.ndarray,
+    test_respinet: np.ndarray,
+) -> tuple[dict[str, object], np.ndarray, np.ndarray]:
+    """N-member late fusion: the RespiNet (ensemble) plus one logistic head per frozen extractor.
+
+    Every member is temperature-calibrated on the validation split and the members are averaged
+    with equal weights; the caller fits one more temperature on the fused validation probabilities.
+    """
+    import shutil
+
+    from pretrained import (
+        EXTRACTORS,
+        MEMBERS_FUSION_TYPE,
+        OPERA_MODELS,
+        Extractor,
+        directory_sha256,
+        export_logistic_head,
+        fit_logistic_head,
+        fuse_members,
+    )
+
+    members: list[dict[str, object]] = [{
+        "kind": "respinet",
+        "files": respinet_files,
+        "sha256": [hashlib.sha256((output_dir / name).read_bytes()).hexdigest() for name in respinet_files],
+        "temperature": fit_temperature(validation_targets, validation_respinet)["temperature"],
+    }]
+    validation_members, test_members = [validation_respinet], [test_respinet]
+    records = [*splits["train"], *splits["validation"], *splits["test"]]
+    labels = {str(r.path): r.disease for r in records}
+    train_paths = [str(r.path) for r in splits["train"]]
+    names = [name for name in args.fusion_members.split(",") if name] if args.fusion == "members" else []
+    for name in names:
+        if name not in EXTRACTORS:
+            raise ValueError(f"Unknown --fusion-members entry {name!r}; choose from {sorted(EXTRACTORS)}")
+        source_dir = Path(EXTRACTORS[name])
+        model_dir = output_dir / name
+        model_dir.mkdir(parents=True, exist_ok=True)
+        if name.startswith("opera"):  # ship only the checkpoint this member uses
+            shutil.copyfile(source_dir / OPERA_MODELS[name][0], model_dir / OPERA_MODELS[name][0])
+        else:
+            shutil.copytree(source_dir, model_dir, dirs_exist_ok=True)
+        extractor = Extractor(name, model_dir)
+        print(f"[fusion] {name}: embedding {len(records)} recordings", flush=True)
+        embeddings = {str(r.path): extractor.embed(r.path) for r in records}
+
+        def matrix(paths):
+            return np.stack([embeddings[str(path)] for path in paths])
+
+        pipeline, chosen = fit_logistic_head(
+            matrix(train_paths), [labels[p] for p in train_paths],
+            matrix(validation_paths), [labels[str(p)] for p in validation_paths],
+        )
+        head_file = f"{name}_head.keras"
+        head = export_logistic_head(pipeline, class_names, output_dir / head_file)
+        order = [list(pipeline.classes_).index(c) for c in class_names]
+        validation_head = np.asarray(head.predict(matrix(validation_paths), verbose=0))
+        reference = pipeline.predict_proba(matrix(validation_paths))[:, order]
+        if not (np.allclose(validation_head, reference, atol=1e-3)
+                and np.array_equal(validation_head.argmax(1), reference.argmax(1))):
+            raise RuntimeError(f"Exported {name} head does not reproduce the fitted logistic regression")
+        members.append({
+            "kind": "embedding_head",
+            "extractor": name,
+            "model_dir": name,
+            "model_sha256": directory_sha256(model_dir),
+            "head_file": head_file,
+            "head_sha256": hashlib.sha256((output_dir / head_file).read_bytes()).hexdigest(),
+            "head_logistic_C": chosen["C"],
+            "temperature": fit_temperature(validation_targets, validation_head)["temperature"],
+        })
+        validation_members.append(validation_head)
+        test_members.append(np.asarray(head.predict(matrix(test_paths), verbose=0)))
+    fusion = {
+        "type": MEMBERS_FUSION_TYPE,
+        "members": members,
+        "weights": [1.0] * len(members),
+        "aggregation": "weighted mean of member-calibrated probabilities, then the calibration.json temperature",
+    }
+    return fusion, fuse_members(validation_members, fusion), fuse_members(test_members, fusion)
+
+
 def resolve_source_revision(explicit: str) -> str:
     """Use the given revision, else the current git commit (suffixed -dirty if modified)."""
     if explicit and explicit != "unknown":
@@ -936,6 +1069,7 @@ def build_model_metadata(
                     "off" if args.no_augmentation else (args.max_waveform_variants or "all")
                 ),
                 "cudnn_gru": args.cudnn_gru,
+                "ensemble_seeds": args.ensemble_seeds,
                 "mixup_alpha": args.mixup_alpha,
                 "device_augment": args.device_augment,
                 "multitask": (

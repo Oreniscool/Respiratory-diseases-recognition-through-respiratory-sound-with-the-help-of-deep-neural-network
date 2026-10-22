@@ -186,13 +186,23 @@ class Extractor:
                 self._model = load_opera(self.model_dir, self.name)
         return self._model
 
+    @property
+    def model(self):
+        return self._load()
+
     def embed(self, path: str | Path) -> np.ndarray:
+        return self.embed_waveform(load_yamnet_audio(path))
+
+    def embed_waveform(self, waveform: np.ndarray) -> np.ndarray:
+        """Embedding of 16 kHz mono audio (every extractor starts from ``load_yamnet_audio``)."""
         model = self._load()
         if self.name == "yamnet":
-            return yamnet_embedding(model, load_yamnet_audio(path))
+            return yamnet_embedding(model, waveform)
         if self.name == "yamnet_bandpass":
-            return yamnet_embedding(model, load_yamnet_bandpass_audio(path))
-        return opera_embedding(model, self.name, load_yamnet_audio(path))
+            from preprocessing import apply_bandpass_filter
+
+            return yamnet_embedding(model, apply_bandpass_filter(waveform, YAMNET_SAMPLE_RATE, 100.0, 2000.0))
+        return opera_embedding(model, self.name, waveform)
 
 
 # name -> default model directory (relative to backend/)
@@ -247,6 +257,24 @@ def fuse_probabilities(
     combined = (
         float(weights[0]) * apply_temperature(np.atleast_2d(respinet), float(fusion["respinet_temperature"]))
         + float(weights[1]) * apply_temperature(np.atleast_2d(yamnet), float(fusion["yamnet_temperature"]))
+    )
+    return combined / combined.sum(axis=1, keepdims=True)
+
+
+# Generalized late fusion (round 2): any number of members, each a RespiNet ensemble or a frozen
+# embedding model with a logistic head. ``fusion["members"]`` lists them in order; every member has
+# a validation-fitted "temperature", and ``fusion["weights"]`` their weights.
+MEMBERS_FUSION_TYPE = "late_fusion_members"
+
+
+def fuse_members(member_probabilities: list[np.ndarray], fusion: dict[str, object]) -> np.ndarray:
+    """Weighted mean of member-calibrated probabilities (before the final fused temperature)."""
+    members, weights = fusion["members"], fusion["weights"]
+    if not (len(member_probabilities) == len(members) == len(weights)):
+        raise ValueError("Fusion needs one probability vector and one weight per member")
+    combined = sum(
+        float(weight) * apply_temperature(np.atleast_2d(probabilities), float(member["temperature"]))
+        for probabilities, member, weight in zip(member_probabilities, members, weights)
     )
     return combined / combined.sum(axis=1, keepdims=True)
 

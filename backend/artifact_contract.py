@@ -91,23 +91,66 @@ def load_verified_contract(model_path: str | Path, metadata_path: str | Path) ->
 
 
 def _verify_fusion(fusion: object, artifact_dir: Path) -> dict[str, object] | None:
-    """A fusion artifact must ship a hash-matching YAMNet SavedModel and classifier head."""
+    """A fusion artifact must ship every member file with a matching SHA-256."""
     if fusion is None:
         return None
-    from pretrained import FUSION_TYPE, directory_sha256
+    from pretrained import FUSION_TYPE, MEMBERS_FUSION_TYPE
 
-    if not isinstance(fusion, dict) or fusion.get("type") != FUSION_TYPE:
+    if not isinstance(fusion, dict) or fusion.get("type") not in {FUSION_TYPE, MEMBERS_FUSION_TYPE}:
         raise ValueError("Model metadata contains an unsupported fusion definition")
+    if fusion["type"] == MEMBERS_FUSION_TYPE:
+        return _verify_members(fusion, artifact_dir)
     weights = fusion.get("weights")
     if not (isinstance(weights, list) and len(weights) == 2 and all(float(w) >= 0 for w in weights)):
         raise ValueError("Fusion weights must be two non-negative numbers")
     for key in ("respinet_temperature", "yamnet_temperature"):
         if not float(fusion.get(key, 0)) > 0:
             raise ValueError(f"Fusion {key} must be positive")
-    head = artifact_dir / str(fusion.get("head_filename"))
-    if not head.is_file() or _sha256(head) != fusion.get("head_sha256"):
-        raise ValueError("Fusion head is missing or its hash does not match model_metadata.json")
-    yamnet = artifact_dir / str(fusion.get("yamnet_dir"))
-    if not yamnet.is_dir() or directory_sha256(yamnet) != fusion.get("yamnet_sha256"):
-        raise ValueError("YAMNet model is missing or its hash does not match model_metadata.json")
+    _check_file(artifact_dir, fusion.get("head_filename"), fusion.get("head_sha256"), "Fusion head")
+    _check_directory(artifact_dir, fusion.get("yamnet_dir"), fusion.get("yamnet_sha256"), "YAMNet model")
+    return fusion
+
+
+def _check_file(artifact_dir: Path, name: object, expected: object, what: str) -> None:
+    path = artifact_dir / str(name)
+    if not path.is_file() or _sha256(path) != expected:
+        raise ValueError(f"{what} is missing or its hash does not match model_metadata.json")
+
+
+def _check_directory(artifact_dir: Path, name: object, expected: object, what: str) -> None:
+    from pretrained import directory_sha256
+
+    path = artifact_dir / str(name)
+    if not path.is_dir() or directory_sha256(path) != expected:
+        raise ValueError(f"{what} is missing or its hash does not match model_metadata.json")
+
+
+def _verify_members(fusion: dict[str, object], artifact_dir: Path) -> dict[str, object]:
+    from pretrained import EXTRACTORS
+
+    members, weights = fusion.get("members"), fusion.get("weights")
+    if not (isinstance(members, list) and members and isinstance(weights, list)):
+        raise ValueError("Fusion members and weights must be non-empty lists")
+    if len(weights) != len(members) or any(float(w) < 0 for w in weights) or not sum(map(float, weights)) > 0:
+        raise ValueError("Fusion needs one non-negative weight per member")
+    if [member.get("kind") for member in members].count("respinet") != 1:
+        raise ValueError("Fusion needs exactly one RespiNet member (it may hold several models)")
+    for member in members:
+        if not float(member.get("temperature", 0)) > 0:
+            raise ValueError("Every fusion member needs a positive temperature")
+        if member.get("kind") == "respinet":
+            files, hashes = member.get("files"), member.get("sha256")
+            if not (isinstance(files, list) and files and isinstance(hashes, list) and len(files) == len(hashes)):
+                raise ValueError("A RespiNet member lists its model files and their hashes")
+            for name, expected in zip(files, hashes):
+                _check_file(artifact_dir, name, expected, f"RespiNet model {name}")
+        elif member.get("kind") == "embedding_head":
+            if member.get("extractor") not in EXTRACTORS:
+                raise ValueError(f"Unknown embedding extractor {member.get('extractor')!r}")
+            _check_directory(artifact_dir, member.get("model_dir"), member.get("model_sha256"),
+                             f"{member['extractor']} model")
+            _check_file(artifact_dir, member.get("head_file"), member.get("head_sha256"),
+                        f"{member['extractor']} head")
+        else:
+            raise ValueError(f"Unknown fusion member kind {member.get('kind')!r}")
     return fusion

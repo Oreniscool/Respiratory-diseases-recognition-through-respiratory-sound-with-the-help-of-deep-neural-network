@@ -45,6 +45,9 @@ from audio_validation import validate_audio_upload
 from calibration import apply_temperature, is_uncertain
 from pretrained import (
     YAMNET_SAMPLE_RATE,
+    MEMBERS_FUSION_TYPE,
+    Extractor,
+    fuse_members,
     fuse_probabilities,
     gate_reason,
     load_yamnet,
@@ -134,6 +137,8 @@ CONTRACT: ModelContract | None = None
 _MODEL_LOCK = threading.Lock()
 FUSION_HEAD = None   # YAMNet logistic head (Keras), only for fusion artifacts
 YAMNET = None        # YAMNet SavedModel, only for fusion artifacts
+ENSEMBLE_MODELS: list = []    # extra RespiNet models of a members-fusion artifact
+EMBEDDING_MEMBERS: list = []  # (member, Extractor, head) of a members-fusion artifact
 _RATE_LIMIT_LOCK = threading.Lock()
 _RATE_LIMIT_REQUESTS: dict[str, list[float]] = {}
 logger = logging.getLogger("respinet")
@@ -163,6 +168,17 @@ def load_model_contract() -> list[str]:
 CLASSES = load_model_contract()
 
 
+def _custom_objects() -> dict[str, object]:
+    return {
+        "FeatureValidityMask": FeatureValidityMask,
+        "MaskedGlobalAveragePooling1D": MaskedGlobalAveragePooling1D,
+        "MaskedDualTemporalPooling1D": MaskedDualTemporalPooling1D,
+        "MultiScaleConvBlock": MultiScaleConvBlock,
+        "SqueezeExcitation1D": SqueezeExcitation1D,
+        "CategoricalFocalLoss": CategoricalFocalLoss,
+    }
+
+
 def load_model_once():
     global model
     if model is None:
@@ -173,15 +189,7 @@ def load_model_once():
                 raise RuntimeError(MODEL_CONTRACT_ERROR or "Model artifact is not verified")
 
             print(f"[RespiNet] Loading model from {MODEL_PATH} …")
-            custom_objects = {
-                "FeatureValidityMask": FeatureValidityMask,
-                "MaskedGlobalAveragePooling1D": MaskedGlobalAveragePooling1D,
-                "MaskedDualTemporalPooling1D": MaskedDualTemporalPooling1D,
-                "MultiScaleConvBlock": MultiScaleConvBlock,
-                "SqueezeExcitation1D": SqueezeExcitation1D,
-                "CategoricalFocalLoss": CategoricalFocalLoss,
-            }
-            loaded_model = load_model(MODEL_PATH, custom_objects=custom_objects)
+            loaded_model = load_model(MODEL_PATH, custom_objects=_custom_objects())
             output_dim = int(loaded_model.output_shape[-1])
             if output_dim != len(CLASSES):
                 raise RuntimeError(
@@ -196,9 +204,32 @@ def load_model_once():
 
 
 def _load_fusion_members(output_dim: int) -> None:
-    """Load YAMNet and its classifier head; both were hash-checked by the contract."""
-    global FUSION_HEAD, YAMNET
+    """Load every fusion member; the contract has already hash-checked all of their files."""
+    global FUSION_HEAD, YAMNET, ENSEMBLE_MODELS, EMBEDDING_MEMBERS
     artifact_dir = CONTRACT.metadata_path.parent
+    if CONTRACT.fusion["type"] == MEMBERS_FUSION_TYPE:
+        extra_models, embedding_members = [], []
+        for member in CONTRACT.fusion["members"]:
+            if member["kind"] == "respinet":
+                extra_models = [
+                    load_model(artifact_dir / name, custom_objects=_custom_objects())
+                    for name in member["files"]
+                    if name != CONTRACT.model_path.name
+                ]
+                continue
+            head = load_model(artifact_dir / str(member["head_file"]))
+            if int(head.output_shape[-1]) != output_dim:
+                raise RuntimeError(f"{member['extractor']} head disagrees on the number of classes")
+            extractor = Extractor(str(member["extractor"]), artifact_dir / str(member["model_dir"]))
+            if extractor.name.startswith("yamnet"):
+                YAMNET = extractor.model  # also used by the lung-sound gate
+            else:
+                extractor.model  # load now rather than on the first request
+            embedding_members.append((member, extractor, head))
+        ENSEMBLE_MODELS, EMBEDDING_MEMBERS = extra_models, embedding_members
+        print(f"[RespiNet] Fusion members loaded ✓ ({1 + len(extra_models)} RespiNet, "
+              f"{', '.join(m['extractor'] for m, _, _ in embedding_members) or 'no embeddings'})")
+        return
     head = load_model(artifact_dir / str(CONTRACT.fusion["head_filename"]))
     if int(head.output_shape[-1]) != output_dim:
         raise RuntimeError("YAMNet head and RespiNet disagree on the number of classes")
@@ -302,7 +333,20 @@ def _aggregate_window_probabilities(
 ) -> np.ndarray:
     """Average every window, fuse with YAMNet if the artifact is a fusion, then apply temperature."""
     aggregated = np.mean(window_probabilities, axis=0, keepdims=True)
-    if CONTRACT is not None and CONTRACT.fusion is not None:
+    if CONTRACT is not None and CONTRACT.fusion is not None and CONTRACT.fusion["type"] == MEMBERS_FUSION_TYPE:
+        if yamnet_audio is None:
+            raise RuntimeError("Fusion artifact requires the 16 kHz recording for its embedding members")
+        loaded = iter(EMBEDDING_MEMBERS)
+        member_probabilities = []
+        for member in CONTRACT.fusion["members"]:
+            if member["kind"] == "respinet":
+                member_probabilities.append(aggregated)
+                continue
+            _, extractor, head = next(loaded)
+            embedding = extractor.embed_waveform(yamnet_audio)[None, :]
+            member_probabilities.append(np.asarray(head.predict(embedding, verbose=0)))
+        aggregated = fuse_members(member_probabilities, CONTRACT.fusion)
+    elif CONTRACT is not None and CONTRACT.fusion is not None:
         if yamnet_audio is None or FUSION_HEAD is None or YAMNET is None:
             raise RuntimeError("Fusion artifact requires YAMNet audio and its loaded members")
         embedding = yamnet_embedding(YAMNET, yamnet_audio)[None, :]
@@ -326,7 +370,10 @@ def _prediction_payload(
     denoise: bool,
     yamnet_audio: np.ndarray | None = None,
 ) -> tuple[dict[str, object], np.ndarray, np.ndarray]:
-    window_probabilities = _predict_probabilities(m, windows)
+    # A RespiNet ensemble averages its models' window probabilities (saliency uses the first model).
+    window_probabilities = np.mean(
+        [_predict_probabilities(member, windows) for member in (m, *ENSEMBLE_MODELS)], axis=0
+    )
     probabilities = _aggregate_window_probabilities(window_probabilities, yamnet_audio)
     pred_idx = int(np.argmax(probabilities))
     policy = MODEL_METADATA.get("uncertainty", {}) if MODEL_METADATA else {}

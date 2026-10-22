@@ -170,3 +170,98 @@ def test_lung_sound_gate_rejects_tone_noise_and_silence_but_passes_real_recordin
     recordings = sorted(glob.glob("dataset/ICBHI_final_dataset/*.wav"))[:3]
     for path in recordings:
         assert lung_sound_gate(model, load_yamnet_audio(path))[0]
+
+
+def _members_artifact(tmp_path):
+    from pretrained import MEMBERS_FUSION_TYPE
+
+    model, metadata_path = _fusion_artifact(tmp_path)
+    (tmp_path / "respinet_seed43.keras").write_bytes(b"model2")
+    opera = tmp_path / "opera_ce"
+    opera.mkdir()
+    (opera / "encoder-operaCE.ckpt").write_bytes(b"weights")
+    (tmp_path / "opera_ce_head.keras").write_bytes(b"head2")
+    metadata = json.loads(metadata_path.read_text())
+    metadata["fusion"] = {
+        "type": MEMBERS_FUSION_TYPE,
+        "weights": [1.0, 1.0, 1.0],
+        "members": [
+            {"kind": "respinet", "files": [model.name, "respinet_seed43.keras"],
+             "sha256": [hashlib.sha256(b"model").hexdigest(), hashlib.sha256(b"model2").hexdigest()],
+             "temperature": 0.9},
+            {"kind": "embedding_head", "extractor": "yamnet", "model_dir": "yamnet",
+             "model_sha256": directory_sha256(tmp_path / "yamnet"), "head_file": "yamnet_head.keras",
+             "head_sha256": hashlib.sha256(b"head").hexdigest(), "temperature": 1.1},
+            {"kind": "embedding_head", "extractor": "opera_ce", "model_dir": "opera_ce",
+             "model_sha256": directory_sha256(opera), "head_file": "opera_ce_head.keras",
+             "head_sha256": hashlib.sha256(b"head2").hexdigest(), "temperature": 1.3},
+        ],
+    }
+    metadata_path.write_text(json.dumps(metadata))
+    return model, metadata_path
+
+
+def test_members_fusion_math_and_contract(tmp_path):
+    from pretrained import fuse_members
+
+    model, metadata_path = _members_artifact(tmp_path)
+    contract = load_verified_contract(model, metadata_path)
+    probabilities = [np.asarray([[0.6, 0.3, 0.1]]), np.asarray([[0.1, 0.8, 0.1]]), np.asarray([[0.2, 0.2, 0.6]])]
+    expected = sum(
+        apply_temperature(p, m["temperature"]) for p, m in zip(probabilities, contract.fusion["members"])
+    ) / 3
+    np.testing.assert_allclose(fuse_members(probabilities, contract.fusion), expected)
+
+    (tmp_path / "respinet_seed43.keras").write_bytes(b"tampered")
+    with pytest.raises(ValueError, match="respinet_seed43"):
+        load_verified_contract(model, metadata_path)
+
+
+def test_members_contract_rejects_unknown_extractors_and_bad_weights(tmp_path):
+    model, metadata_path = _members_artifact(tmp_path)
+    metadata = json.loads(metadata_path.read_text())
+    metadata["fusion"]["members"][2]["extractor"] = "mystery"
+    metadata_path.write_text(json.dumps(metadata))
+    with pytest.raises(ValueError, match="Unknown embedding extractor"):
+        load_verified_contract(model, metadata_path)
+    metadata["fusion"]["members"][2]["extractor"] = "opera_ce"
+    metadata["fusion"]["weights"] = [1.0, 1.0]
+    metadata_path.write_text(json.dumps(metadata))
+    with pytest.raises(ValueError, match="one non-negative weight per member"):
+        load_verified_contract(model, metadata_path)
+
+
+def test_server_fuses_every_member_in_order(tmp_path, monkeypatch):
+    import server
+    from pretrained import fuse_members
+
+    model, metadata_path = _members_artifact(tmp_path)
+    contract = load_verified_contract(model, metadata_path)
+
+    class Extractor:
+        def __init__(self, vector):
+            self.vector = vector
+
+        def embed_waveform(self, waveform):
+            return self.vector
+
+    class Head:
+        def __init__(self, output):
+            self.output = output
+
+        def predict(self, embedding, verbose=0):
+            return np.asarray([self.output])
+
+    members = contract.fusion["members"]
+    monkeypatch.setattr(server, "CONTRACT", contract)
+    monkeypatch.setattr(server, "EMBEDDING_MEMBERS", [
+        (members[1], Extractor(np.zeros(4)), Head([0.1, 0.8, 0.1])),
+        (members[2], Extractor(np.ones(4)), Head([0.2, 0.2, 0.6])),
+    ])
+    windows = np.asarray([[0.6, 0.3, 0.1], [0.8, 0.1, 0.1]])
+    fused = server._aggregate_window_probabilities(windows, yamnet_audio=np.zeros(16_000))
+    expected = apply_temperature(fuse_members(
+        [windows.mean(0, keepdims=True), np.asarray([[0.1, 0.8, 0.1]]), np.asarray([[0.2, 0.2, 0.6]])],
+        contract.fusion,
+    ), 1.25)[0]
+    np.testing.assert_allclose(fused, expected)
