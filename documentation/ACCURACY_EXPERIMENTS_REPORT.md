@@ -50,6 +50,61 @@ All deep variants use the current training settings: batch 64, up to 80 epochs, 
 cosine decay, online SpecAugment, 5 waveform variants per training recording, early stopping on
 validation accuracy (patience 18).
 
-## 3. Results
+## 3. Cross-validation results
 
-_Pending: filled in from `backend/artifacts/experiments/results.json`._
+Out-of-fold predictions for all 1,192 development recordings / 194 patients (100 ICBHI, 94
+Kaggle pseudo-patients). Source: `backend/artifacts/experiments/results.json` (gitignored, local).
+Δ is the paired patient-bootstrap difference from D0 in patient-level balanced accuracy.
+
+| Variant | Rec. acc | Patient acc | Patient bal. acc | Patient macro F1 | Patient AUROC | Rec. ECE | Δ bal. acc vs D0 [95% CI] | P(Δ > 0) |
+|---|---:|---:|---:|---:|---:|---:|---|---:|
+| D0 current RespiNet | 74.5% | 73.2% | 70.0% | 0.698 | 0.915 | 0.118 | reference | – |
+| D2 log-mel front-end | 76.5% | 66.0% | 61.6% | 0.608 | 0.907 | 0.102 | −8.5 [−13.9, −3.2] | 0.00 |
+| C1 MFCC stats + logistic reg. | 73.0% | 67.5% | 63.5% | 0.626 | 0.905 | 0.061 | −6.6 [−14.6, +0.8] | 0.04 |
+| C1 MFCC stats + gradient boosting | 79.6% | 67.0% | 60.6% | 0.564 | 0.885 | 0.042 | −9.4 [−15.8, −2.7] | 0.00 |
+| C2 YAMNet + logistic reg. | 74.9% | 73.2% | 71.1% | 0.710 | 0.911 | 0.078 | +1.1 [−5.5, +8.2] | 0.65 |
+| **F1 D0 + YAMNet fusion** | **81.0%** | **76.8%** | **74.7%** | **0.747** | **0.932** | 0.186¹ | **+4.6 [−0.2, +9.5]** | **0.97** |
+
+¹ The CV fusion averages two separately calibrated members without re-calibrating the result, so
+it is under-confident. The production artifact fits one more temperature on the fused validation
+probabilities, which changes confidence but not the predicted class.
+
+**Per class (patient-level sensitivity, OOF):**
+
+| Class (patients) | D0 | C2 YAMNet | F1 fusion |
+|---|---:|---:|---:|
+| asthma (47) | 93.6% | 87.2% | 91.5% |
+| bronchial (32) | 46.9% | 53.1% | 59.4% |
+| copd (51) | 82.4% | 80.4% | 82.4% |
+| healthy (31) | 51.6% | 74.2% | 61.3% |
+| pneumonia (33) | 75.8% | 60.6% | 78.8% |
+
+The fusion is never worse than D0 on any class and improves the two weakest ones (bronchial
++12.5, healthy +9.7 points). YAMNet alone is better on healthy and bronchial, while RespiNet is
+better on asthma and pneumonia, which is why combining them helps.
+
+**By source (patient level, OOF):** ICBHI (100 patients) D0 67.0% → fusion 69.0% accuracy
+(recording level 75.1% → 82.2%); Kaggle (94 pseudo-patients) 79.8% → 85.1%. The gain is not
+confined to the source with unverified patient identities.
+
+**What did not help:**
+- **Log-mel (D2)** improved recording-level accuracy (+2.0) but lost 8.5 points of patient-level
+  balanced accuracy, mostly on healthy (51.6% → 29.0%) and bronchial. The band-limited mel
+  spectrum is noisier per recording than the cepstrum. Not adopted.
+- **Hand-crafted statistics (C1)** are 6–9 points of balanced accuracy below D0, so the deep
+  sequence model does earn its complexity.
+- **YAMNet alone (C2)** matches D0 (+1.1, P = 0.65). It is a different model, not a better one.
+
+**Decision.** Only F1 meets the pre-registered rule: balanced accuracy +4.6 (≥ 2), macro F1
++4.9 (0.698 → 0.747, ≥ 2), P(Δ > 0) = 0.97 (≥ 0.90). The 95% interval of the balanced-accuracy
+gain still touches zero (−0.2), so the improvement is probable rather than certain. F1 is
+adopted as the served model (section 4).
+
+**Not run.** D1 (cross-entropy instead of the focal loss) was dropped to stay within the ~4 h GPU
+budget: each deep variant costs about 70 minutes for 3 folds. PyTorch foundation models (OPERA,
+PANNs, BEATs) were excluded by choice, HeAR needs a gated licence, and mixup, per-sample
+SpecAugment and seed ensembles were lower priority. These remain the next things to try.
+
+## 4. Adopted model: test-set result (used once)
+
+_Pending: production run `main.py --fusion yamnet` on the seed-42 train/validation split._
