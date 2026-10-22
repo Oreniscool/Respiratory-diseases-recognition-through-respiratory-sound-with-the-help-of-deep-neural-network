@@ -118,7 +118,7 @@ def test_stacked_fusion_scores_each_fold_with_a_stacker_trained_elsewhere():
 
     rng = np.random.default_rng(5)
     y = np.arange(90) % 3
-    folds = np.arange(90) % 3
+    folds = (np.arange(90) // 3) % 3  # every fold contains every class
     good = np.eye(3)[y] * 0.8 + 0.2 / 3
     noise = rng.dirichlet(np.ones(3), 90)
     tables = [{"probabilities": noise, "y": y, "fold": folds}, {"probabilities": good, "y": y, "fold": folds}]
