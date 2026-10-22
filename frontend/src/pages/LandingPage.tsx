@@ -313,7 +313,7 @@ export const LandingPage = () => {
         <div className="stats-grid">
           <StatCard end={5} label="Disease Categories" />
           {/* backend/artifacts/latest/test_metrics.json, 49 held-out patients (2026-10-22) */}
-          <StatCard end={77.6} label="Patient-Level Test Accuracy" suffix="%" decimals={1} />
+          <StatCard end={73.3} label="Patient-Level Test Accuracy (same datasets)" suffix="%" decimals={1} />
           <StatCard end={40} label="MFCC Features Extracted" />
           <StatCard end={120} label="Feature Dimensions" />
         </div>

@@ -1,5 +1,15 @@
 # RespiNet: Master Project Context & Prompt Dossier for Presentation Generation
 
+> **Round 2 update (2026-10-22, supersedes the figures below where they differ).** Kaggle clips cut
+> from the KAUH hospital dataset now carry their real patient IDs, which changed the split. The served
+> RespiNet + YAMNet model, retrained on the corrected split, scores **73.3% patient-level / 81.3%
+> recording-level accuracy** on 45 test patients (95% CI 60–87%; balanced 71.9% / 70.5%). **On 45
+> external KAUH patients from another hospital and stethoscope it scores 0%: healthy and COPD patients
+> are called "asthma"**, because almost all KAUH-recorded training audio is asthma and all COPD audio is
+> ICBHI. Probes show every representation identifies the dataset or stethoscope far more easily than
+> the disease. Present the in-cohort numbers only as in-cohort results, and present the external
+> failure as a key finding. Details: `ROUND2_EXPERIMENTS_REPORT.md`.
+
 > **Usage Guide:**  
 > Copy and paste this entire document into any LLM alongside your desired prompt instruction
 > (e.g., *"Generate a 10-slide deck with speaking notes and slide layout directives based on this

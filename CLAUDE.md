@@ -207,19 +207,20 @@ contaminated by cross-dataset leakage and must not be cited as performance.**
 |---|---|---|
 | Classes (ordered) | `asthma, bronchial, copd, healthy, pneumonia` | `model_metadata.json` |
 | Members | RespiNet-Attention v3, 458,701 parameters (`model_summary.txt`) + frozen YAMNet (`yamnet/`) → logistic head, 2,048 → 5 (`yamnet_head.keras`, C = 0.01) | `model_metadata.json["fusion"]` |
-| Cohort | 1,488 recordings / 243 patients (ICBHI 920 / 126 real patients + Kaggle remainder 568 / 117 pseudo-patients), after dropping 631 Kaggle copies of ICBHI audio and 12 byte duplicates | `dataset_audit.json` |
-| Split (patients) | train 145 / val 49 / test 49; recordings 864 / 328 / 296 | `split_summary.json` |
-| Epochs run (RespiNet) | 62 (early stop); best epoch 44, val_acc 0.7461, train_acc 0.8026 | `training_history.json` |
-| Temperatures | RespiNet 0.7133, YAMNet 0.9992 (`model_metadata.json["fusion"]`); fused **0.6744** (`calibration.json`) | |
-| Abstention | min_conf 0.6481, max_norm_entropy 0.5185, 80% target coverage | `calibration.json` |
-| Test acc (recording / patient) | **84.46% / 77.55%** | `test_metrics.json` |
-| Balanced acc | 79.87% / 76.22% | `test_metrics.json` |
-| Macro F1 | 0.7815 / 0.7627 | `test_metrics.json` |
-| ECE | 0.0309 / 0.0878 | `test_metrics.json` |
-| Macro OvR AUROC | 0.9705 / 0.9532 | `test_metrics.json` |
-| Patient-bootstrap 95% CI (acc) | 65.3% – 89.8% (1,000 samples) | `test_metrics.json` |
-| By source, accuracy rec. / patient | ICBHI (26 real patients) 82.97% / 65.38%; Kaggle (23 pseudo-patients, IDs unverified) 86.84% / 91.30% | `test_metrics.json["by_source"]` |
-| Code revision | `30f58ca` | `model_metadata.json` |
+| Cohort | 1,488 recordings / 223 patients (ICBHI 920 / 126 + Kaggle remainder 568 / 97: 40 real KAUH patients + 57 filename groups), after dropping 631 Kaggle copies of ICBHI audio and 12 byte duplicates | `dataset_audit.json` |
+| Split (patients) | train 133 / val 45 / test 45; recordings 868 / 284 / 336 | `split_summary.json` |
+| Epochs run (RespiNet) | 80 (no early stop); best epoch 67, val_acc 0.7015, train_acc 0.8436 | `training_history.json` |
+| Temperatures | RespiNet 0.8443, YAMNet 1.5371 (`model_metadata.json["fusion"]`); fused **0.5592** (`calibration.json`) | |
+| Abstention | min_conf 0.6929, max_norm_entropy 0.4525, 80% target coverage | `calibration.json` |
+| Test acc (recording / patient) | **81.25% / 73.33%** (45 patients, round-2 split) | `test_metrics.json` |
+| Balanced acc | 70.49% / 71.92% | `test_metrics.json` |
+| Macro F1 | 0.648 / 0.673 | `test_metrics.json` |
+| ECE | 0.0455 / 0.1955 | `test_metrics.json` |
+| Macro OvR AUROC | 0.8925 / 0.9053 | `test_metrics.json` |
+| Patient-bootstrap 95% CI (acc) | 60.0% – 86.7% (1,000 samples) | `test_metrics.json` |
+| By source, accuracy rec. / patient | ICBHI (27 patients) 85.92% / 70.37%; Kaggle (18 patients, 316 clips with real KAUH IDs) 73.17% / 77.78% | `test_metrics.json["by_source"]` |
+| **External KAUH (45 in-label patients)** | **0%**: healthy and COPD predicted asthma | `artifacts/experiments/external/served_round2.json` |
+| Code revision | `b1698e9` (round 2); previous model archived in `artifacts/fusion-2026-10-22-oldsplit/` | `model_metadata.json` |
 
 **Historical numbers in docs:** The chronicle keeps superseded figures (T ≈ 1.54, the §7.1
 "refactored" table, the ~136K-parameter layer table, the never-merged "Option C" dropout values,

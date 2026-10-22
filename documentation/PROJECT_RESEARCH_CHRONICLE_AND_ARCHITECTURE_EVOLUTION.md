@@ -954,6 +954,15 @@ before tuning for accuracy.
    accuracy, round 1 included, measures separation of these datasets, not disease recognition in
    new recording conditions. Fixing this needs KAUH (or other) healthy and COPD recordings in
    training.
+10. **Served model after round 2 (`backend/artifacts/latest/`, commit `b1698e9`).** R (D0 + YAMNet)
+    retrained on the corrected split; the old-split model is archived in
+    `backend/artifacts/fusion-2026-10-22-oldsplit/`. Locked test (45 patients / 336 recordings, used
+    once): recording accuracy 81.25%, balanced 70.49%, macro F1 0.648, AUROC 0.893, ECE 0.046;
+    patient accuracy **73.33%** (95% CI 60.0–86.7%), balanced 71.92%, macro F1 0.673, AUROC 0.905.
+    Bronchial is the weakest class (12.5% patient sensitivity). KAUH external: 0% (healthy and COPD
+    predicted asthma). Temperatures: RespiNet 0.844, YAMNet 1.537, fused 0.559; abstention min
+    confidence 0.693, max normalized entropy 0.453. Round-1 test numbers (77.55%) came from a split
+    with KAUH patients on both sides and are superseded.
 
 ---
 

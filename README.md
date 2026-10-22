@@ -21,18 +21,21 @@ Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
   ICBHI recordings.** In the earlier merged cohort they sat under different patient IDs, so test
   patients' audio also appeared in training. These copies, plus 12 byte-identical files, are now
   removed (evidence: `backend/data/kaggle_icbhi_overlap.csv`).
-- Leakage-free cohort: 1,488 recordings / 243 patients; patient-disjoint split 145 / 49 / 49.
+- Leakage-free cohort: 1,488 recordings / 223 patients (Kaggle clips cut from KAUH carry real patient IDs); patient-disjoint split 133 / 45 / 45.
 
-| Held-out test (49 patients) | Recording level | Patient level |
+| Held-out test (45 patients, round 2) | Recording level | Patient level |
 |---|---:|---:|
-| Accuracy | 84.46% | 77.55% (95% CI 65.3–89.8%) |
-| Balanced accuracy | 79.87% | 76.22% |
-| Macro F1 | 0.782 | 0.763 |
-| Macro one-vs-rest AUROC | 0.971 | 0.953 |
+| Accuracy | 81.25% | 73.33% (95% CI 60.0–86.7%) |
+| Balanced accuracy | 70.49% | 71.92% |
+| Macro F1 | 0.648 | 0.673 |
+| Macro one-vs-rest AUROC | 0.893 | 0.905 |
 
-By source, patient-level accuracy is 65.4% on the 26 ICBHI test patients (reliable identities,
-few non-COPD cases) and 91.3% on 23 Kaggle patient groups (identities unverified, likely
-optimistic). The YAMNet fusion was chosen by patient-grouped cross-validation on the development
+These are round-2 numbers (45 test patients of a corrected split in which Kaggle clips cut from the
+KAUH hospital dataset carry their real patient IDs). **On 45 external KAUH patients from another
+hospital and stethoscope the model scores 0%: it calls healthy and COPD patients "asthma"**, because
+almost all KAUH-recorded training audio is asthma. Treat every number here as in-cohort only; see
+[`documentation/ROUND2_EXPERIMENTS_REPORT.md`](documentation/ROUND2_EXPERIMENTS_REPORT.md).
+Earlier figures below are from the previous split. The YAMNet fusion was chosen by patient-grouped cross-validation on the development
 patients before the test set was used, and it replaced the RespiNet-only model (75.51% patient /
 77.36% recording accuracy, archived in `backend/artifacts/v3-2026-10-22-leakfree/`). At patient
 level the test gain is one patient of 49; see

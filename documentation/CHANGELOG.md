@@ -87,3 +87,21 @@ Branch `accuracy-experiments`. Full report: [`ACCURACY_EXPERIMENTS_REPORT.md`](A
 - **Serving:** the artifact contract hash-checks the YAMNet SavedModel and the classifier head
   (a Keras Dense layer, no pickle). The server decodes each upload a second time at 16 kHz for
   YAMNet. Older artifacts load unchanged.
+
+## 2026-10-22 — Round 2: Validity First (Completed for now; experiments continue)
+
+Branch `round2-validity-accuracy`. Report: [`ROUND2_EXPERIMENTS_REPORT.md`](ROUND2_EXPERIMENTS_REPORT.md).
+
+- **Real patient IDs for Kaggle clips cut from KAUH** (316 clips, 40 patients; 57 of 64 filename
+  groups had mixed patients). New split, 223 patients (133 / 45 / 45).
+- **External test set:** 72 KAUH patients absent from training. **The served model scores 0% on the
+  45 in-label ones**: it predicts asthma for healthy and COPD patients from that hospital.
+- **Shortcut probes:** every representation identifies the dataset or stethoscope more easily than
+  the disease.
+- **New options (off by default):** cuDNN GRUs with per-sample SpecAugment (D3, 2× faster, better
+  off-device COPD), mixup, simulated-device augmentation, crackle/wheeze multi-task head, OPERA and
+  band-limited YAMNet embeddings, N-member fusion with RespiNet ensembles, and a lung-sound gate that
+  refuses silence, noise, speech, music and tones.
+- **Served model:** RespiNet + YAMNet retrained on the corrected split: 73.33% patient / 81.25%
+  recording accuracy on 45 test patients (95% CI 60.0–86.7%). No candidate met the pre-registered
+  adoption rule; the unfinished variants are listed in the report's §8.

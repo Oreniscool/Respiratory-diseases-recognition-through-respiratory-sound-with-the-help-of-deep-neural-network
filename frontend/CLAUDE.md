@@ -130,9 +130,9 @@ in `backend/artifacts/latest/`. Each hard-coded block carries a comment naming i
 
 | Where | Shows | Source |
 |---|---|---|
-| `LandingPage.tsx` stats | 77.6% patient-level test accuracy (RespiNet + YAMNet fusion) | `test_metrics.json` |
+| `LandingPage.tsx` stats | 73.3% patient-level test accuracy, same datasets (round 2) | `test_metrics.json` |
 | `EvidencePage.tsx` dataset facts | 1,488 recordings, 243 patient groups, 631 duplicated ICBHI clips removed, 5 labels | `dataset_audit.json` |
-| `EvidencePage.tsx` benchmark ledger | 77.6% patient accuracy (95% CI 65–90%), 84.5% recording accuracy, 76.2% balanced accuracy, fused T = 0.67, ECE 0.03, per-source 65.4% / 91.3%, weakest label healthy 62.5% | `test_metrics.json`, `calibration.json` |
+| `EvidencePage.tsx` benchmark ledger | 73.3% patient accuracy (95% CI 60–87%), 81.3% recording accuracy, 71.9% balanced accuracy, fused T = 0.56, ECE 0.05, per-source 70.4% / 77.8%, weakest label bronchial 12.5%, **external KAUH test: failed (0%)** | `test_metrics.json`, `calibration.json`, `artifacts/experiments/external/served_round2.json` |
 
 **After any retrain, update these blocks, then rebuild and commit `dist/`.** Scores are described
 as "calibrated research estimates". Never call them clinical probabilities, and don't call them

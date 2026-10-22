@@ -158,18 +158,18 @@ export default function EvidencePage() {
           <p className="eyebrow">Benchmark status</p>
           <h2>Leakage-free results on one held-out split—not a clinical claim.</h2>
           <p>
-            On 49 patients held out from training, the model reaches 77.6% patient-level and 84.5% recording-level accuracy. Adding the YAMNet model was chosen by cross-validation before this split was used; on the split itself it changes one patient’s result. An earlier figure of 82% was inflated by the dataset overlap described above. These are research measurements on one split of public data, with no external or clinical validation.
+            On 45 patients held out from training, the model reaches 73.3% patient-level and 81.3% recording-level accuracy. These patients come from the same datasets it was trained on. On 45 patients from another hospital, recorded with a different stethoscope, it failed completely: it called healthy and COPD patients “asthma”, because nearly all of its training audio from that kind of recording was asthma. Earlier figures (82%, then 77.6%) came from splits that still let recordings of the same patients appear on both sides. These are research measurements on one split of public data, with no external or clinical validation.
           </p>
         </div>
         {/* Results: backend/artifacts/latest/test_metrics.json and calibration.json (2026-10-22). */}
         <div className="benchmark-ledger">
-          <div><span>Patient-level test accuracy</span><strong>77.6%</strong><small>49 held-out patients; 95% CI 65–90%</small></div>
-          <div><span>Balanced accuracy</span><strong>76.2%</strong><small>Average recall across the five labels</small></div>
-          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (fused T = 0.67); per-recording calibration error 0.03</small></div>
-          <div><span>External clinical validation</span><strong>None</strong><small>Prototype is not screening- or diagnostic-grade</small></div>
+          <div><span>Patient-level test accuracy</span><strong>73.3%</strong><small>45 held-out patients; 95% CI 60–87%</small></div>
+          <div><span>Balanced accuracy</span><strong>71.9%</strong><small>Average recall across the five labels</small></div>
+          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (fused T = 0.56); per-recording calibration error 0.05</small></div>
+          <div><span>External hospital test</span><strong>Failed</strong><small>45 KAUH patients (new hospital and stethoscope): 0% correct, nearly all called asthma</small></div>
         </div>
         <p>
-          By source: 65.4% on the 26 ICBHI test patients, whose identities are reliable but who include few non-COPD cases, and 91.3% on 23 Kaggle patient groups, which is likely optimistic because Kaggle patient identities are unverified. The weakest label is “healthy” (62.5% patient-level sensitivity). Full evidence: <code>documentation/ACCURACY_EXPERIMENTS_REPORT.md</code> and <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
+          By source: 70.4% on 27 ICBHI test patients and 77.8% on 18 Kaggle patients. The weakest label is “bronchial” (12.5% patient-level sensitivity). The model recognizes the recording source more easily than the disease, so these scores do not carry over to new clinics or devices. Full evidence: <code>documentation/ROUND2_EXPERIMENTS_REPORT.md</code>, <code>documentation/ACCURACY_EXPERIMENTS_REPORT.md</code> and <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
         </p>
       </section>
 

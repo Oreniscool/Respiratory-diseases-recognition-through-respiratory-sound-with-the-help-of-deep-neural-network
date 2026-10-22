@@ -5,7 +5,16 @@
 Research prototype; not clinically validated and not intended for diagnosis,
 screening, triage, treatment, or reassurance.
 
-- **Current model:** `backend/artifacts/latest/` (trained 2026-10-22 at `30f58ca`), a late fusion
+> **Round 2 (2026-10-22, later):** retrained at `b1698e9` on a corrected split (real KAUH patient IDs
+> for Kaggle clips). Test (45 patients): **73.33% patient / 81.25% recording accuracy** (95% CI
+> 60.0–86.7%), balanced 71.92% / 70.49%, macro F1 0.673 / 0.648, AUROC 0.905 / 0.893. Temperatures
+> RespiNet 0.844, YAMNet 1.537, fused 0.559; abstention below 0.693 confidence or above 0.453
+> normalized entropy. **External KAUH patients (new hospital and stethoscope): 0%**, with healthy and
+> COPD predicted asthma. The model does not transfer to other recording conditions. The evaluation
+> numbers further down are from the earlier split (`fusion-2026-10-22-oldsplit`) and are superseded.
+> See [`ROUND2_EXPERIMENTS_REPORT.md`](ROUND2_EXPERIMENTS_REPORT.md).
+
+- **Current model:** `backend/artifacts/latest/` (trained 2026-10-22, retrained at `b1698e9`), a late fusion
   of two members over 5 classes (asthma, bronchial, copd, healthy, pneumonia):
   - RespiNet-Attention v3 (458,701 parameters) over MFCC windows, and
   - YAMNet (Google, pretrained on AudioSet, frozen) embeddings → logistic-regression head
@@ -41,7 +50,7 @@ classes) merged with the Kaggle Asthma Detection Dataset V2 after removing:
   its COPD clips; evidence in `backend/data/kaggle_icbhi_overlap.csv`), and
 - 12 byte-identical Kaggle duplicates.
 
-Cohort: 1,488 recordings / 243 patient groups. Patient-disjoint split: 145 / 49 / 49 patients.
+Cohort: 1,488 recordings / 223 patients (round 2: Kaggle clips cut from KAUH carry real KAUH patient IDs). Patient-disjoint split: 133 / 45 / 45 patients.
 See [`DATASET_CARD.md`](DATASET_CARD.md).
 
 ## Inputs and outputs
@@ -65,7 +74,7 @@ the normalized entropy is above 0.519 (thresholds chosen for 80% validation cove
 research heuristic. Unsupported sounds, silence, noise, unseen devices, and out-of-distribution
 populations may still receive a high score.
 
-## Evaluation (held-out test split, 49 patients / 296 recordings)
+## Evaluation (previous split, 49 patients / 296 recordings — superseded, see the round-2 note at the top)
 
 | Metric | Recording level | Patient level |
 |---|---:|---:|

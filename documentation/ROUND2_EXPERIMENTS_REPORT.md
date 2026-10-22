@@ -160,7 +160,37 @@ assumed not to work.
 
 ## 7. Served model after round 2: test result (used once)
 
-_Pending: R retrained on the corrected split._
+R (RespiNet D0 + YAMNet, `main.py --fusion yamnet`) was retrained on the corrected split at commit
+`b1698e9`. RespiNet ran all 80 epochs (best epoch 67, validation window accuracy 0.7015).
+Temperatures: RespiNet 0.844, YAMNet 1.537, fused 0.559. Abstention: min confidence 0.693, max
+normalized entropy 0.453. The previous model is archived in
+`backend/artifacts/fusion-2026-10-22-oldsplit/`.
+
+**Locked test split, 45 patients / 336 recordings** (`backend/artifacts/latest/test_metrics.json`):
+
+| Metric | Recording level | Patient level |
+|---|---:|---:|
+| Accuracy | 81.25% | **73.33%** (95% CI 60.0–86.7%) |
+| Balanced accuracy | 70.49% | 71.92% |
+| Macro F1 | 0.648 | 0.673 |
+| Macro OvR AUROC | 0.893 | 0.905 |
+| Expected calibration error | 0.046 | 0.196 |
+
+Patient-level sensitivity / specificity: asthma 100% / 91.9% (8 patients), bronchial 12.5% / 97.3%
+(8), copd 84.6% / 93.8% (13), healthy 100% / 86.5% (8), pneumonia 62.5% / 97.3% (8). By source
+(recording / patient accuracy): ICBHI 85.92% / 70.37% (27 patients), Kaggle 73.17% / 77.78% (18).
+
+These numbers are lower than round 1's 77.55% patient accuracy, which was measured on a split where
+real KAUH patients sat on both sides. The two test sets differ, so the numbers are not directly
+comparable, but the corrected one is the honest estimate.
+
+**External KAUH (pre-registered gate):** 0% patient-level accuracy again: 32 of 35 healthy and all 9
+COPD patients predicted asthma (`backend/artifacts/experiments/external/served_round2.json`). The gate
+(not more than 5 points below the previous model's 0%) is met trivially. **The served model remains
+unusable outside this cohort's recording conditions**; section 8 says what would fix that.
+
+Server checks: `/ready` is ready with the verified contract, a test-split recording predicts end to end,
+and a pure tone is refused with 422 by the lung-sound gate.
 
 ## 8. What to do next (overnight run)
 
