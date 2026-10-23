@@ -293,13 +293,16 @@ def ladder_row() -> dict[str, object]:
     return row("X1", "Leakage ladder: original 2021 protocol → leak-free", hypothesis="H1", status=status,
                code="experiments/leakage_ladder.py", seed="0-19 per rung", metrics=metrics,
                artifact="backend/artifacts/experiments/leakage_ladder/{features_summary,summary}.json, results.csv",
-               interpretation="",
+               interpretation=("Each removed leak lowers accuracy; the patient-disjoint rung is far below the original "
+                               "protocol. The original protocol did not reach the paper's reported figure in this "
+                               "re-implementation.") if status == "completed" else "",
                limitations=("Re-implementation of git 3ec7dc6 with authentic labels; batch size 32 assumed (not stated); "
                             "released-code class sizes match the paper for Healthy/COPD/Pneumonia but are half for "
                             "Bronchiectasis/Bronchiolitis (paper Fig. 1); model matches every layer of the paper's "
                             "Fig. 3 (328,726 parameters; the figure's printed total 320,726 does not match its rows); "
                             "COPD cap applied in sorted file order (original used os.listdir order)."),
-               decision="pending", justification="Central test of H1.")
+               decision="supports H1 (drop criterion met); reproduction criterion for L0 not met" if status == "completed" else "pending",
+               justification="Pre-registered: drop L0→L3 ≥ 0.15 supports H1; |L0 − 0.9567| ≤ 0.03 for reproduction.")
 
 
 def render(rows: list[dict[str, object]]) -> str:

@@ -1008,6 +1008,18 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   (`1809b94`) and does not match the paper's class sizes. With authentic labels, the released code
   gives the paper's Healthy/COPD/Pneumonia sizes but half its Bronchiectasis/Bronchiolitis sizes. The
   batch size (not stated) is 32. Pilot: L0 seed 0 reached 0.865 accuracy against the reported 0.957.
+- **X1 results (20 seeds per rung, `backend/artifacts/experiments/leakage_ladder/summary.json`).**
+
+  | Rung | Accuracy (mean ± sd) | Balanced accuracy |
+  |---|---:|---:|
+  | L0 | 0.878 ± 0.024 | 0.872 |
+  | L1 | 0.812 ± 0.034 | 0.799 |
+  | L2 | 0.688 ± 0.051 | 0.511 |
+  | L3 | 0.598 ± 0.077 | 0.385 |
+  | L4 (L3, per patient) | 0.611 | 0.429 |
+
+  The paired drop L0 → L3 is 0.280 (sd 0.078). The pre-registered H1 criterion (drop ≥ 0.15) is met.
+  The reproduction criterion (L0 within 0.03 of the reported 0.957) is **not** met.
 
 ---
 
