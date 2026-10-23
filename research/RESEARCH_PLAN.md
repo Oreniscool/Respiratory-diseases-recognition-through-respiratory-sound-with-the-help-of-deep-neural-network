@@ -55,7 +55,7 @@ shortcuts, and does mixing recording sources restore cross-site generalization?"
 | **H1 (leakage)** | Each leak of the 2021 protocol inflates balanced accuracy | balanced accuracy L0 − L3 ≥ 15 pts; the factorial shows the share of each leak | drop < 5 pts | X1: **supported** (0.872 → 0.385). Reproduction of 0.957 not met. Factorial running |
 | **H2 (source confound)** | Labels are confounded with source, the source is decodable within a diagnosis, and the external failure is not explained by sample rate alone | within-label probes ≫ chance; external failure; X2 rules out bandwidth as the full cause | probes at chance within diagnosis; ICBHI at 4 kHz also flips to asthma | **supported** (C-07, C-08, C-09, C-15), with power caveats |
 | H3 (exploratory) | Within-site exposure helps other patients from that site | KAUH-holdout healthy/COPD accuracy clearly above EXP-013's 0% | holdout ≈ 0% | **partly supported (X3, C-10):** 17/24 vs 0/24, but healthy 17/18 and COPD 0/5; balanced 31.5%. Out-of-label KAUH predictions moved from asthma to healthy, i.e. the site's dominant training label. Within-site only |
-| H4, H5 (secondary) | representation robustness; abstention on out-of-label audio | as before | as before | descriptive |
+| H4, H5 (secondary) | representation robustness; abstention on out-of-label audio (H5: X5 done; see C-12) | as before | as before | descriptive |
 
 **Competing explanations for (d)** (reviewer list):
 - device response and filter modes;

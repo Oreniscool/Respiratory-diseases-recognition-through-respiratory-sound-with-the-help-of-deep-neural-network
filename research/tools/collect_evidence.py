@@ -325,10 +325,38 @@ def registry() -> list[dict[str, object]]:
             interpretation="0/24 in-label holdout patients (exact CI 0–14.2%); nearly everything predicted asthma.",
             limitations="Served file is epoch 67 while its reported metrics used epoch 64 (D-24).",
             decision="comparison arm for X3", justification="Pre-registered in ROUND2 report §9."),
-        row("X5", "Abstention and calibration under site shift", hypothesis="H5 (uncertainty)", status="proposed",
-            decision="descriptive analysis after X3", justification="Uses existing external outputs."),
+        x5_row(),
     ]
     return rows
+
+
+def x5_row() -> dict[str, object]:
+    path = ART / "experiments" / "x5_abstention.json"
+    metrics = {}
+    if path.is_file():
+        a = json.loads(path.read_text())
+        x3 = a["X3 round-2b model, 24-patient holdout"]
+        metrics = {
+            "primary_metric": "abstention rate out-of-label − in-label (round-2b model, KAUH holdout)",
+            "primary_value": r4(x3["difference"]),
+            "secondary": {name: {"out_of_label": r4(v["out_of_label"]["abstention"]),
+                                 "in_label": r4(v["in_label"]["abstention"]),
+                                 "difference_ci95": [r4(c) for c in v["difference_ci95"]],
+                                 "in_label_accuracy_all": r4(v["in_label_accuracy_all"]),
+                                 "in_label_accuracy_accepted": r4(v["in_label_accuracy_accepted"])}
+                          for name, v in a.items() if name != "method"} | {"method": a["method"]},
+            "code_version": "research/tools/x5_abstention.py",
+        }
+    return row("X5", "Abstention under site shift (all KAUH evaluations)", hypothesis="H5 (uncertainty)",
+               status="completed" if metrics else "proposed", metrics=metrics,
+               artifact="backend/artifacts/experiments/x5_abstention.json",
+               interpretation=("Models without KAUH exposure abstain about as often on out-of-label as on in-label KAUH "
+                               "audio (CIs include 0) and pass most of their wrong external calls; after round 2b the "
+                               "difference is +18.4 points [2.8, 33.6]."),
+               limitations=("Out-of-label = KAUH diagnoses outside the five classes, not other audio domains. Recording "
+                            "level with patient-cluster bootstrap; 24–45 in-label patients."),
+               decision="H5 unsupported without site exposure; weakly supported after it",
+               justification="Descriptive analysis planned in RESEARCH_PLAN (H5).")
 
 
 def c4_row() -> dict[str, object]:

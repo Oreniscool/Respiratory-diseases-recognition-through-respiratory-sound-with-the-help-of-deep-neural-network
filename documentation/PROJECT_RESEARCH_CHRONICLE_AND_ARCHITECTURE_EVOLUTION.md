@@ -1217,6 +1217,17 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - Pre-existing, not changed: neither `.dockerignore` excludes `backend/venv.old/` or the
       multi-GB `artifacts/experiments*` caches.
 
+- **X5 abstention under site shift (`research/tools/x5_abstention.py`; patient-cluster bootstrap).**
+  - Out-of-label KAUH recordings vs in-label ones:
+    - pre-round-2 model 42.0% vs 32.6% (Δ +9.4, CI −6.7 to +25.4);
+    - round-2 model 42.0% vs 34.1% (+7.9, CI −8.6 to +24.2) and, on the holdout, 42.0% vs 41.7%;
+    - round-2b model 64.2% vs 45.8% (**+18.4, CI 2.8–33.6**), with in-label accuracy rising from
+      69.4% to 79.5% on the recordings it did not abstain on.
+  - Without site exposure, abstention does not flag out-of-label audio, and about two thirds of the
+    (all wrong) external in-label calls pass the rule.
+  - The identical 34/81 for the pre-round-2 and round-2 models was checked: they are different
+    models (SHA-256 `67cdf7f7…` vs `f9e262e4…`) with different probabilities.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:
