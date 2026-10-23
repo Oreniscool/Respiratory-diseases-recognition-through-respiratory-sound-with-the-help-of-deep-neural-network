@@ -308,17 +308,22 @@ def ladder_row() -> dict[str, object]:
         complete = all(summary.get(r, {}).get("repeats") == 20 for r in ("L0", "L1", "L2", "L3"))
         status = "completed" if complete else "running"
         if "L3" in summary:
+            baselines_path = ART / "experiments" / "leakage_ladder" / "baselines.json"
+            baselines = json.loads(baselines_path.read_text()) if baselines_path.is_file() else {}
             metrics = {
-                "primary_metric": "mean accuracy drop L0 → L3 (paired by seed)",
-                "primary_value": r4(summary.get("drop_L0_to_L3", {}).get("mean")),
-                "secondary": {k: v for k, v in summary.items()},
+                # Balanced accuracy is the protocol's primary metric. Accuracy is not comparable across
+                # rungs: augmented copies change the test-set class mix (COPD 22.5% in L0/L1, 59% in L2/L3).
+                "primary_metric": "balanced accuracy drop L0 → L3 (means over 20 seeds)",
+                "primary_value": r4(summary["L0"]["balanced_accuracy"]["mean"] - summary["L3"]["balanced_accuracy"]["mean"]),
+                "secondary": {**{k: v for k, v in summary.items()}, "constant_baselines": baselines},
             }
     return row("X1", "Leakage ladder: original 2021 protocol → leak-free", hypothesis="H1", status=status,
                code="experiments/leakage_ladder.py", seed="0-19 per rung", metrics=metrics,
                artifact="backend/artifacts/experiments/leakage_ladder/{features_summary,summary}.json, results.csv",
-               interpretation=("Each removed leak lowers accuracy; the patient-disjoint rung is far below the original "
-                               "protocol. The original protocol did not reach the paper's reported figure in this "
-                               "re-implementation.") if status == "completed" else "",
+               interpretation=("Each removed leak lowers balanced accuracy; at the patient-disjoint rung accuracy equals "
+                               "the always-COPD baseline while balanced accuracy stays above chance. The original "
+                               "protocol did not reach the paper's reported figure in this re-implementation.")
+                               if status == "completed" else "",
                limitations=("Re-implementation of git 3ec7dc6 with authentic labels; batch size 32 assumed (not stated); "
                             "released-code class sizes match the paper for Healthy/COPD/Pneumonia but are half for "
                             "Bronchiectasis/Bronchiolitis (paper Fig. 1); model matches every layer of the paper's "

@@ -1020,6 +1020,19 @@ Governance and evidence now live in `research/` (see `research/README.md`).
 
   The paired drop L0 → L3 is 0.280 (sd 0.078). The pre-registered H1 criterion (drop ≥ 0.15) is met.
   The reproduction criterion (L0 within 0.03 of the reported 0.957) is **not** met.
+  **Correction (same day, D-19):** accuracy is not comparable across rungs, because augmented copies
+  change the test mix (COPD 22.5% of test samples in L0/L1, 59% in L2/L3). At L3, accuracy (0.598)
+  equals the always-COPD baseline (0.591; `leakage_ladder/baselines.json`). X1 is therefore reported on
+  balanced accuracy, the protocol's primary metric: 0.872 → 0.385 (chance 0.167), a drop of 0.487.
+- **External reviews (`research/LITERATURE_REVIEW.md`, `research/NOVELTY_REVIEW.md`).**
+  - Prior work already establishes patient-overlap inflation on ICBHI (e.g. Pham 2021 thesis), a
+    leak-corrected lung-sound reproduction (Pessoa et al., BIOSIGNALS 2026: 83.5% → 64.5%), device
+    effects in ICBHI, and an ICBHI → KAUH external drop attributed to acquisition bias (Ong Ly et al.,
+    npj Digit Med 2024: AUROC 0.97 → 0.60).
+  - Kaggle's own description discloses ~212 ICBHI and ~170 KAUH clips in Asthma V2.
+  - Saky et al. (Life 2026) trained on Asthma V2 and used ICBHI as an "external" test.
+  - The coordinator spot-checked these sources. The review recommends reframing the work as a
+    quantified dataset-audit and evaluation-validity study.
 - **X2 site vs bandwidth (`backend/experiments/site_vs_band.py`,
   `backend/artifacts/experiments/site_vs_band/served_round2.json`).** The round-2 served model scored
   ICBHI recordings it never trained on (split v2 test + validation) as recorded and re-encoded as 4 kHz
