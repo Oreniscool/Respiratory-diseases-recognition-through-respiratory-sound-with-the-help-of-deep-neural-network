@@ -1035,6 +1035,8 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   out-of-memory error while the whole array was being copied to the 8 GB GPU. The change only affects
   device placement. D3_devaug is re-run from scratch, and its partial two-fold OOF is kept as
   `backend/artifacts/experiments/partial_oof_D3_devaug_2folds.csv`.
+- **`dataset_audit.json` now records dataset folders backend-relative** (`main.portable_path`), as split
+  manifests already did; earlier audits held absolute local paths (fixed by hand in `research/splits/`).
 
 ---
 

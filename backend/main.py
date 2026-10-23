@@ -570,7 +570,10 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
     if provenance is None:
         dataset_audit = build_folder_dataset_audit(
             records,
-            [args.dataset_dir, *args.extra_dataset_dir, *(["dataset/KAUH/audio"] if args.merge_kauh else [])],
+            [
+                portable_path(directory)
+                for directory in [args.dataset_dir, *args.extra_dataset_dir, *(["dataset/KAUH/audio"] if args.merge_kauh else [])]
+            ],
         )
     else:
         dataset_audit = build_dataset_audit(records, diagnosis_path, provenance)
