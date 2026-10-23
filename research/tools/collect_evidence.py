@@ -209,7 +209,8 @@ def registry() -> list[dict[str, object]]:
             metrics={"primary_metric": "Kaggle clips cut from KAUH recordings", "primary_value": 316,
                      "secondary": json.loads((ROOT / "backend/data/kaggle_kauh_overlap.summary.json").read_text())},
             interpretation="57 of 64 matching Kaggle filename groups mixed several KAUH patients; clips now carry real KAUH IDs.",
-            limitations="252 Kaggle clips match neither ICBHI nor KAUH; their grouping stays unverified.",
+            limitations=("264 of the 1,211 raw Kaggle clips (252 after removing the 12 byte duplicates) match neither "
+                         "ICBHI nor KAUH; their grouping stays unverified."),
             decision="adopt real IDs (split v2)", justification="Filename pseudo-IDs split real patients across partitions."),
     ]
     for variant in ("D0", "D3", "E_yamnet", "E_yamnet_bandpass", "E_opera_ce", "E_opera_ct", "D0+E_yamnet",
@@ -316,7 +317,9 @@ def registry() -> list[dict[str, object]]:
                             "balanced accuracy 31.5%. Out-of-label KAUH recordings moved from mostly 'asthma' to "
                             "mostly 'healthy' (52/81): the model follows the site's dominant training label."),
             limitations=("Within-site evaluation (KAUH patients in training), not cross-site. 24 in-label patients, "
-                         "5 COPD. Holdout used twice for this configuration (once for EXP-015)."),
+                         "5 COPD. Holdout used twice for this configuration (once for EXP-015). 3 holdout healthy "
+                         "recordings are byte-identical to asthma recordings of training/validation patients (C-21); "
+                         "without them 18/24 (healthy 18/18, COPD 0/5) - backend/data/kauh_internal_duplicates.summary.json."),
             decision="H3 partly supported: criterion met on accuracy (+70.8 points), not on COPD or balanced accuracy",
             justification="Pre-registered in RESEARCH_PLAN H3 / ROUND2 report §9."),
         row("EXP-017", "Model served before round 2b, on the same KAUH holdout", hypothesis="H3", split="v2",

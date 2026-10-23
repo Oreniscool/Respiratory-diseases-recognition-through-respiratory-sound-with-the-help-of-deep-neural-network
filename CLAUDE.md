@@ -288,6 +288,11 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 - **Kaggle clips cut from KAUH carry real KAUH patient IDs** (`main.assign_kauh_patient_ids`,
   evidence `backend/data/kaggle_kauh_overlap.csv`, IDs 900,000 + n). This changed the seed-42 split
   (223 patients, 133/45/45): test results before round 2 are on a different, leakier split.
+- **KAUH has byte-identical files under different patients and diagnoses** (independent audit,
+  2026-10-23; `backend/data/kauh_internal_duplicates.csv`). Patients 100/101 and 76/77 are healthy vs
+  asthma with identical audio, and patient 9's bell and diaphragm files are identical. Split v3 groups
+  KAUH by patient ID only, so 3 holdout recordings duplicate training-side audio. The X3 sensitivity
+  without them is 18/24. A future KAUH split must keep audio-linked patients on one side.
 - **`data/kauh_external_manifest.csv` is an external test set:** never train on it or use it to
   pick between candidates (`experiments/external.py` evaluates a served artifact once).
 

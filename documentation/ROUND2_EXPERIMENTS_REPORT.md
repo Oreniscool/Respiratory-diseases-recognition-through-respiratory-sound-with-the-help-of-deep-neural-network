@@ -322,6 +322,14 @@ once for run #2):**
 - It is a **within-site** result. It must not be presented as restored cross-site generalization.
 - Abstention is higher on out-of-label recordings (64%) than on in-label ones (46%), a supporting
   observation for X5.
+- **Audio leak into the holdout (found by the independent audit).**
+  - 3 holdout healthy recordings (`BP100`, `DP100`, `EP76`) are byte-identical to asthma recordings
+    of patients 900101 (validation) and 900077 (training). The public KAUH files pair those patients
+    under conflicting diagnoses (C-21).
+  - All 3 are predicted asthma: the trained answer for that audio.
+  - **Sensitivity analysis** without them: 18/24, healthy 18/18, COPD 0/5. The previous model stays
+    at 0/24.
+  - The registered holdout stays the primary result (D-26).
 
 **Deployment checks** (`backend/artifacts/experiments/deployment_checks/round2b_final*.json`):
 - `/ready`: 200 with a verified contract.

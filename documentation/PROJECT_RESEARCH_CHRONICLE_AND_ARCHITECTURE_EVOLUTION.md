@@ -1228,6 +1228,28 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - The identical 34/81 for the pre-round-2 and round-2 models was checked: they are different
     models (SHA-256 `67cdf7f7…` vs `f9e262e4…`) with different probabilities.
 
+- **Independent audit (`research/AUDIT_REPORT.md`, D-26, 2026-10-23).**
+  - **Scope:** an agent re-derived about 400 values in 120 checks from the raw artifact files: every
+    claim C-01…C-20, CLAUDE.md §6, report §9.2, and nine ledger rows.
+  - **Result:** 113 matched, 2 mismatched, 2 had statuses their criteria did not support, and 3 could
+    not be checked from files.
+  - **Corrected:**
+    - C-06 / DATASET_AUDIT ("all COPD is ICBHI" is no longer true after round 2b: 793 of 805);
+    - EXP-010 (264 unmatched raw clips; 252 after deduplication);
+    - C-13, which now cites the served EXP-016;
+    - C-19, verified for healthy and pneumonia only;
+    - C-17's ordering of patient overlap vs checkpoint selection, which is not separable.
+  - **Wording notes:** C-07 chance levels, C-09 recording-level CIs, C-14 confounded by the
+    SpecAugment change.
+  - **New finding (C-21):** the KAUH dataset contains byte-identical files filed as different patients
+    with conflicting diagnoses (patients 100/101 and 76/77, healthy vs asthma). Three holdout
+    recordings duplicate training-side asthma audio, and all three are predicted asthma.
+    - X3 sensitivity without them: 18/24 (healthy 18/18, COPD 0/5).
+    - The registered result (17/24) stays primary.
+    - The coordinator verified every point; the audit had said 3 wrong healthy recordings, the true
+      number is 4, with 3 of them duplicates.
+    - Follow-up: `kauh.split_for_training` must group audio-linked patients before the next split.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

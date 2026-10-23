@@ -1,0 +1,9 @@
+sha256,file,patient_id,filter,diagnosis,label,side,group_size,conflicting_diagnoses
+2dbdf57aca466088fc45b4ce53f7f6b5a20042d0349b6b21b527213ae3811dc4,"BP9_Asthma,E W,P R L ,59,M.wav",900009,bell,asthma,asthma,served-test,2,False
+2dbdf57aca466088fc45b4ce53f7f6b5a20042d0349b6b21b527213ae3811dc4,"DP9_Asthma,E W,P R L ,59,M.wav",900009,diaphragm,asthma,asthma,served-test,2,False
+8bd3ed489f89bd6d002bb5e2973bfb61a948df01d40954d6a3bc0c99df67a60f,"BP100_N,N,P R M,70,F.wav",900100,bell,n,healthy,holdout,2,True
+8bd3ed489f89bd6d002bb5e2973bfb61a948df01d40954d6a3bc0c99df67a60f,"BP101_Asthma,E W,P L M,12,F.wav",900101,bell,asthma,asthma,served-validation,2,True
+b3a241944b470c3cec59ec56040c6c2b77a54802e0810ed1ba63e242e33c9a9f,"EP76_N,N,A L U,31,M.wav",900076,extended,n,healthy,holdout,2,True
+b3a241944b470c3cec59ec56040c6c2b77a54802e0810ed1ba63e242e33c9a9f,"EP77_Asthma,E W,A R L,40,M.wav",900077,extended,asthma,asthma,served-train,2,True
+fad2a61d1f58276d563518ab74506a111d5128dcb3ba01edee6659aa3a4a4e66,"DP100_N,N,P R M,70,F.wav",900100,diaphragm,n,healthy,holdout,2,True
+fad2a61d1f58276d563518ab74506a111d5128dcb3ba01edee6659aa3a4a4e66,"DP101_Asthma,E W,P L M,12,F.wav",900101,diaphragm,asthma,asthma,served-validation,2,True

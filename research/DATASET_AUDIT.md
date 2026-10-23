@@ -71,10 +71,23 @@ Split v3: 1551 recordings, 244 patients
 | train | 504 | 291 | 42 | 837 |
 | validation | 159 | 154 | 12 | 325 |
 
-**Confound.** All COPD audio is ICBHI (646 of 793 on the AKG C417L, a device that records no other
-class). Before round 2b every KAUH-recorded training clip (the 316 Kaggle cuts) was asthma, bronchial
+**Confound.** Before round 2b all COPD audio was ICBHI (646 of 793 on the AKG C417L, a device that
+records no other class). Round 2b adds 12 KAUH COPD recordings from 4 patients, so in the split-v3
+cohort 793 of 805 COPD recordings (64 of 68 COPD patients) are ICBHI (correction from the
+independent audit, 2026-10-23). Before round 2b every KAUH-recorded training clip (the 316 Kaggle cuts) was asthma, bronchial
 or pneumonia; round 2b adds 21 KAUH healthy/COPD patients. ICBHI healthy and bronchial recordings are
 all Meditron. Any model can therefore partly predict the class from the recording source.
+
+**KAUH internal duplicates (found by the independent audit, 2026-10-23).** 4 groups of byte-identical
+files among the 336 KAUH recordings (`backend/data/kauh_internal_duplicates.csv`, from
+`research/tools/kauh_duplicates.py`):
+- 3 groups pair a healthy patient with an asthma patient: 100 ↔ 101 in the bell and diaphragm
+  filters, and 76 ↔ 77 in the extended filter. At least one label in each pair is wrong, or the
+  files were mixed up.
+- The fourth group is patient 9's bell and diaphragm exports, which are identical.
+- The split-v3 KAUH split (`kauh.split_for_training`) grouped by patient ID only. As a result, the
+  holdout patients 900100 and 900076 share audio with asthma patients 900101 (served validation)
+  and 900077 (served training).
 
 ## 5. Under-represented classes and missing metadata
 

@@ -8,7 +8,7 @@ Milestones (RESEARCH_PLAN §7):
 2. X1 and the factorial: done.
 3. Round 2b: done (served model EXP-016, X3).
 4. v2 controls: done except the blind listening check.
-5. Independent audit: running, see the last section.
+5. Independent audit: done (D-26), see the last section.
 
 ## Verified (claim IDs in `CLAIM_EVIDENCE_MATRIX.csv`)
 
@@ -69,6 +69,9 @@ Milestones (RESEARCH_PLAN §7):
    with a second rater).
 4. **Label-mapping table** with the field each label comes from (KAUH "N" appears in both the
    diagnosis and sound-type columns; BRON ≠ bronchial ≠ bronchiectasis).
+5. **Audio-linked KAUH patients on one side of every split** (C-21). `kauh.split_for_training`
+   groups by patient ID only. The next split version must merge patients that share identical audio
+   and report how the KAUH duplicates are handled.
 
 ## Tier-2 gaps (strongly expected by referees)
 - Probes on non-breath segments. These decide "shortcut" vs "acquisition/site confounding" wording.
@@ -101,5 +104,14 @@ Milestones (RESEARCH_PLAN §7):
 3. Collect the listening-check answers, then write the label-mapping table.
 4. Draft the manuscript outline (working title in `NOVELTY_REVIEW.md` §6).
 
-## Independent audit
-Running (agent re-deriving every matrix number from artifacts, writing `AUDIT_REPORT.md`).
+## Independent audit (done; `AUDIT_REPORT.md`, D-26)
+- 120 checks covering about 400 values, re-derived from raw artifact files.
+- 113 matched, 2 mismatched, 2 had statuses their criteria did not support, and 3 could not be
+  checked from files.
+- All of CLAUDE.md §6, report §9.2 and the nine spot-checked ledger rows matched exactly.
+- All corrections are applied (C-06, C-13, C-17, C-19, EXP-010), together with wording notes on C-07,
+  C-09 and C-14.
+- The audit also found **C-21**: byte-identical KAUH files filed under conflicting diagnoses. It
+  leaks 3 recordings into the holdout. The sensitivity result is 18/24 vs 17/24 registered, and COPD
+  stays 0/5.
+- The coordinator verified each point.

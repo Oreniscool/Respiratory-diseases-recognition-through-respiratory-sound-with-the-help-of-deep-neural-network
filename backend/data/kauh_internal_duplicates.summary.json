@@ -1,0 +1,64 @@
+{
+  "kauh_files": 336,
+  "duplicate_groups": 4,
+  "groups_with_conflicting_diagnoses": 3,
+  "holdout_recordings_identical_to_non_holdout_audio": [
+    "BP100_N,N,P R M,70,F.wav",
+    "DP100_N,N,P R M,70,F.wav",
+    "EP76_N,N,A L U,31,M.wav"
+  ],
+  "sensitivity": {
+    "X3 round-2b": {
+      "as_registered": {
+        "patients": 24,
+        "correct": 17,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "17/18"
+        },
+        "dropped_recordings": []
+      },
+      "duplicates_removed": {
+        "patients": 24,
+        "correct": 18,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "18/18"
+        },
+        "dropped_recordings": [
+          "BP100_N,N,P R M,70,F.wav",
+          "DP100_N,N,P R M,70,F.wav",
+          "EP76_N,N,A L U,31,M.wav"
+        ]
+      }
+    },
+    "EXP-017 round-2": {
+      "as_registered": {
+        "patients": 24,
+        "correct": 0,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "0/18"
+        },
+        "dropped_recordings": []
+      },
+      "duplicates_removed": {
+        "patients": 24,
+        "correct": 0,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "0/18"
+        },
+        "dropped_recordings": [
+          "BP100_N,N,P R M,70,F.wav",
+          "DP100_N,N,P R M,70,F.wav",
+          "EP76_N,N,A L U,31,M.wav"
+        ]
+      }
+    }
+  }
+}
