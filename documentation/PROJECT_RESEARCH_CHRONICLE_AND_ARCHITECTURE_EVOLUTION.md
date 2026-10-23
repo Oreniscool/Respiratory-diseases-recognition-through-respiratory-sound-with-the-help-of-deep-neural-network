@@ -1030,6 +1030,11 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   Bandwidth costs some accuracy but does not produce the near-universal "asthma" seen for KAUH
   patients, so the external failure is attributed to the site/device. The lung-sound gate refused 1
   of 380 re-encoded recordings ("music"), a false rejection on band-limited audio.
+- **Engineering fix (`train.py`):** `tf.data` datasets are now built on the CPU, so only batches
+  move to the GPU. Round-2b D3_devaug (~27k training windows) failed in its third fold with a GPU
+  out-of-memory error while the whole array was being copied to the 8 GB GPU. The change only affects
+  device placement. D3_devaug is re-run from scratch, and its partial two-fold OOF is kept as
+  `backend/artifacts/experiments/partial_oof_D3_devaug_2folds.csv`.
 
 ---
 

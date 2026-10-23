@@ -263,7 +263,10 @@ def train_model(
 
     train_targets, train_weights = targets(y_train, aux_train)
     train_slices = (x_train, train_targets) if train_weights is None else (x_train, train_targets, train_weights)
-    train_ds = tf.data.Dataset.from_tensor_slices(train_slices)
+    # Keep the full arrays in host memory; only batches move to the GPU. Building the dataset on
+    # the GPU copies everything at once and ran out of memory with device augmentation (~27k windows).
+    with tf.device("/CPU:0"):
+        train_ds = tf.data.Dataset.from_tensor_slices(train_slices)
     train_ds = train_ds.shuffle(
         buffer_size=min(len(x_train), 10_000),
         seed=seed,
@@ -323,7 +326,8 @@ def train_model(
 
     val_targets, val_weights = targets(y_val, aux_val)
     val_slices = (x_val, val_targets) if val_weights is None else (x_val, val_targets, val_weights)
-    val_ds = tf.data.Dataset.from_tensor_slices(val_slices)
+    with tf.device("/CPU:0"):
+        val_ds = tf.data.Dataset.from_tensor_slices(val_slices)
     val_ds = val_ds.batch(batch_size, drop_remainder=False).prefetch(tf.data.AUTOTUNE)
 
     history = model.fit(
