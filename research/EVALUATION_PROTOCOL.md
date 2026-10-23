@@ -26,6 +26,10 @@ the changed part. Results obtained under an earlier protocol stay in the ledger,
 | Locked test patients (v3) | **once** per adopted configuration, after calibration | model choice, tuning, thresholds |
 | KAUH holdout (`data/kauh_external_holdout_manifest.csv`, 51 patients) | **once** per adopted model and once for the model served before it, through the served prediction path (`experiments/external.py`) | choosing between candidates; training |
 
+**Diagnostic analyses** of a fixed, already-evaluated model (e.g. X2: re-encoding inputs) may reuse that model's
+test and validation recordings, because nothing in them feeds back into model choice or tuning. Each such use is
+logged in `DECISION_LOG.md`.
+
 Augmentation (waveform variants, SpecAugment, mixup) is applied to training data only. Duplicates
 and cross-dataset copies are removed before splitting.
 
