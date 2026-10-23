@@ -44,6 +44,52 @@ def probe(features: np.ndarray, target: np.ndarray, groups: np.ndarray) -> float
     return float(balanced_accuracy_score(target, predictions.astype(str)))
 
 
+def source_detail(source: str, patient_id: int) -> str:
+    """Dataset of origin, separating Kaggle clips cut from KAUH (real KAUH IDs) from the rest of Kaggle."""
+    if source == "kaggle_asthma_v2":
+        return "kaggle_from_kauh" if patient_id >= 900_000 else "kaggle_unknown"
+    return source
+
+
+def _eligible(target: np.ndarray, groups: np.ndarray, min_patients: int = 3) -> np.ndarray:
+    """Rows whose target value has at least ``min_patients`` distinct patients (3-fold grouped CV)."""
+    keep = np.zeros(len(target), dtype=bool)
+    for value in np.unique(target):
+        rows = target == value
+        if len(np.unique(groups[rows])) >= min_patients:
+            keep |= rows
+    return keep
+
+
+def within_label_probes(features, labels, sources, patients) -> dict[str, dict[str, object]]:
+    """Source predicted within one diagnosis, and diagnosis predicted within one source.
+
+    A source probe that succeeds inside a single diagnosis cannot be using the disease: it reads
+    acquisition differences. A disease probe inside one source shows how much disease signal
+    survives without the source cue.
+    """
+    out: dict[str, dict[str, object]] = {}
+    for label in np.unique(labels):
+        rows = labels == label
+        keep = rows & _eligible(np.where(rows, sources, ""), patients)
+        if len(np.unique(sources[keep])) >= 2:
+            out[f"source_within_{label}"] = {
+                "balanced_accuracy": probe(features[keep], sources[keep], patients[keep]),
+                "chance": 1 / len(np.unique(sources[keep])),
+                "patients": {s: int(len(np.unique(patients[keep & (sources == s)]))) for s in np.unique(sources[keep])},
+            }
+    for source in np.unique(sources):
+        rows = sources == source
+        keep = rows & _eligible(np.where(rows, labels, ""), patients)
+        if len(np.unique(labels[keep])) >= 2:
+            out[f"disease_within_{source}"] = {
+                "balanced_accuracy": probe(features[keep], labels[keep], patients[keep]),
+                "chance": 1 / len(np.unique(labels[keep])),
+                "patients": {c: int(len(np.unique(patients[keep & (labels == c)]))) for c in np.unique(labels[keep])},
+            }
+    return out
+
+
 def main() -> None:
     records, _ = load_development_records()
     paths = [str(record.path) for record in records]
@@ -71,7 +117,9 @@ def main() -> None:
             # Reference: how well the same probe predicts the disease label.
             "disease": probe(features, labels, patients),
         }
-        print(name, {k: round(v, 3) for k, v in results[name].items()}, flush=True)
+        detail = np.asarray([source_detail(s, int(p)) for s, p in zip(sources, patients)])
+        results[name]["within_label"] = within_label_probes(features, labels, detail, patients)
+        print(name, {k: round(v, 3) for k, v in results[name].items() if not isinstance(v, dict)}, flush=True)
     (OUTPUT_DIR / "shortcut_probes.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
 
 

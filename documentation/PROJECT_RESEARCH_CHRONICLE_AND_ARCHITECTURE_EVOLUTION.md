@@ -1033,6 +1033,17 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - Saky et al. (Life 2026) trained on Asthma V2 and used ICBHI as an "external" test.
   - The coordinator spot-checked these sources. The review recommends reframing the work as a
     quantified dataset-audit and evaluation-validity study.
+- **User decision (D-22):** reframe as a dataset-audit and evaluation-validity study, and run four
+  mandatory controls: a contamination re-evaluation, a leak factorial, copy-detector validation and
+  within-label source probes.
+- **Within-label probes (`experiments/shortcut.py`, `within_label`).**
+  - The source stays predictable inside one diagnosis: healthy ICBHI vs Kaggle vs KAUH gives
+    0.82 (MFCC statistics) to 0.96 (HeAR/OPERA-CE) against a chance level of 0.33.
+  - The same holds for pneumonia and bronchial (0.83–0.99).
+  - COPD ICBHI vs KAUH (3 KAUH patients): MFCC statistics at chance, embeddings 0.77–0.89.
+  - Disease within ICBHI alone: 0.48–0.54 against a chance level of 0.25.
+- **Exact intervals (`research/tools/exact_ci.py`):** external KAUH 0/45 correct → 95% CI 0–7.9%.
+  X2 asthma at 4 kHz: COPD 14/346 → 2.2–6.7%, healthy 1/12 → 0.2–38.5%.
 - **X2 site vs bandwidth (`backend/experiments/site_vs_band.py`,
   `backend/artifacts/experiments/site_vs_band/served_round2.json`).** The round-2 served model scored
   ICBHI recordings it never trained on (split v2 test + validation) as recorded and re-encoded as 4 kHz

@@ -125,3 +125,18 @@ def test_stacked_fusion_scores_each_fold_with_a_stacker_trained_elsewhere():
     stacked = stacked_fusion(tables)
     np.testing.assert_allclose(stacked.sum(axis=1), 1.0, rtol=1e-6)
     assert (stacked.argmax(axis=1) == y).mean() > 0.9  # learns to trust the informative member
+
+
+def test_within_label_probes_separate_source_from_disease():
+    from experiments.shortcut import within_label_probes
+
+    rng = np.random.default_rng(6)
+    n = 120
+    patients = np.arange(n) // 2
+    labels = np.where(patients % 2 == 0, "copd", "healthy")
+    sources = np.where((patients // 2) % 2 == 0, "icbhi", "kauh")
+    features = rng.standard_normal((n, 4))
+    features[:, 0] += (sources == "kauh") * 4.0  # source cue only; no disease signal
+    out = within_label_probes(features, labels, sources, patients)
+    assert out["source_within_copd"]["balanced_accuracy"] > 0.9
+    assert out["disease_within_icbhi"]["balanced_accuracy"] < 0.75

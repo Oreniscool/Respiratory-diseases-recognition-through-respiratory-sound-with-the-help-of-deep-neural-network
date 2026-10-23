@@ -237,7 +237,7 @@ split.
   KAUH) is also evaluated once on the same holdout. The holdout result is reported, not used to
   choose.
 
-### 9.1 Round-2b cross-validation results (178→195 development patients of split v3; OOF)
+### 9.1 Round-2b cross-validation results (195 development patients of split v3; OOF)
 
 Generated from `backend/artifacts/experiments/results.json` (report run 2026-10-23, reference R′ = D0 + YAMNet).
 

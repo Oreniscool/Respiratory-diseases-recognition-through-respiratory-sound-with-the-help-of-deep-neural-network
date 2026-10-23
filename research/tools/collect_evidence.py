@@ -118,7 +118,13 @@ def probe_metrics(path: str) -> dict[str, object]:
     return {
         "primary_metric": "probe balanced accuracy: dataset of origin (YAMNet)",
         "primary_value": r4(p["yamnet"]["dataset_of_origin"]),
-        "secondary": {name: {k: r4(v) for k, v in values.items()} for name, values in p.items()},
+        "secondary": {
+            name: {
+                k: ({probe: r4(result["balanced_accuracy"]) for probe, result in v.items()} if isinstance(v, dict) else r4(v))
+                for k, v in values.items()
+            }
+            for name, values in p.items()
+        },
     }
 
 
@@ -231,7 +237,7 @@ def registry() -> list[dict[str, object]]:
             limitations="45 in-label patients (35 healthy, 9 COPD, 1 bronchial); one external site.",
             decision="supports H2", justification="Failure mode matches the training-data confound."),
         row("EXP-012", "Served R retrained on split v2 (round 2)", split="v2",
-            metrics=model_metrics("latest"), artifact="backend/artifacts/latest/",
+            metrics=model_metrics("fusion-round2-split2"), artifact="backend/artifacts/fusion-round2-split2/ (archived; was latest/)",
             interpretation="Test set used once; lower than EXP-005 because v1 shared KAUH patients across the split.",
             limitations="In-cohort only.", decision="served model until round 2b",
             justification="No CV candidate met the rule."),
