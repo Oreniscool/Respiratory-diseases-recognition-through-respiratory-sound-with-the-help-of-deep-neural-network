@@ -238,6 +238,12 @@ def _calibrate(inner: dict[str, np.ndarray], scored: dict[str, np.ndarray], labe
 # --------------------------------------------------------------------------- deep variants
 
 
+def _revision() -> str:
+    from main import resolve_source_revision
+
+    return resolve_source_revision("unknown")
+
+
 def run_deep(variant: str, records: list[AudioRecord]) -> None:
     import tensorflow as tf
     from tensorflow.keras.utils import set_random_seed
@@ -247,6 +253,7 @@ def run_deep(variant: str, records: list[AudioRecord]) -> None:
 
     for gpu in tf.config.list_physical_devices("GPU"):
         tf.config.experimental.set_memory_growth(gpu, True)
+    revision = _revision()  # captured at start: later commits must not be credited to this run
     settings = {**DEEP_DEFAULTS, **DEEP_VARIANTS[variant]}
     X, meta = load_cache(str(settings["cache"]))
     aux = None
@@ -304,7 +311,8 @@ def run_deep(variant: str, records: list[AudioRecord]) -> None:
         print(f"[{variant}] fold {fold}: {fold_log[-1]}", flush=True)
         _write_oof(OUTPUT_DIR / f"oof_{variant}.csv", rows, class_names)  # keep partial progress
     (OUTPUT_DIR / f"run_{variant}.json").write_text(
-        json.dumps({"variant": variant, "settings": settings, "training": TRAINING, "folds": fold_log}, indent=2),
+        json.dumps({"variant": variant, "source_revision": revision, "settings": settings, "training": TRAINING,
+                    "folds": fold_log}, indent=2),
         encoding="utf-8",
     )
 
@@ -330,6 +338,7 @@ def _fit_boosting(x_fit, y_fit, x_inner, y_inner):
 
 def run_shallow(name: str, features: dict[str, np.ndarray], records: list[AudioRecord], fitter) -> None:
     """Fit a recording-level classifier per fold on ``features[path]`` and write calibrated OOF rows."""
+    revision = _revision()
     class_names = sorted({record.disease for record in records})
     labels = {str(record.path): record.disease for record in records}
     rows, fold_log = [], []
@@ -349,7 +358,9 @@ def run_shallow(name: str, features: dict[str, np.ndarray], records: list[AudioR
         rows += _oof_rows(fold, records, calibrated, class_names)
         fold_log.append({"fold": fold, "temperature": temperature, **chosen})
     _write_oof(OUTPUT_DIR / f"oof_{name}.csv", rows, class_names)
-    (OUTPUT_DIR / f"run_{name}.json").write_text(json.dumps({"variant": name, "folds": fold_log}, indent=2))
+    (OUTPUT_DIR / f"run_{name}.json").write_text(
+        json.dumps({"variant": name, "source_revision": revision, "folds": fold_log}, indent=2)
+    )
     print(f"[{name}] done: {fold_log}")
 
 
