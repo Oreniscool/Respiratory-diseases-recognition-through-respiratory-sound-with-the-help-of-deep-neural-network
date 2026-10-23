@@ -1024,6 +1024,16 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   change the test mix (COPD 22.5% of test samples in L0/L1, 59% in L2/L3). At L3, accuracy (0.598)
   equals the always-COPD baseline (0.591; `leakage_ladder/baselines.json`). X1 is therefore reported on
   balanced accuracy, the protocol's primary metric: 0.872 → 0.385 (chance 0.167), a drop of 0.487.
+- **X1 factorial completion (L2T, L3T: recording / patient split with test-set selection; 20 seeds each).**
+
+  | Split unit | Selected on test | Selected on validation |
+  |---|---:|---:|
+  | sample | 0.872 | 0.799 |
+  | recording | 0.587 | 0.511 |
+  | patient | 0.492 | 0.384 |
+
+  (Balanced accuracy.) Largest leak: augmented copies across the split (−0.287), then patient overlap
+  (−0.127). Test-set selection adds a roughly constant +0.07 to +0.11 at every split unit.
 - **External reviews (`research/LITERATURE_REVIEW.md`, `research/NOVELTY_REVIEW.md`).**
   - Prior work already establishes patient-overlap inflation on ICBHI (e.g. Pham 2021 thesis), a
     leak-corrected lung-sound reproduction (Pessoa et al., BIOSIGNALS 2026: 83.5% → 64.5%), device
