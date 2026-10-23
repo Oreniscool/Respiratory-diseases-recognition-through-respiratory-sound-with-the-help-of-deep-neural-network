@@ -6,7 +6,7 @@ hold module-level detail. The full verified reference (history, exact architectu
 verified metrics, discrepancy register) is
 [`documentation/PROJECT_CONTEXT.md`](documentation/PROJECT_CONTEXT.md).
 
-Last verified against source and on-disk artifacts: **2026-10-22** (branch `round2-validity-accuracy`, stacked on `accuracy-experiments`).
+Last verified against source and on-disk artifacts: **2026-10-23** (branch `round2-validity-accuracy`, stacked on `accuracy-experiments`).
 
 ---
 
@@ -27,9 +27,11 @@ clinical confidence. This is enforced in UI copy and docs; keep it that way.
 
 The **currently trained model** is a 5-class classifier
 (`asthma`, `bronchial`, `copd`, `healthy`, `pneumonia`) trained on the **Kaggle Asthma
-Detection V2 dataset merged with ICBHI 2017** (ICBHI re-mapped to 5 classes). It is a **late
-fusion** of the RespiNet network (MFCC windows) and a logistic-regression head over frozen YAMNet
-embeddings (`backend/pretrained.py`). The original 2021 project targeted the 8 ICBHI classes; that model (`backend/best_model.h5`)
+Detection V2 dataset merged with ICBHI 2017** (ICBHI re-mapped to 5 classes) plus 21 KAUH patients
+(round 2b). It is a **four-member late fusion** (`fusion.type = late_fusion_members`):
+- a 3-seed RespiNet ensemble (MFCC windows);
+- logistic-regression heads over frozen **YAMNet**, **OPERA-CE** and **HeAR** embeddings
+  (`backend/pretrained.py`). The original 2021 project targeted the 8 ICBHI classes; that model (`backend/best_model.h5`)
 is legacy.
 
 ---
@@ -165,9 +167,13 @@ mkdir -p artifacts/pretrained/yamnet && curl -sSL \
   https://www.kaggle.com/api/v1/models/google/yamnet/tensorFlow2/yamnet/1/download \
   | tar xz -C artifacts/pretrained/yamnet
 
-# --- train the current configuration (Kaggle V2 + ICBHI, 5 classes, RespiNet + YAMNet fusion) ---
-python main.py --dataset-format folder --merge-icbhi \
-  --output-dir artifacts/latest --epochs 80 --batch-size 64 --seed 42 --fusion yamnet
+# --- train the current configuration (round 2b: Kaggle V2 + ICBHI + 21 KAUH patients, 5 classes,
+#     3-seed RespiNet ensemble + YAMNet/OPERA-CE/HeAR heads; ~70 min on the RTX 4060) ---
+# needs requirements-experiments.txt (PyTorch CPU), OPERA weights in artifacts/pretrained/opera/,
+# HeAR in artifacts/pretrained/hear/ (gated on Hugging Face) and YAMNet as below
+RESPINET_TORCH_THREADS=8 python main.py --dataset-format folder --merge-icbhi --merge-kauh \
+  --output-dir artifacts/latest --epochs 80 --batch-size 64 --seed 42 --cudnn-gru --spec-augment-mode sample \
+  --ensemble-seeds 3 --fusion members --fusion-members yamnet,opera_ce,hear
   # source_revision is filled from git automatically; commit first so it isn't "-dirty"
 
 # --- compare variants without touching the test split (see experiments/cv.py docstring) ---
@@ -197,33 +203,38 @@ Docker images use **5000**. Keep them consistent when you change one.
 
 ---
 
-## 6. Current verified state (from `backend/artifacts/latest/`, trained 2026-10-22)
+## 6. Current verified state (from `backend/artifacts/latest/`, trained 2026-10-23)
 
-**RespiNet + YAMNet late fusion** (branch `accuracy-experiments`; see
-`documentation/ACCURACY_EXPERIMENTS_REPORT.md`), chosen by 3-fold patient-grouped CV on the
-development patients before the test split was used. The RespiNet-only leakage-free model
-(75.51% patient accuracy) is archived in `backend/artifacts/v3-2026-10-22-leakfree/`; the
-2026-08-14 model in `backend/artifacts/v3-2026-08-14/`. **The latter's metrics (e.g. 82.09%) are
-contaminated by cross-dataset leakage and must not be cited as performance.**
+**Round-2b model** (D-21, chosen by pre-registered 3-fold patient-grouped CV on the development
+patients; see `documentation/ROUND2_EXPERIMENTS_REPORT.md` §9). The previous served model is
+archived in `backend/artifacts/fusion-round2-split2/`. The round-2b runs that did not ship are in
+`failed-prod2b-tf32-2026-10-23/` (EXP-014) and `superseded-prod2b-ckpt-mismatch-2026-10-23/`
+(EXP-015). **Metrics of the 2026-08-14 model (e.g. 82.09%) are contaminated by cross-dataset leakage
+and must not be cited as performance.**
 
 | Fact | Value | Source |
 |---|---|---|
 | Classes (ordered) | `asthma, bronchial, copd, healthy, pneumonia` | `model_metadata.json` |
-| Members | RespiNet-Attention v3, 458,701 parameters (`model_summary.txt`) + frozen YAMNet (`yamnet/`) → logistic head, 2,048 → 5 (`yamnet_head.keras`, C = 0.01) | `model_metadata.json["fusion"]` |
-| Cohort | 1,488 recordings / 223 patients (ICBHI 920 / 126 + Kaggle remainder 568 / 97: 40 real KAUH patients + 57 filename groups), after dropping 631 Kaggle copies of ICBHI audio and 12 byte duplicates | `dataset_audit.json` |
-| Split (patients) | train 133 / val 45 / test 45; recordings 868 / 284 / 336 | `split_summary.json` |
-| Epochs run (RespiNet) | 80 (no early stop); best epoch 67, val_acc 0.7015, train_acc 0.8436 | `training_history.json` |
-| Temperatures | RespiNet 0.8443, YAMNet 1.5371 (`model_metadata.json["fusion"]`); fused **0.5592** (`calibration.json`) | |
-| Abstention | min_conf 0.6929, max_norm_entropy 0.4525, 80% target coverage | `calibration.json` |
-| Test acc (recording / patient) | **81.25% / 73.33%** (45 patients, round-2 split) | `test_metrics.json` |
-| Balanced acc | 70.49% / 71.92% | `test_metrics.json` |
-| Macro F1 | 0.648 / 0.673 | `test_metrics.json` |
-| ECE | 0.0455 / 0.1955 | `test_metrics.json` |
-| Macro OvR AUROC | 0.8925 / 0.9053 | `test_metrics.json` |
-| Patient-bootstrap 95% CI (acc) | 60.0% – 86.7% (1,000 samples) | `test_metrics.json` |
-| By source, accuracy rec. / patient | ICBHI (27 patients) 85.92% / 70.37%; Kaggle (18 patients, 316 clips with real KAUH IDs) 73.17% / 77.78% | `test_metrics.json["by_source"]` |
-| **External KAUH (45 in-label patients)** | **0%**: healthy and COPD predicted asthma | `artifacts/experiments/external/served_round2.json` |
-| Code revision | `b1698e9` (round 2); previous model archived in `artifacts/fusion-2026-10-22-oldsplit/` | `model_metadata.json` |
+| Members | RespiNet-Attention v3 × 3 seeds (42/43/44; 458,701 parameters each) + logistic heads on frozen YAMNet (C = 0.01), OPERA-CE (C = 0.1) and HeAR (C = 0.01); equal weights | `model_metadata.json["fusion"]` |
+| Cohort | 1,551 recordings / 244 patients: ICBHI 920 / 126; Kaggle remainder 568 / 97 (40 real KAUH patients + 57 filename groups); KAUH 63 / 21 (17 healthy, 4 COPD) | `dataset_audit.json` |
+| Split v3 (patients) | train 146 / val 49 / test 49; recordings 837 / 325 / 389 (SHA-256 `8bdc97ff…`) | `split_summary.json` |
+| Restored epochs | 45 / 46 / 78 (seeds 42/43/44); the saved files are these restored models (D-24) | training logs, `training_history.json` |
+| Temperatures | members: RespiNet 0.9099, YAMNet 1.0570, OPERA-CE 1.5085, HeAR 1.0973; fused **0.5489** | `model_metadata.json`, `calibration.json` |
+| Abstention | min_conf 0.6629, max_norm_entropy 0.5060, 80% target coverage | `calibration.json` |
+| Test acc (recording / patient) | **82.01% / 75.51%** (49 patients, split v3) | `test_metrics.json` |
+| Balanced acc | 73.47% / 74.87% | `test_metrics.json` |
+| Macro F1 | 0.704 / 0.739 | `test_metrics.json` |
+| ECE | 0.0743 / 0.0853 | `test_metrics.json` |
+| Macro OvR AUROC | 0.9190 / 0.9394 | `test_metrics.json` |
+| Patient-bootstrap 95% CI (acc) | 63.3% – 87.8% (1,000 samples) | `test_metrics.json` |
+| By source, accuracy rec. / patient | ICBHI (29 patients) 87.55% / 75.86%; Kaggle (17) 71.54% / 76.47%; KAUH (3) 66.67% / 66.67% | `test_metrics.json["by_source"]` |
+| **KAUH holdout (24 in-label of 51 patients; within-site, not cross-site)** | **17/24 (70.8%, exact CI 48.9–87.4%)**: healthy 17/18, **COPD 0/5** (CI 0–52%), bronchial 0/1; balanced 31.5%. Previous model on the same holdout: 0/24 | `artifacts/experiments/external/served_round2b_final.json`, `previous_round2_on_holdout.json` |
+| Reproduction | served files reproduce `test_metrics.json` exactly on the GPU; on the CPU (Docker) 1 of 389 test recordings flips (TF32 near-tie), patient metrics identical | `artifacts/experiments/deployment_checks/round2b_final*.json` |
+| Code revision | `724c52c` | `model_metadata.json` |
+
+The test split and the KAUH holdout were each used once before for the superseded artifact of the
+same configuration (EXP-015). The re-evaluation chose nothing (D-24). Split v3 differs from split v2,
+so these numbers are **not** comparable with the previous model's 73.33% on 45 patients.
 
 **Historical numbers in docs:** The chronicle keeps superseded figures (T ≈ 1.54, the §7.1
 "refactored" table, the ~136K-parameter layer table, the never-merged "Option C" dropout values,
@@ -265,21 +276,34 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 ## 8. Top gotchas (details in subdirectory CLAUDE.md files)
 
 - **The model does not transfer to a new hospital/stethoscope (round 2).** On 45 external KAUH
-  patients the pre-round-2 model predicted asthma for nearly everyone (0% accuracy), because almost
-  all KAUH-recorded training audio is asthma and all COPD is ICBHI (mostly the AKG C417L). Probes
-  identify the dataset/device far more easily than the disease. Never present in-cohort accuracy as
-  real-world performance; see `documentation/ROUND2_EXPERIMENTS_REPORT.md`.
+  patients the pre-round-2 model predicted asthma for nearly everyone (0% accuracy, exact CI 0–7.9%),
+  because almost all KAUH-recorded training audio is asthma and all COPD is ICBHI (mostly the AKG
+  C417L). Probes identify the dataset/device far more easily than the disease, even within one
+  diagnosis. Never present in-cohort accuracy as real-world performance; see
+  `documentation/ROUND2_EXPERIMENTS_REPORT.md`.
+- **Round 2b fixed KAUH healthy, not KAUH COPD.** With 21 KAUH patients in training, the holdout gets
+  healthy 17/18 but COPD 0/5. Out-of-label KAUH recordings swung from mostly "asthma" to mostly
+  "healthy" (52 of 81): the model follows what the site's training patients mostly were. This is
+  within-site adaptation, never cross-site generalization.
 - **Kaggle clips cut from KAUH carry real KAUH patient IDs** (`main.assign_kauh_patient_ids`,
   evidence `backend/data/kaggle_kauh_overlap.csv`, IDs 900,000 + n). This changed the seed-42 split
   (223 patients, 133/45/45): test results before round 2 are on a different, leakier split.
 - **`data/kauh_external_manifest.csv` is an external test set:** never train on it or use it to
   pick between candidates (`experiments/external.py` evaluates a served artifact once).
 
-- **The served model is a two-member fusion.** The artifact dir must contain `yamnet/` (SavedModel)
-  and `yamnet_head.keras`; `model_metadata.json["fusion"]` pins their SHA-256 and the member
-  temperatures, and `load_verified_contract` refuses the artifact if either changes. The server
-  decodes uploads twice (22.05 kHz for RespiNet, 16 kHz for YAMNet). `/explain` saliency covers
-  RespiNet only. Artifacts without `fusion` work as before.
+- **The served model is a four-member fusion (`late_fusion_members`).** The artifact dir must
+  contain:
+  - `best_model.keras`, `respinet_seed43.keras`, `respinet_seed44.keras`;
+  - `yamnet/`, `opera_ce/` and `hear/` (HeAR alone is 1.2 GB; the whole artifact is about 1.3 GB);
+  - `yamnet_head.keras`, `opera_ce_head.keras`, `hear_head.keras`.
+
+  `model_metadata.json["fusion"]` pins every SHA-256 and member temperature, and
+  `load_verified_contract` refuses the artifact if anything changes. **Serving needs PyTorch (CPU
+  build) for OPERA-CE:** `pip install -r requirements-experiments.txt --extra-index-url
+  https://download.pytorch.org/whl/cpu`. Both Dockerfiles do this (added 2026-10-23, not yet
+  build-tested). The server decodes uploads twice (22.05 kHz for RespiNet, 16 kHz for the embedding
+  members). `/explain` saliency covers RespiNet only. Two-member (`yamnet_fusion`) and unfused
+  artifacts still load.
 - **Never pick variants on the test split.** It has 49 patients (±12-point CI). Compare with
   `backend/experiments/cv.py` (3-fold patient-grouped CV on the development patients, test
   patients asserted absent) and touch the test set once per adopted configuration.

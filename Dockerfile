@@ -27,6 +27,9 @@ WORKDIR /app
 # Copy and install backend requirements
 COPY backend/requirements.txt ./backend/
 RUN pip install --no-cache-dir -r backend/requirements.txt
+# The served fusion includes OPERA-CE (PyTorch, CPU build; see requirements-experiments.txt).
+COPY backend/requirements-experiments.txt ./backend/
+RUN pip install --no-cache-dir -r backend/requirements-experiments.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Copy backend application source code
 COPY backend/ ./backend/

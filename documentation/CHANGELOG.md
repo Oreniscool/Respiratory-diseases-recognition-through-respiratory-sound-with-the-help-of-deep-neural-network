@@ -105,3 +105,26 @@ Branch `round2-validity-accuracy`. Report: [`ROUND2_EXPERIMENTS_REPORT.md`](ROUN
 - **Served model:** RespiNet + YAMNet retrained on the corrected split: 73.33% patient / 81.25%
   recording accuracy on 45 test patients (95% CI 60.0–86.7%). No candidate met the pre-registered
   adoption rule; the unfinished variants are listed in the report's §8.
+
+## 2026-10-23 — Round 2b: KAUH patients in training, four-member fusion (Completed)
+
+- **Data:** 21 of the in-label KAUH patients (17 healthy, 4 COPD) moved into training
+  (`main.py --merge-kauh`). 51 KAUH patients stay as a holdout. New split v3: 244 patients
+  (146 / 49 / 49).
+- **Served model:** a 3-seed RespiNet ensemble + YAMNet, OPERA-CE and HeAR heads, adopted by the
+  pre-registered cross-validation rule (+4.8 balanced accuracy over the reference, P = 0.95).
+  - Test: 75.51% patient / 82.01% recording accuracy on 49 patients (95% CI 63.3–87.8%). Split v3
+    has different test patients, so this is not comparable with round 2's 73.33%.
+  - KAUH holdout: 17/24 patients (healthy 17/18, **COPD 0/5**). This is within-site adaptation, not
+    cross-site generalization.
+- **Bugs fixed:**
+  - Exported embedding heads now run on the CPU, because GPU TF32 moved OPERA-CE probabilities by
+    up to 2.2e-3.
+  - Training now saves the restored early-stopping model instead of a later checkpoint; before,
+    the served files could differ from the evaluated weights.
+  - `tf.data` is built on the CPU (GPU out-of-memory).
+  - Dataset audits store portable paths.
+- **Serving:** needs PyTorch (CPU build) for OPERA-CE; both Dockerfiles install it (not yet
+  build-tested). The artifact is about 1.3 GB.
+- **New deployment check:** every test recording goes through the served files and must reproduce
+  `test_metrics.json`.

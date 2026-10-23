@@ -5,6 +5,25 @@
 Research prototype; not clinically validated and not intended for diagnosis,
 screening, triage, treatment, or reassurance.
 
+> **Round 2b (2026-10-23, current):** trained at `724c52c` on split v3 (21 KAUH patients added).
+>
+> - **Members:** a four-member late fusion (`late_fusion_members`, equal weights):
+>   - a RespiNet-Attention v3 ensemble (seeds 42/43/44, 458,701 parameters each, cuDNN GRUs,
+>     per-sample SpecAugment);
+>   - logistic heads over frozen YAMNet (C = 0.01), OPERA-CE (C = 0.1) and HeAR (C = 0.01)
+>     embeddings.
+> - **Temperatures:** RespiNet 0.910, YAMNet 1.057, OPERA-CE 1.509, HeAR 1.097, fused 0.549.
+>   Abstention below 0.663 confidence or above 0.506 normalized entropy.
+> - **Test (49 patients):** **75.51% patient / 82.01% recording accuracy** (95% CI 63.3–87.8%),
+>   balanced 74.87% / 73.47%, macro F1 0.739 / 0.704, AUROC 0.939 / 0.919, ECE 0.085 / 0.074.
+> - **KAUH holdout (24 in-label patients of the same hospital; within-site):** 17/24, healthy 17/18,
+>   **COPD 0/5**.
+> - **Serving:** needs PyTorch (CPU) for OPERA-CE, and the artifact is about 1.3 GB (HeAR 1.2 GB).
+>   On the CPU, 1 of 389 test recordings differs from the GPU evaluation (TF32).
+>
+> See [`ROUND2_EXPERIMENTS_REPORT.md`](ROUND2_EXPERIMENTS_REPORT.md) §9. The round-2 block below and
+> the member descriptions further down describe the previous two-member model.
+
 > **Round 2 (2026-10-22, later):** retrained at `b1698e9` on a corrected split (real KAUH patient IDs
 > for Kaggle clips). Test (45 patients): **73.33% patient / 81.25% recording accuracy** (95% CI
 > 60.0–86.7%), balanced 71.92% / 70.49%, macro F1 0.673 / 0.648, AUROC 0.905 / 0.893. Temperatures
@@ -50,7 +69,7 @@ classes) merged with the Kaggle Asthma Detection Dataset V2 after removing:
   its COPD clips; evidence in `backend/data/kaggle_icbhi_overlap.csv`), and
 - 12 byte-identical Kaggle duplicates.
 
-Cohort: 1,488 recordings / 223 patients (round 2: Kaggle clips cut from KAUH carry real KAUH patient IDs). Patient-disjoint split: 133 / 45 / 45 patients.
+Cohort (round 2b): 1,551 recordings / 244 patients, including 63 recordings of 21 KAUH patients (17 healthy, 4 COPD); Kaggle clips cut from KAUH carry real KAUH patient IDs. Patient-disjoint split: 146 / 49 / 49 patients. (Round 2: 1,488 / 223, split 133 / 45 / 45.)
 See [`DATASET_CARD.md`](DATASET_CARD.md).
 
 ## Inputs and outputs

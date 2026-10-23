@@ -18,6 +18,9 @@ WORKDIR /app
 # Copy requirements and install Python dependencies
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+# The served fusion includes OPERA-CE (PyTorch, CPU build; see requirements-experiments.txt).
+COPY requirements-experiments.txt ./
+RUN pip install --no-cache-dir -r requirements-experiments.txt --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Copy backend source code and model files
 COPY . .

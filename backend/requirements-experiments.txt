@@ -1,6 +1,6 @@
-# Extra packages for backend/experiments (OPERA embeddings) and --fusion-members opera_*.
-# Not needed to serve the current model. Install the CPU build of PyTorch so its CUDA libraries do
-# not clash with TensorFlow's:
+# Extra packages for OPERA embeddings: backend/experiments and --fusion-members opera_*.
+# REQUIRED TO SERVE the round-2b model (2026-10-23), whose fusion includes OPERA-CE; both Dockerfiles
+# install it. Install the CPU build of PyTorch so its CUDA libraries do not clash with TensorFlow's:
 #   pip install -r requirements-experiments.txt --extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.14.1
 torchaudio==2.11.0

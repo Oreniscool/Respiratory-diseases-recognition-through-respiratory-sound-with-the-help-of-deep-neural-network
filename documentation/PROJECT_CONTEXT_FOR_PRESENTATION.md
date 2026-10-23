@@ -1,5 +1,20 @@
 # RespiNet: Master Project Context & Prompt Dossier for Presentation Generation
 
+> **Round 2b update (2026-10-23, supersedes the figures below where they differ).** The served model
+> is now a four-member late fusion: a 3-seed RespiNet ensemble plus logistic heads over frozen
+> YAMNet, OPERA-CE and HeAR embeddings. It was chosen by pre-registered patient-grouped
+> cross-validation and trained with 21 KAUH patients added (split v3).
+>
+> - **Test set (49 patients):** **75.5% patient-level / 82.0% recording-level accuracy** (95% CI
+>   63–88%; balanced 74.9% / 73.5%). Split v3 has different test patients, so this is not comparable
+>   with the earlier 73.3%.
+> - **KAUH holdout (24 held-out patients from the same hospital):** **healthy 17/18 correct but COPD
+>   0/5**. The model follows what the site's training patients mostly were. This is within-site
+>   adaptation, not generalization to a new hospital.
+> - The earlier model's external failure (0/45, exact CI 0–7.9%) remains a key finding.
+>
+> Details: `ROUND2_EXPERIMENTS_REPORT.md` §9.
+
 > **Round 2 update (2026-10-22, supersedes the figures below where they differ).** Kaggle clips cut
 > from the KAUH hospital dataset now carry their real patient IDs, which changed the split. The served
 > RespiNet + YAMNet model, retrained on the corrected split, scores **73.3% patient-level / 81.3%

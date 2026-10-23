@@ -290,15 +290,41 @@ def registry() -> list[dict[str, object]]:
                            "ModelCheckpoint epochs 56/44. Its KAUH-holdout run (served file): 17/24 in-label patients, "
                            "healthy 17/18, COPD 0/5. Deployment checks passed (parity 5e-5) but compared served files "
                            "with themselves, so they could not detect this. Re-scoring all 389 test recordings "
-                           "through the served files: recording balanced accuracy 0.7309 vs reported 0.7507, "
-                           "accuracy 0.8201 vs 0.8252; patient-level metrics identical "
-                           "(reported_metrics_reproduction.json).",
+                           "through the served files on the GPU (the evaluation device): 1 recording differs "
+                           "(a healthy one; balanced accuracy 0.7427 vs reported 0.7507, accuracy 0.8226 vs "
+                           "0.8252); patient-level metrics identical. On the CPU 2 recordings differ (one more "
+                           "from TF32). So the mismatch was real but changed one test recording "
+                           "(reported_metrics_reproduction*.json).",
             limitations="Not a valid estimate of any single model: metrics and served weights differ.",
             decision="superseded by the retrained artifact (D-24)",
             justification="Kept for the record; its test and holdout numbers are not reported as results."),
         c4_row(),
-        row("X3", "Source-mixing mitigation on the KAUH holdout", hypothesis="H3", status="running",
-            decision="evaluate once after round-2b adoption", justification="Tests H3."),
+        row("EXP-016", "Served round-2b model: D3_x3 + YAMNet + OPERA-CE + HeAR (production run #3)", split="v3",
+            metrics=model_metrics("latest"), artifact="backend/artifacts/latest/",
+            interpretation=("Test split used for this configuration a second time (first: EXP-015, same configuration, "
+                            "superseded artifact); the configuration was fixed before (D-21), so nothing was chosen. "
+                            "Served files reproduce test_metrics.json exactly on the GPU; on the CPU 1 of 389 test "
+                            "recordings flips (TF32 near-tie), patient metrics identical."),
+            limitations=("In-cohort only. Split v3 differs from v2, so not comparable with EXP-012. 49 test patients "
+                         "(CI about ±12 points). KAUH in the test split: 3 patients."),
+            decision="served model (round 2b)", justification="D-21 adoption; D-23/D-24 fixes."),
+        row("X3", "Source-mixing mitigation on the KAUH holdout (round-2b served model)", hypothesis="H3",
+            split="v3", metrics=external_metrics("experiments/external/served_round2b_final.json"),
+            artifact="backend/artifacts/experiments/external/served_round2b_final*.json",
+            interpretation=("17/24 in-label holdout patients correct vs 0/24 for the model served before 2b "
+                            "(EXP-017): healthy 17/18 (exact CI 72.7–99.9%), COPD 0/5 (CI 0–52.2%), bronchial 0/1; "
+                            "balanced accuracy 31.5%. Out-of-label KAUH recordings moved from mostly 'asthma' to "
+                            "mostly 'healthy' (52/81): the model follows the site's dominant training label."),
+            limitations=("Within-site evaluation (KAUH patients in training), not cross-site. 24 in-label patients, "
+                         "5 COPD. Holdout used twice for this configuration (once for EXP-015)."),
+            decision="H3 partly supported: criterion met on accuracy (+70.8 points), not on COPD or balanced accuracy",
+            justification="Pre-registered in RESEARCH_PLAN H3 / ROUND2 report §9."),
+        row("EXP-017", "Model served before round 2b, on the same KAUH holdout", hypothesis="H3", split="v2",
+            metrics=external_metrics("experiments/external/previous_round2_on_holdout.json"),
+            artifact="backend/artifacts/experiments/external/previous_round2_on_holdout*.json",
+            interpretation="0/24 in-label holdout patients (exact CI 0–14.2%); nearly everything predicted asthma.",
+            limitations="Served file is epoch 67 while its reported metrics used epoch 64 (D-24).",
+            decision="comparison arm for X3", justification="Pre-registered in ROUND2 report §9."),
         row("X5", "Abstention and calibration under site shift", hypothesis="H5 (uncertainty)", status="proposed",
             decision="descriptive analysis after X3", justification="Uses existing external outputs."),
     ]

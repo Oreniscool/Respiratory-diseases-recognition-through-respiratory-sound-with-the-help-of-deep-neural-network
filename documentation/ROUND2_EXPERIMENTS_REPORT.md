@@ -271,3 +271,68 @@ Generated from `backend/artifacts/experiments/results.json` (report run 2026-10-
   RespiNets plus three embedding models per request.
 - This decision was recorded before the adopted model was trained or the test/holdout sets were touched.
 
+
+### 9.2 Round-2b production model: test split and KAUH holdout (2026-10-23)
+
+**Getting to a valid artifact took three production runs.** Each failure is kept in the record:
+
+| Run | Commit | Outcome | Record |
+|---|---|---|---|
+| #1 | `fe81a77` (HEAD at launch, 14:12; the run stopped before writing metadata) | stopped at the OPERA-CE head-export check: on the GPU, TF32 moved its probabilities by 2.2e-3 (C = 0.1) | EXP-014, D-23: heads now run on the CPU (`pretrained.predict_head`), tolerance 1e-4 |
+| #2 | `a21b510` | completed, but the served `.keras` files of two ensemble members were later `ModelCheckpoint` epochs (56/44) than the `EarlyStopping`-restored weights (50/42) that calibration and the test metrics used | EXP-015, D-24: `train_model` now saves the restored model |
+| **#3** | **`724c52c`** | **served model** | this section |
+
+Run #2's test split and KAUH holdout results were seen before run #3 was trained. The configuration
+was already fixed (D-21), so the re-evaluation chose nothing. It is disclosed here and in D-24.
+
+**Test split (used for this configuration a second time; 49 patients, 389 recordings,
+`test_metrics.json`):**
+
+| | Recording level | Patient level |
+|---|---:|---:|
+| Accuracy | 82.01% | **75.51%** (95% CI 63.3–87.8%) |
+| Balanced accuracy | 73.47% | 74.87% (CI 63.4–86.6%) |
+| Macro F1 | 0.704 | 0.739 |
+| Macro OvR AUROC | 0.919 | 0.939 |
+| ECE | 0.074 | 0.085 |
+
+- **Patient sensitivity:** asthma 8/8, COPD 12/14, healthy 7/11, bronchial 5/8, pneumonia 5/8.
+- **By source (patient accuracy):** ICBHI 75.9% (29 patients), Kaggle 76.5% (17), KAUH 2/3.
+- Split v3 has different test patients from split v2, so this is not comparable with the round-2
+  model's 73.33% on 45 patients (§7).
+
+**KAUH holdout (51 patients never in training; 24 with an in-label diagnosis; used once for run #3,
+once for run #2):**
+
+| Model | Patients correct | Healthy | COPD | Bronchial | Balanced | Out-of-label recordings (81) |
+|---|---:|---:|---:|---:|---:|---|
+| Served before 2b (`fusion-round2-split2`) | 0/24 (exact CI 0–14.2%) | 0/18 | 0/5 | 0/1 | 0.0% | asthma 63, pneumonia 17, COPD 1 |
+| **Round 2b (`724c52c`)** | **17/24 (70.8%, CI 48.9–87.4%)** | **17/18** | **0/5** (CI 0–52%) | 0/1 | 31.5% | healthy 52, asthma 26, COPD 2, bronchial 1 |
+
+**Interpretation:**
+- The pre-registered criterion for H3 was holdout in-label accuracy at least 30 points above the
+  previous 0%. It is **met on accuracy (+70.8 points)**, but only because 18 of the 24 patients are
+  healthy.
+  - COPD is still 0/5, even with 4 KAUH COPD patients in training.
+  - Balanced accuracy is 31.5%, close to the 33% chance level for three classes.
+- The predictions on out-of-label KAUH patients (heart failure, fibrosis, effusion and others)
+  swung from mostly "asthma" to mostly "healthy".
+- The model learns the site's dominant training label more than the diseases. Within the site it
+  now says "healthy" where it used to say "asthma".
+- It is a **within-site** result. It must not be presented as restored cross-site generalization.
+- Abstention is higher on out-of-label recordings (64%) than on in-label ones (46%), a supporting
+  observation for X5.
+
+**Deployment checks** (`backend/artifacts/experiments/deployment_checks/round2b_final*.json`):
+- `/ready`: 200 with a verified contract.
+- Server vs training path: 4.7e-5 on 12 test recordings, same class 12/12.
+- The gate rejects a tone, white noise and silence, and accepts a test recording.
+- **Reported-metrics reproduction** (new in this round): all 389 test recordings go through the
+  served files and are compared with `test_metrics.json`. On the GPU, the device that produced
+  `test_metrics.json`, everything matches exactly. On the CPU (Docker serving), 1 recording flips
+  (TF32 near-tie): recording balanced accuracy 72.3% vs 73.5%, patient metrics identical.
+
+**Serving requirements:**
+- PyTorch (CPU build, `requirements-experiments.txt`) for OPERA-CE. Both Dockerfiles install it;
+  not yet build-tested.
+- The artifact is about 1.3 GB, of which HeAR is 1.2 GB.

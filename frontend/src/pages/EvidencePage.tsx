@@ -100,10 +100,10 @@ export default function EvidencePage() {
             <caption>Current frontend-facing model contract</caption>
             <tbody>
               <tr><th scope="row">Input representation</th><td>40 MFCC + Δ + Δ² (120 values per frame) in overlapping 200-frame windows across the whole recording</td></tr>
-              <tr><th scope="row">Network family</th><td>Multi-scale Conv1D plus bidirectional GRU (RespiNet-Attention v3, 458,701 parameters), averaged with a classifier over pretrained YAMNet embeddings</td></tr>
+              <tr><th scope="row">Network family</th><td>Three multi-scale Conv1D plus bidirectional GRU networks (RespiNet-Attention v3, 458,701 parameters each), averaged with classifiers over pretrained YAMNet, OPERA-CE and HeAR embeddings</td></tr>
               <tr><th scope="row">Output</th><td>Five labels: asthma, bronchial, COPD, healthy, pneumonia</td></tr>
               <tr><th scope="row">Score interpretation</th><td>Temperature-calibrated model score with an abstention rule; not a clinical probability</td></tr>
-              <tr><th scope="row">Required safeguard</th><td>Verified metadata for preprocessing and class order; hash checks on both models</td></tr>
+              <tr><th scope="row">Required safeguard</th><td>Verified metadata for preprocessing and class order; hash checks on every model file</td></tr>
             </tbody>
           </table>
         </div>
@@ -112,15 +112,15 @@ export default function EvidencePage() {
       <section className="editorial-section section-tint" id="dataset">
         <div className="section-intro">
           <p className="eyebrow">Dataset</p>
-          <h2>Two public datasets—and an overlap we removed.</h2>
+          <h2>Three public datasets—and an overlap we removed.</h2>
           <p>
-            The model is trained on the 2017 ICBHI Respiratory Sound Database (920 recordings from 126 participants, about 5.5 hours, several chest locations and devices) merged with the Kaggle Asthma Detection Dataset V2. An audit found that 631 Kaggle clips—including every Kaggle COPD clip—are cut from ICBHI recordings. They were removed so the same audio can never appear in both training and test data.
+            The model is trained on the 2017 ICBHI Respiratory Sound Database (920 recordings from 126 participants, about 5.5 hours, several chest locations and devices) merged with the Kaggle Asthma Detection Dataset V2 and 21 patients from the KAUH hospital dataset. An audit found that 631 Kaggle clips—including every Kaggle COPD clip—are cut from ICBHI recordings. They were removed so the same audio can never appear in both training and test data.
           </p>
         </div>
-        {/* Cohort facts: backend/artifacts/latest/dataset_audit.json (2026-10-22). */}
+        {/* Cohort facts: backend/artifacts/latest/dataset_audit.json (2026-10-23, round 2b). */}
         <div className="fact-strip" aria-label="Training cohort facts">
-          <Fact value="1,488" label="Recordings used" />
-          <Fact value="243" label="Patient groups" />
+          <Fact value="1,551" label="Recordings used" />
+          <Fact value="244" label="Patient groups" />
           <Fact value="631" label="Duplicated ICBHI clips removed" />
           <Fact value="5" label="Labels" />
         </div>
@@ -158,18 +158,18 @@ export default function EvidencePage() {
           <p className="eyebrow">Benchmark status</p>
           <h2>Leakage-free results on one held-out split—not a clinical claim.</h2>
           <p>
-            On 45 patients held out from training, the model reaches 73.3% patient-level and 81.3% recording-level accuracy. These patients come from the same datasets it was trained on. On 45 patients from another hospital, recorded with a different stethoscope, it failed completely: it called healthy and COPD patients “asthma”, because nearly all of its training audio from that kind of recording was asthma. Earlier figures (82%, then 77.6%) came from splits that still let recordings of the same patients appear on both sides. These are research measurements on one split of public data, with no external or clinical validation.
+            On 49 patients held out from training, the model reaches 75.5% patient-level and 82.0% recording-level accuracy. These patients come from the same datasets it was trained on. The previous model, tested on 45 patients from another hospital recorded with a different stethoscope, failed completely: it called healthy and COPD patients “asthma”, because nearly all of its training audio from that kind of recording was asthma. After 21 patients from that hospital were added to training, it recognizes the hospital’s other healthy patients (17 of 18) but still misses every COPD patient (0 of 5): it learned what that hospital’s patients mostly were, not the diseases. Earlier figures (82%, 77.6%, 73.3%) came from other splits. These are research measurements on one split of public data, with no external or clinical validation.
           </p>
         </div>
-        {/* Results: backend/artifacts/latest/test_metrics.json and calibration.json (2026-10-22). */}
+        {/* Results: backend/artifacts/latest/test_metrics.json, calibration.json and artifacts/experiments/external/served_round2b_final.json (2026-10-23, round 2b). */}
         <div className="benchmark-ledger">
-          <div><span>Patient-level test accuracy</span><strong>73.3%</strong><small>45 held-out patients; 95% CI 60–87%</small></div>
-          <div><span>Balanced accuracy</span><strong>71.9%</strong><small>Average recall across the five labels</small></div>
-          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (fused T = 0.56); per-recording calibration error 0.05</small></div>
-          <div><span>External hospital test</span><strong>Failed</strong><small>45 KAUH patients (new hospital and stethoscope): 0% correct, nearly all called asthma</small></div>
+          <div><span>Patient-level test accuracy</span><strong>75.5%</strong><small>49 held-out patients; 95% CI 63–88%</small></div>
+          <div><span>Balanced accuracy</span><strong>74.9%</strong><small>Average recall across the five labels</small></div>
+          <div><span>Calibration</span><strong>Applied</strong><small>Temperature scaling (fused T = 0.55); per-recording calibration error 0.07</small></div>
+          <div><span>Other-hospital test</span><strong>Healthy only</strong><small>New hospital: 0 of 45 correct. After adding 21 of its patients: healthy 17/18, COPD 0/5 on its other patients</small></div>
         </div>
         <p>
-          By source: 70.4% on 27 ICBHI test patients and 77.8% on 18 Kaggle patients. The weakest label is “bronchial” (12.5% patient-level sensitivity). The model recognizes the recording source more easily than the disease, so these scores do not carry over to new clinics or devices. Full evidence: <code>documentation/ROUND2_EXPERIMENTS_REPORT.md</code>, <code>documentation/ACCURACY_EXPERIMENTS_REPORT.md</code> and <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
+          By source: 75.9% on 29 ICBHI test patients, 76.5% on 17 Kaggle patients and 2 of 3 KAUH patients. The weakest labels are “bronchial” and “pneumonia” (5 of 8 patients each) and “healthy” (7 of 11). The model recognizes the recording source more easily than the disease, so these scores do not carry over to new clinics or devices. Full evidence: <code>documentation/ROUND2_EXPERIMENTS_REPORT.md</code>, <code>documentation/ACCURACY_EXPERIMENTS_REPORT.md</code> and <code>documentation/FINAL_PHASE_IMPROVEMENT_REPORT.md</code> in the repository.
         </p>
       </section>
 

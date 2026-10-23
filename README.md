@@ -21,17 +21,27 @@ Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
   ICBHI recordings.** In the earlier merged cohort they sat under different patient IDs, so test
   patients' audio also appeared in training. These copies, plus 12 byte-identical files, are now
   removed (evidence: `backend/data/kaggle_icbhi_overlap.csv`).
-- Leakage-free cohort: 1,488 recordings / 223 patients (Kaggle clips cut from KAUH carry real patient IDs); patient-disjoint split 133 / 45 / 45.
+- Leakage-free cohort (round 2b): 1,551 recordings / 244 patients, including 21 patients from the
+  KAUH hospital dataset (Kaggle clips cut from KAUH carry real patient IDs). Patient-disjoint split
+  146 / 49 / 49.
+- **Served model (round 2b):** a four-member late fusion. It combines a 3-seed RespiNet ensemble with
+  logistic heads over frozen YAMNet, OPERA-CE and HeAR embeddings, chosen by pre-registered
+  patient-grouped cross-validation.
 
-| Held-out test (45 patients, round 2) | Recording level | Patient level |
+| Held-out test (49 patients, round 2b, split v3) | Recording level | Patient level |
 |---|---:|---:|
-| Accuracy | 81.25% | 73.33% (95% CI 60.0–86.7%) |
-| Balanced accuracy | 70.49% | 71.92% |
-| Macro F1 | 0.648 | 0.673 |
-| Macro one-vs-rest AUROC | 0.893 | 0.905 |
+| Accuracy | 82.01% | 75.51% (95% CI 63.3–87.8%) |
+| Balanced accuracy | 73.47% | 74.87% |
+| Macro F1 | 0.704 | 0.739 |
+| Macro one-vs-rest AUROC | 0.919 | 0.939 |
 
-These are round-2 numbers (45 test patients of a corrected split in which Kaggle clips cut from the
-KAUH hospital dataset carry their real patient IDs). **On 45 external KAUH patients from another
+Split v3 has different test patients from round 2's split v2 (73.33% patient accuracy on 45
+patients), so the two are not directly comparable. On 24 held-out KAUH patients, the round-2b model
+gets healthy 17/18 right but COPD 0/5. That is within-site adaptation, not generalization to a new
+hospital.
+
+The round-2 numbers were on 45 test patients of a corrected split in which Kaggle clips cut from the
+KAUH hospital dataset carry their real patient IDs. **On 45 external KAUH patients from another
 hospital and stethoscope the model scores 0%: it calls healthy and COPD patients "asthma"**, because
 almost all KAUH-recorded training audio is asthma. Treat every number here as in-cohort only; see
 [`documentation/ROUND2_EXPERIMENTS_REPORT.md`](documentation/ROUND2_EXPERIMENTS_REPORT.md).

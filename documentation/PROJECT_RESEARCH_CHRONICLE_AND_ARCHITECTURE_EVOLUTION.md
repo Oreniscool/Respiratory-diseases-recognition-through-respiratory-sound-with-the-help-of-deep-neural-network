@@ -1151,11 +1151,19 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     77.6%; KAUH holdout 17/24 in-label patients (healthy 17/18, COPD 0/5).
   - **New deployment check: reproduce the reported metrics from the served files.** Every test
     recording goes through the server path, and the metrics are recomputed and compared with
-    `test_metrics.json`. On the superseded artifact it catches the mismatch: recording balanced
-    accuracy served 73.1% vs reported 75.1%, accuracy 82.0% vs 82.5%, macro F1 0.702 vs 0.718.
-    Patient-level metrics are identical, because averaging hides it. Saved as
-    `reported_metrics_reproduction.json` in the archive. Acceptance for a new artifact: every metric
-    within 0.003 (one recording).
+    `test_metrics.json`. On the superseded artifact, run on the CPU, 2 of 389 recordings differ
+    (recording balanced accuracy 73.1% vs reported 75.1%).
+    > **Correction (same day):** one of those two flips is TF32. Run on the GPU, the device that
+    > produced `test_metrics.json`, the superseded artifact differs in exactly **1** recording (a
+    > healthy one: balanced 74.3% vs 75.1%, accuracy 82.26% vs 82.52%), and patient metrics are
+    > identical. The checkpoint mismatch was real but changed one test recording.
+    >
+    > The first acceptance rule ("every metric within 0.003") was badly specified, because one flip
+    > in a 17-recording class moves balanced accuracy by 0.012. The criterion is now: exact
+    > reproduction on the evaluation device, with differing recordings counted on the CPU.
+    >
+    > Files: `reported_metrics_reproduction.json` (CPU) and `reported_metrics_reproduction_gpu.json`
+    > (GPU) in the archive.
   - **Production run #3** retrains from `724c52c`. Because the configuration is fixed (D-21), the
     second use of the test split and the KAUH holdout chooses nothing; it is disclosed in the report.
 - **Control C4 complete (H6; `experiments/contamination.py`, `research/tools/c4_analysis.py`).**
@@ -1178,6 +1186,36 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   KAUH recordings, so the claim that the copying exceeds the disclosure is withdrawn. What is
   undocumented is the splitting into several clips per recording with non-patient identifiers, and
   that all of Kaggle's COPD class is ICBHI audio.
+
+- **Round-2b model served (production run #3, `724c52c`, 2026-10-23; EXP-016, X3, EXP-017).**
+  - **Configuration** (D-21): 3-seed RespiNet ensemble (cuDNN GRUs, per-sample SpecAugment) +
+    logistic heads over frozen YAMNet (C = 0.01), OPERA-CE (C = 0.1) and HeAR (C = 0.01), equal
+    weights. Restored epochs 45 / 46 / 78, and the saved files are those restored models (D-24).
+  - **Temperatures:** RespiNet 0.9099, YAMNet 1.0570, OPERA-CE 1.5085, HeAR 1.0973, fused 0.5489.
+    Abstention: min confidence 0.6629, max normalized entropy 0.5060.
+  - **Test, split v3** (49 patients, 389 recordings; second use for this configuration after
+    EXP-015, which chose nothing):
+    - recording accuracy 82.01%, balanced 73.47%, macro F1 0.704, AUROC 0.919, ECE 0.074;
+    - patient accuracy **75.51%** (95% CI 63.3–87.8%), balanced 74.87%, macro F1 0.739,
+      AUROC 0.939;
+    - patient sensitivity: asthma 8/8, COPD 12/14, healthy 7/11, bronchial 5/8, pneumonia 5/8;
+    - not comparable with split v2's 73.33% (different test patients).
+  - **KAUH holdout (X3; 24 in-label of 51 patients):**
+    - 17/24 (exact CI 48.9–87.4%): healthy 17/18, COPD 0/5, bronchial 0/1; balanced 31.5%.
+    - The model served before (EXP-017) scored 0/24 on the same holdout.
+    - The 81 out-of-label recordings moved from "asthma" (63) to "healthy" (52).
+    - H3 is partly supported: the pre-registered +30-point accuracy criterion is met only through
+      the healthy majority. This is within-site adaptation, not cross-site generalization.
+  - **Deployment checks:** `/ready` 200; server vs training path 4.7e-5 (12/12); gate rejects a tone,
+    noise and silence. All 389 test recordings through the served files reproduce `test_metrics.json`
+    exactly on the GPU. On the CPU, 1 recording flips (TF32 near-tie) and patient metrics are
+    identical.
+  - **Serving dependencies changed:** OPERA-CE needs PyTorch.
+    - `backend/Dockerfile` and the root `Dockerfile` now also install `requirements-experiments.txt`
+      (CPU build). Not build-tested: the Docker daemon was not running.
+    - The artifact is about 1.3 GB (HeAR 1.2 GB).
+    - Pre-existing, not changed: neither `.dockerignore` excludes `backend/venv.old/` or the
+      multi-GB `artifacts/experiments*` caches.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
