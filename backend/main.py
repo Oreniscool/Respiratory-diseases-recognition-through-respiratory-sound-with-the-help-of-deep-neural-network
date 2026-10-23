@@ -193,6 +193,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Keep Kaggle filename pseudo-patient IDs (known to merge and split real patients)",
     )
     parser.add_argument(
+        "--exclude-icbhi-copies",
+        action="store_true",
+        help="Drop Kaggle clips that are cuts of ICBHI recordings even when ICBHI is not merged "
+        "(research control: Kaggle-only training without the copies)",
+    )
+    parser.add_argument(
         "--no-overlap-exclusion",
         action="store_true",
         help="Keep Kaggle clips that are copies of ICBHI audio (reintroduces split leakage)",
@@ -542,7 +548,8 @@ def build_cohort(args: argparse.Namespace) -> tuple[list[AudioRecord], dict[str,
     # merged, keep the full ICBHI recording (real patient ID) and drop the Kaggle copy.
     cross_dataset_overlap: dict[str, object] = {"applied": False}
     sources = {record.source for record in records}
-    if {"icbhi", "kaggle_asthma_v2"} <= sources and not args.no_overlap_exclusion:
+    merged = {"icbhi", "kaggle_asthma_v2"} <= sources
+    if (merged and not args.no_overlap_exclusion) or (args.exclude_icbhi_copies and "kaggle_asthma_v2" in sources):
         records, cross_dataset_overlap = exclude_cross_dataset_overlap(records, args.overlap_csv)
         cross_dataset_overlap["applied"] = True
         print(
