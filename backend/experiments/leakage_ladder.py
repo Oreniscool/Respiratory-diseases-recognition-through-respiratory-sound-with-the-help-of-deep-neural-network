@@ -25,6 +25,8 @@ Rungs (each repeated over seeds 0…N−1; the same seed gives the same split wi
 - **L3 + patient-disjoint:** split patients 75/25 (stratified by patient diagnosis); validation
   patients from the training patients; augment training only.
 - **L4** = L3 scored per patient (mean of a patient's recording probabilities).
+- **L2T / L3T:** L2 / L3 splits with the checkpoint selected on the test split, completing the
+  split-unit × selection factorial.
 
 Usage (from ``backend/``)::
 
@@ -51,7 +53,10 @@ ICBHI_DIR = Path("dataset/ICBHI_final_dataset")
 DIAGNOSIS_CSV = Path("dataset/patient_diagnosis_authentic.csv")
 EXCLUDED_PATIENTS = ("103", "108", "115")  # as in the original code (Asthma, LRTI ×2)
 CLASSES = ["Bronchiectasis", "Bronchiolitis", "COPD", "Healthy", "Pneumonia", "URTI"]
-RUNGS = ("L0", "L1", "L2", "L3")
+RUNGS = ("L0", "L1", "L2", "L3", "L2T", "L3T")
+# Factorial completion (review request): split unit {sample, recording, patient} × checkpoint selection
+# {test, validation}. L0/L1 = sample; L2/L2T = recording; L3/L3T = patient; "T" = selected on test.
+SELECT_ON_TEST = ("L0", "L2T", "L3T")
 EPOCHS = 1000
 BATCH_SIZE = 32  # not stated in the paper or code; Keras default
 # Sum of the per-layer counts in the paper's Fig. 3 (GRUs 323,616 + Dense 5,110). The figure's printed
@@ -159,7 +164,7 @@ def split_indices(rung: str, data: dict[str, np.ndarray], seed: int) -> dict[str
         train, validation = train_test_split(train, test_size=0.2, random_state=seed)
         return {"train": train, "validation": validation, "test": test}
 
-    unit = data["recording"] if rung == "L2" else data["patient"]
+    unit = data["recording"] if rung in ("L2", "L2T") else data["patient"]
     units, first = np.unique(unit, return_index=True)
     unit_label = data["label"][first]
     train_units, test_units = train_test_split(units, test_size=0.25, random_state=seed, stratify=unit_label)
@@ -220,7 +225,7 @@ def run_one(job: tuple[str, int, int]) -> dict[str, object]:
     # The 2021 network keeps return_sequences=True, so it outputs (N, 1, classes); targets match.
     onehot = np.eye(len(CLASSES), dtype=np.float32)[y][:, None, :]
     X = data["X"][:, None, :]
-    selection = parts["test"] if rung == "L0" else parts["validation"]
+    selection = parts["test"] if rung in SELECT_ON_TEST else parts["validation"]
 
     model = original_model(len(CLASSES))
     model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adamax(), metrics=["accuracy"])
@@ -242,14 +247,14 @@ def run_one(job: tuple[str, int, int]) -> dict[str, object]:
     truth = y[parts["test"]]
     result = {
         "rung": rung, "seed": seed, "epochs": epochs, "best_epoch": best["epoch"],
-        "selection_split": "test" if rung == "L0" else "validation",
+        "selection_split": "test" if rung in SELECT_ON_TEST else "validation",
         "train_samples": int(len(parts["train"])), "test_samples": int(len(truth)),
         "accuracy": float(accuracy_score(truth, predicted)),
         "balanced_accuracy": float(balanced_accuracy_score(truth, predicted)),
         "weighted_f1": float(f1_score(truth, predicted, average="weighted")),
         "minutes": round((time.time() - started) / 60, 2),
     }
-    if rung == "L3":  # L4: the same model scored per patient
+    if rung in ("L3", "L3T"):  # L4: the same model scored per patient
         patients = data["patient"][parts["test"]]
         unique = np.unique(patients)
         patient_truth = np.asarray([truth[patients == p][0] for p in unique])
@@ -301,15 +306,16 @@ def summarize() -> dict[str, object]:
             if values.size:
                 summary[rung][metric] = {"mean": float(values.mean()), "sd": float(values.std(ddof=1)) if values.size > 1 else 0.0,
                                          "min": float(values.min()), "max": float(values.max())}
-    by_seed = {(row["rung"], int(row["seed"])): float(row["accuracy"]) for row in rows}
-    for low, high in (("L0", "L1"), ("L1", "L2"), ("L2", "L3"), ("L0", "L3")):
-        seeds = sorted({s for r, s in by_seed if r == low} & {s for r, s in by_seed if r == high})
-        if seeds:
-            drops = np.asarray([by_seed[(low, s)] - by_seed[(high, s)] for s in seeds])
-            summary[f"drop_{low}_to_{high}"] = {
-                "mean": float(drops.mean()), "sd": float(drops.std(ddof=1)) if drops.size > 1 else 0.0,
-                "seeds": len(seeds),
-            }
+    for metric, prefix in (("accuracy", "drop"), ("balanced_accuracy", "balanced_drop")):
+        by_seed = {(row["rung"], int(row["seed"])): float(row[metric]) for row in rows}
+        for low, high in (("L0", "L1"), ("L1", "L2"), ("L2", "L3"), ("L0", "L3"), ("L2T", "L2"), ("L3T", "L3")):
+            seeds = sorted({s for r, s in by_seed if r == low} & {s for r, s in by_seed if r == high})
+            if seeds:
+                drops = np.asarray([by_seed[(low, s)] - by_seed[(high, s)] for s in seeds])
+                summary[f"{prefix}_{low}_to_{high}"] = {
+                    "mean": float(drops.mean()), "sd": float(drops.std(ddof=1)) if drops.size > 1 else 0.0,
+                    "seeds": len(seeds),
+                }
     (OUTPUT_DIR / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
     return summary

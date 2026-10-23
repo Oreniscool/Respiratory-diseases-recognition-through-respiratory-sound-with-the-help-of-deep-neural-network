@@ -1044,6 +1044,15 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - Disease within ICBHI alone: 0.48–0.54 against a chance level of 0.25.
 - **Exact intervals (`research/tools/exact_ci.py`):** external KAUH 0/45 correct → 95% CI 0–7.9%.
   X2 asthma at 4 kHz: COPD 14/346 → 2.2–6.7%, healthy 1/12 → 0.2–38.5%.
+- **Copy-detector validation (`experiments/match_validation.py`).**
+  - 100 synthetic cuts of ICBHI recordings were degraded (4–44.1 kHz resampling, gain 0.3–1.5,
+    20–40 dB noise, half band-passed). 99 were matched to their true source; median score 0.985, 5th
+    percentile 0.955.
+  - The one miss found the correct source but scored 0.621, below the 0.75 threshold. The 631/316
+    copy counts are therefore lower bounds.
+  - Real-data negative control: 0 of 336 KAUH recordings match ICBHI.
+  - A blind listening set of 20 shuffled pairs (the 10 lowest-scoring real matches and the 10
+    highest-scoring non-matches) awaits the user; the key is kept separately.
 - **X2 site vs bandwidth (`backend/experiments/site_vs_band.py`,
   `backend/artifacts/experiments/site_vs_band/served_round2.json`).** The round-2 served model scored
   ICBHI recordings it never trained on (split v2 test + validation) as recorded and re-encoded as 4 kHz

@@ -55,3 +55,11 @@ def test_original_model_matches_the_paper_layer_counts():
     from experiments.leakage_ladder import ORIGINAL_PARAMETERS, original_model
 
     assert original_model().count_params() == ORIGINAL_PARAMETERS
+
+
+def test_test_selected_rungs_share_the_splits_of_their_validation_twins():
+    data = _ladder_data()
+    for twin, rung in (("L2", "L2T"), ("L3", "L3T")):
+        a, b = split_indices(twin, data, seed=4), split_indices(rung, data, seed=4)
+        for part in ("train", "validation", "test"):
+            np.testing.assert_array_equal(a[part], b[part])
