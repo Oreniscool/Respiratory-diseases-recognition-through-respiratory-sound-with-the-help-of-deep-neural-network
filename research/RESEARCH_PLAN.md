@@ -78,7 +78,7 @@ differences", not "the stethoscope".
 | Representation (secondary) | E_yamnet / E_opera_* / E_hear, fusions | done on v2/v3 CV; holdout pending |
 | Architecture (secondary) | D0 / D3 / D3_* variants | round 2b queue running |
 | Uncertainty (secondary) | X5 abstention and calibration per source | proposed |
-| Audit validation (core, v2) | copy-detector recall on synthetic cuts (done: 0.99); blind listening of 20 pairs (awaiting the user) | in progress |
+| Audit validation (core, v2) | copy-detector recall on synthetic cuts (done: 0.99); blind listening of 20 hardest pairs (done: 19/19 decided agree, 1 unsure) | done (second rater optional) |
 | Consequence (core, v2) | C4 contamination re-evaluation (Kaggle-only models scored on copied vs clean ICBHI) | queued on the GPU |
 | Leak decomposition (core, v2) | X1 factorial completion (L2T, L3T) | running |
 | Source confound (core, v2) | within-label probes (done), exact CIs (done) | done |

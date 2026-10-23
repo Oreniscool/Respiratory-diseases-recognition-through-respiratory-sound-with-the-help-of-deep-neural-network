@@ -1257,6 +1257,14 @@ Governance and evidence now live in `research/` (see `research/README.md`).
       number is 4, with 3 of them duplicates.
     - Follow-up: `kauh.split_for_training` must group audio-linked patients before the next split.
 
+- **Blind listening check of the copy detector (C-16; `research/tools/listening_score.py`).**
+  - The user rated the 20 hardest real cases with audio plus waveform/spectrogram images and no
+    scores shown: the 10 lowest-scoring matches (NCC 0.795–0.975) and the 10 highest-scoring
+    non-matches (0.612–0.697).
+  - All 19 decided pairs agree with the detector (10/10 matches, 9/9 non-matches; exact 95% CI
+    82.4–100%). 1 non-match was marked unsure.
+  - One rater only. Result in `backend/artifacts/experiments/match_validation/listening_result.json`.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

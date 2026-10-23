@@ -7,7 +7,7 @@ Milestones (RESEARCH_PLAN §7):
 1. Governance and reviews: done.
 2. X1 and the factorial: done.
 3. Round 2b: done (served model EXP-016, X3).
-4. v2 controls: done except the blind listening check.
+4. v2 controls: done (listening check 19/19, 2026-10-23).
 5. Independent audit: done (D-26), see the last section.
 
 ## Verified (claim IDs in `CLAIM_EVIDENCE_MATRIX.csv`)
@@ -15,7 +15,9 @@ Milestones (RESEARCH_PLAN §7):
 **(a) Audit**
 - 631 Kaggle V2 clips are cuts of 187 ICBHI recordings, including all 401 Kaggle COPD clips.
   316 clips are cuts of 115 KAUH recordings. Filename "patients" mix real patients (C-04, C-05).
-- The detector found 99 of 100 synthetic degraded cuts, so these counts are lower bounds (C-16).
+- The detector found 99 of 100 synthetic degraded cuts, so these counts are lower bounds. A blind
+  human listening check of the 20 hardest real cases agreed with the detector on all 19 decided pairs
+  (exact CI 82.4–100%, one rater, 1 unsure) (C-16).
 - The uploader discloses the sources ("212 samples", "about 170 samples"). The claim that the copying
   exceeds the disclosure is withdrawn because it depends on the unit (C-20, D-25). What is
   undocumented: recordings cut into several clips presented as separate samples with non-patient
@@ -65,8 +67,8 @@ Milestones (RESEARCH_PLAN §7):
    difference in the re-implementation.
 2. **Source-only baseline** on every test set, and **multiplicity control** over the probes and
    variants.
-3. **Blind listening check** of 20 matched/unmatched pairs (prepared; waiting for the user, ideally
-   with a second rater).
+3. ~~Blind listening check~~ **done** (19/19 decided pairs agree). A second independent rater is
+   optional but would allow inter-rater agreement.
 4. **Label-mapping table** with the field each label comes from (KAUH "N" appears in both the
    diagnosis and sound-type columns; BRON ≠ bronchial ≠ bronchiectasis).
 5. **Audio-linked KAUH patients on one side of every split** (C-21). `kauh.split_for_training`
