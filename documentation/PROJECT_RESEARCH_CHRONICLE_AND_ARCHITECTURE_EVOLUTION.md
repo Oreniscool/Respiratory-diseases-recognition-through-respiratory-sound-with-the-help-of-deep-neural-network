@@ -1149,6 +1149,13 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - Run #2 is archived in `backend/artifacts/superseded-prod2b-ckpt-mismatch-2026-10-23/` (with its
     log and `deployment_checks.json`). Its numbers are not reported as results: test patient accuracy
     77.6%; KAUH holdout 17/24 in-label patients (healthy 17/18, COPD 0/5).
+  - **New deployment check: reproduce the reported metrics from the served files.** Every test
+    recording goes through the server path, and the metrics are recomputed and compared with
+    `test_metrics.json`. On the superseded artifact it catches the mismatch: recording balanced
+    accuracy served 73.1% vs reported 75.1%, accuracy 82.0% vs 82.5%, macro F1 0.702 vs 0.718.
+    Patient-level metrics are identical, because averaging hides it. Saved as
+    `reported_metrics_reproduction.json` in the archive. Acceptance for a new artifact: every metric
+    within 0.003 (one recording).
   - **Production run #3** retrains from `724c52c`. Because the configuration is fixed (D-21), the
     second use of the test split and the KAUH holdout chooses nothing; it is disclosed in the report.
 - **Control C4 complete (H6; `experiments/contamination.py`, `research/tools/c4_analysis.py`).**

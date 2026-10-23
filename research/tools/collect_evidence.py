@@ -289,7 +289,10 @@ def registry() -> list[dict[str, object]]:
                            "weights (members seed43/44: epochs 50/42); the saved files the server loaded were the later "
                            "ModelCheckpoint epochs 56/44. Its KAUH-holdout run (served file): 17/24 in-label patients, "
                            "healthy 17/18, COPD 0/5. Deployment checks passed (parity 5e-5) but compared served files "
-                           "with themselves, so they could not detect this.",
+                           "with themselves, so they could not detect this. Re-scoring all 389 test recordings "
+                           "through the served files: recording balanced accuracy 0.7309 vs reported 0.7507, "
+                           "accuracy 0.8201 vs 0.8252; patient-level metrics identical "
+                           "(reported_metrics_reproduction.json).",
             limitations="Not a valid estimate of any single model: metrics and served weights differ.",
             decision="superseded by the retrained artifact (D-24)",
             justification="Kept for the record; its test and holdout numbers are not reported as results."),
