@@ -1067,6 +1067,13 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - Real-data negative control: 0 of 336 KAUH recordings match ICBHI.
   - A blind listening set of 20 shuffled pairs (the 10 lowest-scoring real matches and the 10
     highest-scoring non-matches) awaits the user; the key is kept separately.
+    > **Fix (2026-10-23, evening):** several raw ICBHI reference segments carry a full-scale DC
+    > offset (one sat at +1.0 with the breath sound about 35 dB below), so they played as
+    > near-silence. Both files of every pair are now band-passed (100–1,800 Hz) and brought to the
+    > same loudness (`match_validation.for_listening`). A comparison image per pair shows the
+    > waveforms and spectrograms of A and B on one time axis, with no scores or labels. The pair
+    > order and the answer key are unchanged. The matcher was never affected, because it band-passes
+    > too.
 - **X2 site vs bandwidth (`backend/experiments/site_vs_band.py`,
   `backend/artifacts/experiments/site_vs_band/served_round2.json`).** The round-2 served model scored
   ICBHI recordings it never trained on (split v2 test + validation) as recorded and re-encoded as 4 kHz

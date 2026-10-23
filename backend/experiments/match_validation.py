@@ -101,8 +101,48 @@ def synthetic(cuts: int, workers: int, seed: int = 0) -> dict[str, object]:
     return summary
 
 
+def for_listening(waveform: np.ndarray, sample_rate: int) -> np.ndarray:
+    """Band-pass 100–1,800 Hz and bring to a common loudness, identically for both files of a pair.
+
+    Some raw ICBHI recordings carry a full-scale DC offset with the breath sound far below it, which
+    plays as near-silence; the matcher band-passes too, so this only makes the pairs audible.
+    """
+    from scipy.signal import butter, sosfiltfilt
+
+    high = min(1_800.0, 0.45 * sample_rate)
+    filtered = sosfiltfilt(butter(4, [100.0, high], btype="bandpass", fs=sample_rate, output="sos"), waveform)
+    filtered = 0.1 * filtered / (np.sqrt(np.mean(filtered**2)) + 1e-12)
+    return (filtered * min(1.0, 0.99 / (np.abs(filtered).max() + 1e-12))).astype(np.float32)
+
+
+def comparison_image(clip: np.ndarray, segment: np.ndarray, rate: int, title: str, path: Path) -> None:
+    """Waveforms and 0–2 kHz spectrograms of A and B on one time axis (no scores, no labels)."""
+    import librosa
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(4, 1, figsize=(10, 7), sharex=True)
+    for index, (signal, name) in enumerate(((clip, "A"), (segment, "B"))):
+        axes[index].plot(np.arange(len(signal)) / rate, signal, lw=0.5, color="#2a6f97")
+        axes[index].set_ylabel(f"{name}\nwaveform")
+        axes[index].set_yticks([])
+        spectrum = librosa.amplitude_to_db(np.abs(librosa.stft(signal, n_fft=512, hop_length=64)), ref=np.max)
+        frequencies = librosa.fft_frequencies(sr=rate, n_fft=512)
+        keep = frequencies <= 2_000
+        axes[2 + index].pcolormesh(np.arange(spectrum.shape[1]) * 64 / rate, frequencies[keep], spectrum[keep],
+                                   shading="auto", cmap="magma", vmin=-70, vmax=0)
+        axes[2 + index].set_ylabel(f"{name}\nHz")
+    axes[-1].set_xlabel("seconds")
+    fig.suptitle(title)
+    fig.tight_layout()
+    fig.savefig(path, dpi=90)
+    plt.close(fig)
+
+
 def listening(pairs: int, seed: int = 0) -> None:
-    """Shuffled clip/reference WAV pairs for blind listening; answer key kept separately."""
+    """Shuffled clip/reference WAV pairs (+ comparison images) for blind listening; key kept separately."""
     import librosa
     import soundfile as sf
 
@@ -121,9 +161,10 @@ def listening(pairs: int, seed: int = 0) -> None:
         clip, rate = librosa.load(str(KAGGLE_DIR / row["clip"]), sr=None, mono=True)
         reference, ref_rate = librosa.load(str(ICBHI_DIR / row["reference"]), sr=rate, mono=True)
         offset = int(round(float(row["offset_seconds"]) * rate))
-        segment = reference[offset:offset + len(clip)]
+        clip, segment = for_listening(clip, rate), for_listening(reference[offset:offset + len(clip)], rate)
         sf.write(out / f"pair{index:02d}_A.wav", clip, rate, subtype="PCM_16")
         sf.write(out / f"pair{index:02d}_B.wav", segment, rate, subtype="PCM_16")
+        comparison_image(clip, segment, rate, f"pair{index:02d}: is B the same recording as A?", out / f"pair{index:02d}.png")
         sheet.append({"pair": index, "same_recording (yes/no/unsure)": ""})
         key.append({"pair": index, "truth": kind, "clip": row["clip"], "reference": row["reference"],
                     "offset_seconds": row["offset_seconds"], "best_ncc": row["best_ncc"]})
