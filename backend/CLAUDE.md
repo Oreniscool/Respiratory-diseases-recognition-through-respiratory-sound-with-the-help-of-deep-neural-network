@@ -130,6 +130,11 @@ Input (200,120) ─► FeatureValidityMask (bool (B,200): any feature ≠ 0)
   restore_best_weights)`, both on **`val_accuracy`, mode=max** (window-level). Plus
   `CSVLogger`. `ReduceLROnPlateau` is intentionally absent: it raises `TypeError` with a
   schedule-based LR.
+- **The two callbacks pick different epochs** (fixed 2026-10-23, D-24). `ModelCheckpoint` saves every
+  new validation maximum; `EarlyStopping` restores the last epoch that improved by ≥ `min_delta`.
+  `train_model` therefore re-saves the returned (restored) model to `model_path` after `fit`, so the
+  file is the model that calibration, test metrics and CV use. Artifacts trained before `724c52c` may
+  serve a later checkpoint than they were evaluated on (`fusion-round2-split2`: 64 vs 67).
 - `tf.data`: shuffle (buffer ≤10k, seeded) → batch → optional online SpecAugment `map` →
   prefetch. The online SpecAugment draws **one mask per batch** (shared across samples) and
   time masks can land in padding. A time-masked frame becomes all zeros, so

@@ -1040,6 +1040,10 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     effects in ICBHI, and an ICBHI → KAUH external drop attributed to acquisition bias (Ong Ly et al.,
     npj Digit Med 2024: AUROC 0.97 → 0.60).
   - Kaggle's own description discloses ~212 ICBHI and ~170 KAUH clips in Asthma V2.
+    > **Correction (2026-10-23, D-25):** the description says "samples", not clips. The 631 matched
+    > clips come from 187 distinct ICBHI recordings and the 316 from 115 KAUH recordings, so the
+    > clip counts exceed the disclosure but the source-recording counts do not. Do not claim the
+    > copying exceeds what was disclosed.
   - Saky et al. (Life 2026) trained on Asthma V2 and used ICBHI as an "external" test.
   - The coordinator spot-checked these sources. The review recommends reframing the work as a
     quantified dataset-audit and evaluation-validity study.
@@ -1115,6 +1119,58 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     The difference is ≤ 6.3e-4 in probability for C = 0.01 heads, and they were not refitted.
   - The partial run is archived in `backend/artifacts/failed-prod2b-tf32-2026-10-23/` (with its
     log). The production run was repeated from a clean tree.
+
+- **Second production run superseded: served weights were not the evaluated weights (EXP-015,
+  D-24, `724c52c`, 2026-10-23).**
+  - Run #2 (`a21b510`) completed and passed every deployment check: `/ready`; server vs training-path
+    parity 5e-5 with 12/12 identical classes on 12 test recordings; the gate rejected a tone, white
+    noise and silence.
+  - Its logged restored epochs (33, 50, 42) did not match the histories' maxima (33, 56, 44).
+    - `ModelCheckpoint(save_best_only)` writes the `.keras` file at every new validation maximum.
+    - `EarlyStopping(min_delta=0.003, restore_best_weights)` restores the last epoch that improved
+      by ≥ 0.003.
+    - `train_model` returned the restored model, and `main.py` used it for calibration, fusion
+      temperatures and `test_metrics.json`. The server loaded the checkpoint files.
+    - Cross-validation (`cv.py:279`) also used the returned model, so "restored weights" is the
+      adopted configuration.
+    - The parity check loaded the same files on both sides, so it could not see this.
+  - **Replay over every saved history** (EarlyStopping's rule applied to `val_accuracy`): it
+    reproduces the logged restore epochs.
+    - Affected: round-2b run #2 members seed43/44 (restored 50/42, files 56/44); the failed run #1;
+      the previously served `fusion-round2-split2` (restored 64, file 67).
+    - So `fusion-round2-split2`'s published test metrics (73.33% patient accuracy) describe the
+      restored weights, while its 0% KAUH result (EXP-013) describes the served file.
+    - Unaffected: `v3-2026-08-14`, `v3-2026-10-22-leakfree`, `fusion-2026-10-22-oldsplit`.
+  - **Fix:** `train_model` re-saves the returned model to `model_path` after `fit` (the multitask
+    branch already did). New test
+    `test_training_options.py::test_saved_model_is_the_restored_model_not_a_later_checkpoint`
+    forces the mismatch (min_delta 2, a checkpoint every epoch); it fails without the fix (72/72
+    outputs differ) and passes with it.
+  - Run #2 is archived in `backend/artifacts/superseded-prod2b-ckpt-mismatch-2026-10-23/` (with its
+    log and `deployment_checks.json`). Its numbers are not reported as results: test patient accuracy
+    77.6%; KAUH holdout 17/24 in-label patients (healthy 17/18, COPD 0/5).
+  - **Production run #3** retrains from `724c52c`. Because the configuration is fixed (D-21), the
+    second use of the test split and the KAUH holdout chooses nothing; it is disclosed in the report.
+- **Control C4 complete (H6; `experiments/contamination.py`, `research/tools/c4_analysis.py`).**
+  - Two Kaggle-V2-only D3 models were scored on all 920 ICBHI recordings:
+    - with the copies: 5 classes, `092d93e`;
+    - without the 631 copies: 4 classes, because all Kaggle COPD is ICBHI; `a21b510`.
+  - **Within the model trained with copies** (patient-cluster bootstrap, 10,000 draws):
+    - COPD: copied recordings 81.1% (26 patients) vs clean 41.5% (38 patients): +39.5 points
+      [26.9, 50.9];
+    - bronchial: 62.5% (7) vs 13.2% (22): +49.3 [23.4, 82.1].
+  - **Same copied recordings, model with vs without the copies:**
+    - healthy 96.2% → 15.4% (21 patients, +80.8 [65.4, 93.6]);
+    - pneumonia 85.3% → 32.4% (6 patients);
+    - bronchial 62.5% → 43.8% (not significant).
+  - Without COPD, the copy-free model calls ICBHI COPD mostly asthma (226 of 378 clean recordings).
+  - Limitations: different patients in the copied and clean groups; possible uploader selection;
+    one seed per model; the between-model contrast also changes the class set and the training size.
+- **H0 reworded (D-25).** The Kaggle description counts "samples": "ICBHI dataset: 212 samples",
+  "about 170 samples". The 631 clips come from 187 distinct ICBHI recordings and the 316 from 115
+  KAUH recordings, so the claim that the copying exceeds the disclosure is withdrawn. What is
+  undocumented is the splitting into several clips per recording with non-patient identifiers, and
+  that all of Kaggle's COPD class is ICBHI audio.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

@@ -289,6 +289,12 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   check and the server); the check is 1e-4 (`main.HEAD_EXPORT_ATOL`) plus identical argmax. Never call
   `head.predict` directly. The RespiNet networks still train and infer on the GPU.
 
+- **Saved model = restored model (fixed 2026-10-23, D-24).** `ModelCheckpoint` and `EarlyStopping`'s
+  `min_delta` rule can pick different epochs; `train_model` now re-saves the restored model after
+  `fit`. Before `724c52c`, an artifact's `.keras` file could be a later epoch than its reported metrics
+  (the round-2 `fusion-round2-split2`: evaluated epoch 64, served file epoch 67). Parity checks that
+  load the same files on both sides cannot detect this.
+
 - **The pre-2026-10-22 metrics are contaminated.** 52% of Kaggle Asthma V2 (631 clips, including
   all 401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort,
   under different made-up patient IDs, so copies sat on both sides of the split. The 82.09% of the

@@ -55,7 +55,7 @@ def model_metrics(directory: str) -> dict[str, object]:
         "test_patient_macro_f1": r4(pat["macro_f1"]),
         "test_patient_auroc": r4(pat.get("macro_ovr_roc_auc")),
         "test_recording_ece": r4(rec["expected_calibration_error"]),
-        "test_patients": pat.get("patients") or None,
+        "test_patients": pat.get("num_patients") or pat.get("patients") or None,
     }
     if "by_source" in m:
         secondary["by_source_patient_accuracy"] = {
@@ -239,7 +239,9 @@ def registry() -> list[dict[str, object]]:
         row("EXP-012", "Served R retrained on split v2 (round 2)", split="v2",
             metrics=model_metrics("fusion-round2-split2"), artifact="backend/artifacts/fusion-round2-split2/ (archived; was latest/)",
             interpretation="Test set used once; lower than EXP-005 because v1 shared KAUH patients across the split.",
-            limitations="In-cohort only.", decision="served model until round 2b",
+            limitations=("In-cohort only. Checkpoint mismatch (D-24): these metrics describe the EarlyStopping-restored "
+                         "weights (epoch 64); the served file is epoch 67, which EXP-013 evaluated."),
+            decision="served model until round 2b",
             justification="No CV candidate met the rule."),
         row("EXP-013", "External KAUH evaluation of the round-2 served model", hypothesis="H2",
             metrics=external_metrics("experiments-round2a/external/served_round2.json"),
@@ -280,12 +282,61 @@ def registry() -> list[dict[str, object]]:
             decision="root-cause fix (D-23): heads always run on the CPU (pretrained.predict_head), tolerance 1e-4; "
                      "run repeated from a clean tree",
             justification="Kept for the record; no metrics. Same failure class as EXP-006, which was relaxed instead of fixed."),
+        row("EXP-015", "Superseded round-2b production artifact (served weights ≠ evaluated weights)", kind="engineering",
+            status="superseded", split="v3", metrics=model_metrics("superseded-prod2b-ckpt-mismatch-2026-10-23"),
+            artifact="backend/artifacts/superseded-prod2b-ckpt-mismatch-2026-10-23/ (+ external/served_round2b*.json)",
+            interpretation="Test metrics, calibration and fusion temperatures were computed on EarlyStopping-restored "
+                           "weights (members seed43/44: epochs 50/42); the saved files the server loaded were the later "
+                           "ModelCheckpoint epochs 56/44. Its KAUH-holdout run (served file): 17/24 in-label patients, "
+                           "healthy 17/18, COPD 0/5. Deployment checks passed (parity 5e-5) but compared served files "
+                           "with themselves, so they could not detect this.",
+            limitations="Not a valid estimate of any single model: metrics and served weights differ.",
+            decision="superseded by the retrained artifact (D-24)",
+            justification="Kept for the record; its test and holdout numbers are not reported as results."),
+        c4_row(),
         row("X3", "Source-mixing mitigation on the KAUH holdout", hypothesis="H3", status="running",
             decision="evaluate once after round-2b adoption", justification="Tests H3."),
         row("X5", "Abstention and calibration under site shift", hypothesis="H5 (uncertainty)", status="proposed",
             decision="descriptive analysis after X3", justification="Uses existing external outputs."),
     ]
     return rows
+
+
+def c4_row() -> dict[str, object]:
+    path = ART / "experiments" / "contamination" / "analysis.json"
+    metrics = {}
+    if path.is_file():
+        a = json.loads(path.read_text())
+        within, between = a["within_model_kaggle_all"], a["between_models_copied_recordings"]
+        metrics = {
+            "primary_metric": "within-model accuracy difference, copied − clean ICBHI COPD recordings (Kaggle-trained model)",
+            "primary_value": r4(within["copd"]["difference"]),
+            "secondary": {
+                "within_model": {k: {"copied": r4(v["copied"]["accuracy"]), "clean": r4(v["clean"]["accuracy"]),
+                                     "patients": [v["copied"]["patients"], v["clean"]["patients"]],
+                                     "difference_ci95": [r4(v["difference_ci95"]["low"]), r4(v["difference_ci95"]["high"])]}
+                                 for k, v in within.items()},
+                "between_models": {k: {"with_copies": r4(v["accuracy_with_copies"]),
+                                       "without_copies": r4(v["accuracy_without_copies"]), "patients": v["patients"],
+                                       "difference_ci95": [r4(v["difference_ci95"]["low"]), r4(v["difference_ci95"]["high"])]}
+                                   for k, v in between.items()},
+                "method": a["method"],
+            },
+            "code_version": "experiments/contamination.py + research/tools/c4_analysis.py",
+            "seed": 42,
+        }
+    return row("C4", "Contamination re-evaluation: Kaggle-V2-trained models scored on all ICBHI recordings",
+               hypothesis="H6", status="completed" if metrics else "running", metrics=metrics,
+               artifact="backend/artifacts/experiments/contamination/ (model_kaggle_all/, model_kaggle_clean/, *.json)",
+               interpretation=("A model trained on Kaggle V2 scores ICBHI recordings that were copied into Kaggle far "
+                               "higher than clean ICBHI recordings of the same class; a model trained without the "
+                               "copies loses most of that advantage. A 'train on Kaggle V2, test on ICBHI' evaluation "
+                               "largely re-tests training audio."),
+               limitations=("Recording-level accuracy with patient-cluster bootstrap. Copied and clean recordings come "
+                            "from different patients and may differ systematically (selection by the uploader). The "
+                            "between-model comparison also changes the class set (5 → 4; no COPD without the copies) "
+                            "and the training size (715 → 338 recordings). One seed per model. Pneumonia: 6 patients."),
+               decision="supports H6", justification="Mandatory control C4 (novelty review §7; D-22).")
 
 
 def x2_row() -> dict[str, object]:

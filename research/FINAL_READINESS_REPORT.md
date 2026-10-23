@@ -26,8 +26,10 @@
 ## Novelty (from the two independent reviews, sources spot-checked)
 Leakage inflation on ICBHI, a leak-corrected reproduction of a lung-sound model, device effects and
 an ICBHI → KAUH external drop are already published. Defensible contributions are narrower:
-- the measured contamination of Kaggle Asthma V2: 631 ICBHI + 316 KAUH cuts, mapped to source
-  patients, against ~212/~170 disclosed;
+- the measured contamination of Kaggle Asthma V2: 631 ICBHI + 316 KAUH cuts (from 187 and 115 source
+  recordings), mapped to source patients. The sources are disclosed; the splitting into clips with
+  non-patient identifiers, and that all Kaggle COPD is ICBHI audio, are not (D-25; earlier wording
+  "against ~212/~170 disclosed" withdrawn);
 - its effect on published "external" evaluations;
 - a leak-by-leak breakdown of one published protocol with constant-guess baselines;
 - disease-level source confounding with a bandwidth control.

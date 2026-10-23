@@ -19,7 +19,7 @@ Status: v2, 2026-10-23 (v1 the same day; reframed per D-22). Owner: research coo
 
 ## 2. Primary research question (v2, 2026-10-23 — reframed after the literature and novelty reviews, D-22)
 
-**RQ (v2).** How large and how consequential is the undisclosed audio duplication between public
+**RQ (v2).** How large and how consequential is the under-documented audio duplication between public
 lung-sound datasets (Kaggle Asthma Detection V2 ↔ ICBHI 2017 ↔ KAUH)? And how much do evaluation
 leakage and recording-source confounding inflate disease-classification results built on them?
 
@@ -50,8 +50,8 @@ shortcuts, and does mixing recording sources restore cross-site generalization?"
 
 | ID | Hypothesis | Supported if | Falsified if | Evidence / status |
 |---|---|---|---|---|
-| **H0 (audit)** | Kaggle V2 contains far more ICBHI/KAUH audio than its description discloses | detector with validated recall finds copies well above the disclosed ~212/~170 | counts consistent with the disclosure | EXP-003, EXP-010, C-16 (recall 0.99): **supported**, 631/316 vs ~212/~170 |
-| **H6 (consequence)** | A Kaggle-trained model scores higher on ICBHI recordings copied into Kaggle than on clean ICBHI recordings of the same class | accuracy(copied) − accuracy(clean) clearly > 0 within one model, with patient-level CIs | no difference | C4 (queued on the GPU) |
+| **H0 (audit)** | Kaggle V2 contains far more ICBHI/KAUH audio than its description discloses | detector with validated recall finds copies well above the disclosed ~212/~170 | counts consistent with the disclosure | **rejected as worded (D-25, C-20):** 631 clips come from 187 ICBHI recordings (disclosed "212 samples") and 316 from 115 KAUH recordings ("about 170 samples"); more clips but fewer source recordings than disclosed. What is undocumented: the splitting into several clips per recording with non-patient identifiers, and that all of Kaggle's COPD is ICBHI audio |
+| **H6 (consequence)** | A Kaggle-trained model scores higher on ICBHI recordings copied into Kaggle than on clean ICBHI recordings of the same class | accuracy(copied) − accuracy(clean) clearly > 0 within one model, with patient-level CIs | no difference | **supported (C-18, C-19):** within one model COPD copied 81.1% vs clean 41.5% (+39.5, CI 26.9–50.9); healthy copied recordings 96.2% → 15.4% without the copies |
 | **H1 (leakage)** | Each leak of the 2021 protocol inflates balanced accuracy | balanced accuracy L0 − L3 ≥ 15 pts; the factorial shows the share of each leak | drop < 5 pts | X1: **supported** (0.872 → 0.385). Reproduction of 0.957 not met. Factorial running |
 | **H2 (source confound)** | Labels are confounded with source, the source is decodable within a diagnosis, and the external failure is not explained by sample rate alone | within-label probes ≫ chance; external failure; X2 rules out bandwidth as the full cause | probes at chance within diagnosis; ICBHI at 4 kHz also flips to asthma | **supported** (C-07, C-08, C-09, C-15), with power caveats |
 | H3 (exploratory) | Within-site exposure helps other patients from that site | KAUH-holdout healthy/COPD accuracy clearly above EXP-013's 0% | holdout ≈ 0% | X3 pending; within-site only |
