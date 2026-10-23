@@ -265,14 +265,37 @@ def registry() -> list[dict[str, object]]:
                             decision="pending", justification="GPU queue"))
     rows += [
         ladder_row(),
-        row("X2", "Site vs sample-rate/bandwidth diagnostic", hypothesis="H2 (competing explanation)", status="approved",
-            decision="run after round 2b", justification="Distinguishes shortcut from a 4 kHz artifact."),
+        x2_row(),
         row("X3", "Source-mixing mitigation on the KAUH holdout", hypothesis="H3", status="running",
             decision="evaluate once after round-2b adoption", justification="Tests H3."),
         row("X5", "Abstention and calibration under site shift", hypothesis="H5 (uncertainty)", status="proposed",
             decision="descriptive analysis after X3", justification="Uses existing external outputs."),
     ]
     return rows
+
+
+def x2_row() -> dict[str, object]:
+    path = ART / "experiments" / "site_vs_band" / "served_round2.json"
+    metrics = {}
+    if path.is_file():
+        summary = json.loads(path.read_text())["summary"]
+        metrics = {
+            "primary_metric": "share of ICBHI COPD recordings predicted asthma at 4 kHz",
+            "primary_value": r4(summary["as_4khz/copd"]["predicted_asthma"]),
+            "secondary": {key: {"recordings": v["recordings"], "accuracy": r4(v["accuracy"]),
+                                "predicted_asthma": r4(v["predicted_asthma"]), "predictions": v["predictions"]}
+                          for key, v in summary.items()},
+            "code_version": "experiments/site_vs_band.py",
+        }
+    return row("X2", "Site vs sample-rate/bandwidth diagnostic (round-2 served model)", split="v2",
+               hypothesis="H2 (competing explanation)", status="completed" if metrics else "approved",
+               metrics=metrics, artifact="backend/artifacts/experiments/site_vs_band/served_round2*.json",
+               interpretation=("Re-encoding ICBHI audio in KAUH's 4 kHz format lowers accuracy somewhat but rarely yields "
+                               "'asthma', unlike the external KAUH patients; bandwidth does not explain the failure."),
+               limitations=("Test + validation recordings of split v2 (validation was used for early stopping only; "
+                            "comparison is paired). Only 12 healthy ICBHI recordings. One 4 kHz recording was "
+                            "refused by the lung-sound gate (counted as gate_rejected)."),
+               decision="supports H2 over the bandwidth explanation", justification="Pre-registered in RESEARCH_PLAN H2.")
 
 
 def ladder_row() -> dict[str, object]:

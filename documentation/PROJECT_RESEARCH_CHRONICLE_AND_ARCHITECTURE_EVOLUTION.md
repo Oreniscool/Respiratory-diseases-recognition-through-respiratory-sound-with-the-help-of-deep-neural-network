@@ -1020,6 +1020,16 @@ Governance and evidence now live in `research/` (see `research/README.md`).
 
   The paired drop L0 → L3 is 0.280 (sd 0.078). The pre-registered H1 criterion (drop ≥ 0.15) is met.
   The reproduction criterion (L0 within 0.03 of the reported 0.957) is **not** met.
+- **X2 site vs bandwidth (`backend/experiments/site_vs_band.py`,
+  `backend/artifacts/experiments/site_vs_band/served_round2.json`).** The round-2 served model scored
+  ICBHI recordings it never trained on (split v2 test + validation) as recorded and re-encoded as 4 kHz
+  WAV (KAUH's format).
+  - Share predicted asthma: COPD 0.9% → 4.0% (346), healthy 0% → 8.3% (12), bronchial 0% → 4.5% (22).
+  - Accuracy: COPD 0.905 → 0.850, healthy 0.833 → 0.500.
+
+  Bandwidth costs some accuracy but does not produce the near-universal "asthma" seen for KAUH
+  patients, so the external failure is attributed to the site/device. The lung-sound gate refused 1
+  of 380 re-encoded recordings ("music"), a false rejection on band-limited audio.
 
 ---
 

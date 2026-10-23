@@ -1,7 +1,7 @@
 """X2 — is the KAUH → "asthma" failure a site/device shortcut or a 4 kHz bandwidth artifact?
 
 KAUH recordings are 4 kHz WAV files (no content above 2 kHz); ICBHI recordings are mostly 44.1 kHz.
-This diagnostic takes ICBHI recordings that the evaluated model never trained on (its own test split,
+This diagnostic takes ICBHI recordings that the evaluated model never trained on (its own test and validation splits,
 read from the artifact's ``split_manifest.csv``) and scores each one twice through the served
 prediction path:
 
@@ -64,6 +64,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--name", required=True)
     parser.add_argument("--labels", nargs="+", default=["healthy", "copd", "bronchial"])
+    # Validation recordings were used for early stopping/calibration but never trained on; the
+    # original-vs-4 kHz comparison is paired per recording, so that selection does not bias it.
+    parser.add_argument("--splits", nargs="+", default=["test", "validation"])
     args = parser.parse_args()
 
     import server
@@ -74,16 +77,24 @@ def main() -> None:
     split = server.CONTRACT.metadata_path.parent / "split_manifest.csv"
     with split.open(newline="", encoding="utf-8") as handle:
         test = [r for r in csv.DictReader(handle)
-                if r["split"] == "test" and r["source"] == "icbhi" and r["disease"] in args.labels]
+                if r["split"] in args.splits and r["source"] == "icbhi" and r["disease"] in args.labels]
     rows = []
     for index, record in enumerate(test):
         path = Path(record["path"])
         for condition, audio in (("original", path.read_bytes()), ("as_4khz", as_kauh_format(path))):
-            windows, data, rate, lengths, _, yamnet_audio = server.extract_mfcc(audio, filename=path.name)
+            try:
+                windows, data, rate, lengths, _, yamnet_audio = server.extract_mfcc(audio, filename=path.name)
+            except ValueError as error:  # the lung-sound gate refused the audio: record it, don't crash
+                rows.append({"path": record["path"], "patient_id": record["patient_id"], "label": record["disease"],
+                             "split": record["split"], "device": path.stem.rsplit("_", 1)[-1],
+                             "condition": condition, "prediction": "gate_rejected", "uncertain": None,
+                             "gate_reason": str(error)})
+                continue
             payload, _, _ = server._prediction_payload(
                 model, windows, data, rate, lengths, denoise=False, yamnet_audio=yamnet_audio
             )
             rows.append({"path": record["path"], "patient_id": record["patient_id"], "label": record["disease"],
+                         "split": record["split"],
                          "device": path.stem.rsplit("_", 1)[-1], "condition": condition,
                          "prediction": payload["model_prediction"], "uncertain": payload["uncertain"]})
         if index % 25 == 0:
