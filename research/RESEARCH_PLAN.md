@@ -1,6 +1,6 @@
 # Research plan
 
-Status: v1, 2026-10-23. Owner: research coordinator. Companion files: `EVALUATION_PROTOCOL.md`
+Status: v2, 2026-10-23 (v1 the same day; reframed per D-22). Owner: research coordinator. Companion files: `EVALUATION_PROTOCOL.md`
 (frozen v1), `DATASET_AUDIT.md`, `EXPERIMENT_LEDGER.csv`, `DECISION_LOG.md`,
 `CLAIM_EVIDENCE_MATRIX.csv`, `LITERATURE_REVIEW.md` and `NOVELTY_REVIEW.md` (independent agents).
 
@@ -17,32 +17,56 @@ Status: v1, 2026-10-23. Owner: research coordinator. Companion files: `EVALUATIO
 - **Experiments already completed:** `EXPERIMENT_LEDGER.csv`. Nothing is deleted; superseded runs
   are labeled.
 
-## 2. Primary research question
+## 2. Primary research question (v2, 2026-10-23 — reframed after the literature and novelty reviews, D-22)
 
-**RQ1.** On public lung-sound disease classification, how much of reported accuracy comes from
-evaluation leakage and recording-source shortcuts, and does mixing recording sources in training
-restore cross-site generalization?
+**RQ (v2).** How large and how consequential is the undisclosed audio duplication between public
+lung-sound datasets (Kaggle Asthma Detection V2 ↔ ICBHI 2017 ↔ KAUH)? And how much do evaluation
+leakage and recording-source confounding inflate disease-classification results built on them?
 
-This is a validity / reproducibility question. Model improvements are secondary. They are reported
-only when they meet the adoption rule, and they are not the paper's contribution.
+Sub-questions:
+- **(a) Audit:** what fraction of Kaggle V2 is copied, from which source patients, and how does that
+  compare with what the uploader discloses?
+- **(b) Consequence:** how much does the copying inflate a published-style "train on Kaggle V2, test
+  on ICBHI" external evaluation? (control C4)
+- **(c) Leakage:** how much does each leak of one published protocol contribute, measured against
+  constant-guess baselines? (X1 + factorial)
+- **(d) Source confound:** is the recording source decodable within a single diagnosis, and does a
+  model trained on confounded data fail on an external site for reasons other than bandwidth?
+  (probes, EXP-011/013, X2)
+- **(e) Exploratory only:** does adding external-site patients of the confounded classes help on
+  other patients from that site? Once KAUH patients are in training, this is a *within-site* test.
+  It is never claimed as restored cross-site generalization.
+
+**Why reframed.** Patient-overlap inflation on ICBHI, a leak-corrected reproduction of a lung-sound
+classifier (Pessoa et al., BIOSIGNALS 2026), device effects in ICBHI and an ICBHI → KAUH external drop
+(Ong Ly et al., npj Digit Med 2024) are already published. The reframed contributions are (a) and
+(b), the per-leak decomposition with baselines (c), and the within-diagnosis evidence (d).
+See `LITERATURE_REVIEW.md` §8 and `NOVELTY_REVIEW.md`.
+
+v1 (2026-10-23, superseded): "how much of reported accuracy comes from leakage and recording-source
+shortcuts, and does mixing recording sources restore cross-site generalization?"
 
 ## 3. Hypotheses (with what would support and what would falsify each)
 
-| ID | Hypothesis | Supported if | Falsified if | Evidence |
+| ID | Hypothesis | Supported if | Falsified if | Evidence / status |
 |---|---|---|---|---|
-| **H1** | The original protocol's accuracy is mostly an artifact of leakage | X1 reproduces ≈ 95% under the original protocol (L0), and accuracy drops ≥ 15 pts by the leak-free rungs (L3/L4) | the drop L0 → L3 is < 5 pts | X1 (pending) |
-| **H2** | Disease labels in the merged public data are confounded with recording source, and models exploit it | probes decode dataset/device better than disease, **and** a model trained on confounded data fails on an external site where the class–site pairing differs, **and** X2 rules out a pure bandwidth artifact | external accuracy close to in-cohort accuracy, or X2 shows ICBHI audio at 4 kHz flips to "asthma" too (then it is a preprocessing artifact, not a site shortcut) | EXP-003, EXP-010, probes, EXP-011/013 (0%), X2 pending |
-| **H3** | Adding a minority of external-site patients of the confounded classes to training restores cross-site accuracy | KAUH-holdout healthy/COPD accuracy rises ≥ 30 pts after round 2b, with in-cohort test performance within its CI | holdout accuracy stays near 0–20% | X3 (round 2b, pending) |
-| H4 (secondary) | Frozen pretrained embeddings (YAMNet, OPERA, HeAR) are more site-robust than MFCC RespiNet | their shortcut-robustness and holdout metrics beat RespiNet with non-overlapping CIs | CIs overlap (report descriptively) | round 2a/2b CV, X3 |
-| H5 (secondary) | The abstention rule flags out-of-site / out-of-label audio | abstention on out-of-label KAUH patients clearly exceeds the in-label rate | abstention ≈ in-label rate | EXP-011/013 (42% vs 33–34%), X5 |
+| **H0 (audit)** | Kaggle V2 contains far more ICBHI/KAUH audio than its description discloses | detector with validated recall finds copies well above the disclosed ~212/~170 | counts consistent with the disclosure | EXP-003, EXP-010, C-16 (recall 0.99): **supported**, 631/316 vs ~212/~170 |
+| **H6 (consequence)** | A Kaggle-trained model scores higher on ICBHI recordings copied into Kaggle than on clean ICBHI recordings of the same class | accuracy(copied) − accuracy(clean) clearly > 0 within one model, with patient-level CIs | no difference | C4 (queued on the GPU) |
+| **H1 (leakage)** | Each leak of the 2021 protocol inflates balanced accuracy | balanced accuracy L0 − L3 ≥ 15 pts; the factorial shows the share of each leak | drop < 5 pts | X1: **supported** (0.872 → 0.385). Reproduction of 0.957 not met. Factorial running |
+| **H2 (source confound)** | Labels are confounded with source, the source is decodable within a diagnosis, and the external failure is not explained by sample rate alone | within-label probes ≫ chance; external failure; X2 rules out bandwidth as the full cause | probes at chance within diagnosis; ICBHI at 4 kHz also flips to asthma | **supported** (C-07, C-08, C-09, C-15), with power caveats |
+| H3 (exploratory) | Within-site exposure helps other patients from that site | KAUH-holdout healthy/COPD accuracy clearly above EXP-013's 0% | holdout ≈ 0% | X3 pending; within-site only |
+| H4, H5 (secondary) | representation robustness; abstention on out-of-label audio | as before | as before | descriptive |
 
-**Competing explanations for the external failure** (each needs a test before H2 is claimed):
-1. a site/device shortcut (H2);
-2. a bandwidth/sample-rate artifact (KAUH is 4 kHz) → X2;
-3. label-definition mismatch (KAUH "N" vs ICBHI "Healthy") → report as a limitation; check per-class
-   behavior (the KAUH COPD patients fail the same way, which a healthy-label mismatch alone would not
-   explain);
-4. small-sample variance → bootstrap CIs on the holdout; the 0% result spans 45 patients.
+**Competing explanations for (d)** (reviewer list):
+- device response and filter modes;
+- room and protocol;
+- population (age, severity, comorbidity);
+- label-definition mismatch: KAUH "N" appears in both the diagnosis and sound-type columns; "BRON" ≠
+  bronchial ≠ bronchiectasis;
+- small samples (exact CIs reported).
+
+The design cannot fully separate device from population. Claims are worded as "acquisition or site
+differences", not "the stethoscope".
 
 ## 4. Workstreams (separate tasks, each with hypothesis, method, config, metrics, limitations and machine-readable outputs)
 
@@ -54,6 +78,10 @@ only when they meet the adoption rule, and they are not the paper's contribution
 | Representation (secondary) | E_yamnet / E_opera_* / E_hear, fusions | done on v2/v3 CV; holdout pending |
 | Architecture (secondary) | D0 / D3 / D3_* variants | round 2b queue running |
 | Uncertainty (secondary) | X5 abstention and calibration per source | proposed |
+| Audit validation (core, v2) | copy-detector recall on synthetic cuts (done: 0.99); blind listening of 20 pairs (awaiting the user) | in progress |
+| Consequence (core, v2) | C4 contamination re-evaluation (Kaggle-only models scored on copied vs clean ICBHI) | queued on the GPU |
+| Leak decomposition (core, v2) | X1 factorial completion (L2T, L3T) | running |
+| Source confound (core, v2) | within-label probes (done), exact CIs (done) | done |
 
 ## 5. Decision checklist for proposed experiments
 
@@ -85,8 +113,9 @@ only when they meet the adoption rule, and they are not the paper's contribution
 
 ## 7. Milestones
 
-1. Governance files plus the literature and novelty reviews (in progress).
-2. Round-2b adoption, plus X3 on the KAUH holdout.
-3. X1 leakage ladder.
-4. X2 and X5.
+1. Governance files plus the literature and novelty reviews — **done**.
+2. X1 leakage ladder — **done**; factorial completion running.
+3. Round-2b adoption — decided (D-21); production run and KAUH-holdout evaluation (X3) running.
+4. v2 controls — within-label probes and exact CIs **done**; copy-detector recall **done**, listening
+   check pending; C4 queued.
 5. Independent audit → `FINAL_READINESS_REPORT.md` → manuscript outline.
