@@ -236,3 +236,38 @@ split.
   split, and once on the KAUH holdout. For comparison, the model served before 2b (trained without
   KAUH) is also evaluated once on the same holdout. The holdout result is reported, not used to
   choose.
+
+### 9.1 Round-2b cross-validation results (178→195 development patients of split v3; OOF)
+
+Generated from `backend/artifacts/experiments/results.json` (report run 2026-10-23, reference R′ = D0 + YAMNet).
+
+| Variant | Patient bal. acc | Macro F1 | Off-device COPD | Meditron | In-cohort KAUH | Δ bal. acc vs R′ [95% CI] | P(Δ>0) |
+|---|---:|---:|---:|---:|---:|---|---:|
+| D0 | 63.9% | 0.629 | 63.8% | 53.1% | 66.7% | -6.3 [-11.8, -1.1] | 0.01 |
+| D3 | 65.7% | 0.643 | 67.2% | 53.1% | 72.2% | -4.4 [-10.1, +1.6] | 0.08 |
+| D3_ce | 66.9% | 0.664 | 65.5% | 57.3% | 70.4% | -3.2 [-8.8, +2.1] | 0.13 |
+| D3_x3 | 68.5% | 0.685 | 64.7% | 58.3% | 79.6% | -1.7 [-7.3, +3.6] | 0.29 |
+| D3_devaug | 67.1% | 0.672 | 74.1% | 54.2% | 68.5% | -3.1 [-8.7, +2.5] | 0.17 |
+| D3_mtl | 62.9% | 0.619 | 62.1% | 54.2% | 74.1% | -7.2 [-12.6, -1.5] | 0.01 |
+| D3_mixup | 49.8% | 0.507 | 75.9% | 51.0% | 57.4% | -20.3 [-27.2, -12.7] | 0.00 |
+| E_yamnet | 65.8% | 0.649 | 48.3% | 54.2% | 44.4% | -4.3 [-9.3, +0.9] | 0.05 |
+| E_opera_ce | 67.7% | 0.677 | 34.5% | 27.1% | 57.4% | -2.4 [-9.2, +4.4] | 0.21 |
+| E_hear | 71.6% | 0.704 | 69.8% | 64.6% | 70.4% | +1.5 [-4.3, +7.3] | 0.67 |
+| D0+E_yamnet | 70.1% | 0.697 | 52.6% | 56.2% | 64.8% | reference |  |
+| D3_x3+E_yamnet | 69.9% | 0.692 | 52.6% | 56.2% | 70.4% | -0.2 [-3.1, +3.1] | 0.48 |
+| D3_x3+E_yamnet+E_opera_ce | 73.4% | 0.727 | 55.2% | 56.2% | 66.7% | +3.2 [-1.0, +7.5] | 0.94 |
+| D3_x3+E_yamnet+E_hear | 73.1% | 0.726 | 72.4% | 60.4% | 75.9% | +3.0 [-0.3, +6.5] | 0.96 |
+| D3_x3+E_yamnet+E_opera_ce+E_hear | 74.9% | 0.743 | 75.0% | 61.5% | 72.2% | +4.8 [-0.7, +10.4] | 0.95 |
+
+- **Best D3-family member:** D3_x3 (3-seed ensemble). The single-change variants on D3: device
+  augmentation +1.4, cross-entropy +1.2, multi-task −2.8, mixup −15.9 points of balanced accuracy.
+  D3_devaug's first attempt ran out of GPU memory and was re-run in full after the `train.py` fix.
+- **Pre-registered fusions** of D3_x3 with YAMNet (+ OPERA-CE and/or HeAR): all three that add a second
+  embedding member pass the rule. The best passing combination, **D3_x3 + YAMNet + OPERA-CE + HeAR**, is
+  adopted: +4.8 balanced accuracy and +4.6 macro F1, P = 0.95, and better on every shortcut-robustness
+  metric. Several non-registered combinations (e.g. D3 + HeAR, D3_mtl + HeAR) also pass. They are
+  reported here but were not eligible.
+- **Cost:** serving now needs PyTorch (CPU, OPERA-CE) and HeAR (1.2 GB) in the artifact, and runs three
+  RespiNets plus three embedding models per request.
+- This decision was recorded before the adopted model was trained or the test/holdout sets were touched.
+
