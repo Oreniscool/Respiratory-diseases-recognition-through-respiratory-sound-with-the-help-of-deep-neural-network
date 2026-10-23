@@ -339,9 +339,12 @@ def train_model(
         class_weight=None if multitask else class_weights,
         verbose=1,
     )
+    # EarlyStopping restored the best weights by its min_delta rule, while ModelCheckpoint kept saving
+    # every new validation maximum, so the checkpoint can be a later epoch than the returned model.
+    # Overwrite it: the file must be the model that calibration, test metrics and CV are computed on.
+    # (Multitask: this also keeps only the class output.)
+    classifier.save(model_path)
     if multitask:
-        # EarlyStopping restored the best weights; serve only the class output.
-        classifier.save(model_path)
         history.history["val_accuracy"] = history.history["val_class_output_accuracy"]
         history.history["accuracy"] = history.history["class_output_accuracy"]
 

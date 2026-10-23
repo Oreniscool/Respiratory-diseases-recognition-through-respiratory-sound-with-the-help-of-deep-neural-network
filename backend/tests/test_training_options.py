@@ -96,3 +96,31 @@ def test_cycle_targets_follow_annotations_and_skip_unannotated_audio(tmp_path):
     np.testing.assert_array_equal(targets[1], [0.0, 1.0])  # second cycle: wheezes
     assert np.isnan(targets[2]).all()  # stretched ×1.25: 1.2 s covers < 50% of the 2.5 s cycle
     assert np.isnan(targets[3]).all()  # Kaggle clip: no annotation
+
+
+def test_saved_model_is_the_restored_model_not_a_later_checkpoint(tmp_path, monkeypatch):
+    # EarlyStopping (min_delta = 2) restores epoch 1, and the checkpoint is made to save every epoch,
+    # so it always holds a later epoch. The file on disk must still be the model train_model returns:
+    # calibration, the test metrics and the CV results are all computed on the returned model.
+    import train
+
+    class EveryEpochCheckpoint(train.ModelCheckpoint):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **{**kwargs, "save_best_only": False})
+
+    monkeypatch.setattr(train, "EARLY_STOPPING_MIN_DELTA", 2.0)
+    monkeypatch.setattr(train, "ModelCheckpoint", EveryEpochCheckpoint)
+    rng = np.random.default_rng(4)
+    x = rng.standard_normal((24, 200, 120)).astype(np.float32)
+    y = np.eye(3, dtype=np.float32)[np.arange(24) % 3]
+    model, _, path, _ = train_model(
+        x[:18], y[:18], x[18:], y[18:], output_dir=tmp_path, batch_size=6, epochs=3, learning_rate=3e-3,
+    )
+    from server import load_model
+
+    reloaded = load_model(path, custom_objects={
+        name: getattr(__import__("model"), name)
+        for name in ("FeatureValidityMask", "MaskedGlobalAveragePooling1D", "MaskedDualTemporalPooling1D",
+                     "MultiScaleConvBlock", "SqueezeExcitation1D")
+    })
+    np.testing.assert_allclose(reloaded.predict(x, verbose=0), model.predict(x, verbose=0), atol=1e-5)
