@@ -272,6 +272,14 @@ def registry() -> list[dict[str, object]]:
     rows += [
         ladder_row(),
         x2_row(),
+        row("EXP-014", "Failed round-2b production run (OPERA-CE head-export check, TF32)", kind="engineering",
+            status="failed", split="v3", artifact="backend/artifacts/failed-prod2b-tf32-2026-10-23/",
+            interpretation="All three RespiNets and the YAMNet head trained; stopped at the OPERA-CE head check. "
+                           "With C = 0.1 the GPU (TF32) head differed from scikit-learn by up to 2.2e-3 "
+                           "(32 of 325 validation rows > 1e-3; no class changes); on the CPU the same head matched to 3.5e-6.",
+            decision="root-cause fix (D-23): heads always run on the CPU (pretrained.predict_head), tolerance 1e-4; "
+                     "run repeated from a clean tree",
+            justification="Kept for the record; no metrics. Same failure class as EXP-006, which was relaxed instead of fixed."),
         row("X3", "Source-mixing mitigation on the KAUH holdout", hypothesis="H3", status="running",
             decision="evaluate once after round-2b adoption", justification="Tests H3."),
         row("X5", "Abstention and calibration under site shift", hypothesis="H5 (uncertainty)", status="proposed",

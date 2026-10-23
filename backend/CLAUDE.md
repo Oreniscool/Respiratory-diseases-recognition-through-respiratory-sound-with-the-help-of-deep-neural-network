@@ -181,8 +181,10 @@ input shape, the split hash, or that `source_revision` ≠ `"unknown"`.
   band-pass), `yamnet_embedding(model, waveform)` → mean ‖ std of the 1,024-d frame embeddings (2,048).
 - `fit_logistic_head` (StandardScaler + `LogisticRegression(class_weight="balanced")`, C from
   {0.001, 0.01, 0.1, 1} by validation log loss) and `export_logistic_head`, which folds the scaler
-  into one Keras `Dense(softmax)` layer. **Never pickle estimators.** On the GPU the head matches
-  scikit-learn only to ~3e-4 (TF32), so `main.py` checks 1e-3 plus identical argmax.
+  into one Keras `Dense(softmax)` layer. **Never pickle estimators.** Evaluate heads only through
+  `predict_head(head, x)`, which runs on the CPU in full float32. On the GPU, TF32 moved OPERA-CE
+  probabilities by up to 2.2e-3 (EXP-014); on the CPU the head matches scikit-learn to ~3.5e-6, so
+  `main.py` checks `HEAD_EXPORT_ATOL = 1e-4` plus identical argmax.
 - `fuse_probabilities(respinet, yamnet, fusion)`: weighted mean of member-calibrated vectors; the
   caller then applies the `calibration.json` temperature.
 - `directory_sha256(dir)`: one hash over every file of a SavedModel, used by the contract.

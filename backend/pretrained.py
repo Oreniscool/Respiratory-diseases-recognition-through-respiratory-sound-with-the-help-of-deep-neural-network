@@ -278,6 +278,21 @@ def export_logistic_head(pipeline, class_names: list[str], path: str | Path):
     return head
 
 
+def predict_head(head, embeddings: np.ndarray) -> np.ndarray:
+    """Probabilities of an exported logistic head, computed on the CPU in full float32.
+
+    On Ampere and newer GPUs TensorFlow runs float32 matmuls in TF32 (10-bit mantissa). The logit
+    error grows with the head's weights: a head with C = 0.1 (OPERA-CE) moved probabilities by up to
+    2.2e-3, so the served head was not quite the scikit-learn model that cross-validation scored.
+    A head is one small Dense layer, so running it on the CPU costs nothing. Training, the export
+    check and the server all go through this function.
+    """
+    import tensorflow as tf
+
+    with tf.device("/CPU:0"):
+        return np.asarray(head(np.asarray(embeddings, dtype=np.float32), training=False))
+
+
 def fuse_probabilities(
     respinet: np.ndarray, yamnet: np.ndarray, fusion: dict[str, object]
 ) -> np.ndarray:

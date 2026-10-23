@@ -1083,6 +1083,39 @@ Governance and evidence now live in `research/` (see `research/README.md`).
 
 ---
 
+- **Round-2b production run failed at the OPERA-CE head-export check; root cause fixed
+  (EXP-014, D-23, 2026-10-23).**
+  - The three RespiNets (best epochs 33, 46, 55) and the YAMNet head finished, then the run stopped
+    with "Exported opera_ce head does not reproduce the fitted logistic regression".
+  - **Diagnosis**, reproduced from the cached CV embeddings on the same split-v3 train/validation
+    recordings:
+
+    | Member | Chosen C | GPU (TF32) max error | CPU max error | Class changes |
+    |---|---:|---:|---:|---:|
+    | OPERA-CE | 0.1 | 2.2e-3 (32 of 325 rows > 1e-3) | 3.5e-6 | 0 |
+    | YAMNet | 0.01 | 2.5e-4 | 3.3e-7 | 0 |
+    | HeAR | 0.01 | 6.3e-4 | 7.7e-7 | 0 |
+
+    The export was correct. TF32 rounds matmul inputs to a 10-bit mantissa, so the logit error grows
+    with the weights, and C = 0.1 allows weights about 10× larger than the C = 0.01 for which the
+    1e-3 tolerance of D-07 / EXP-006 had been sized.
+  - **Fix:** a new `pretrained.predict_head(head, x)` evaluates a head on the CPU in float32. It
+    replaces every `head.predict` in `main.py` (YAMNet and members fusion: validation, test and the
+    export check) and in `server.py` (`_aggregate_window_probabilities`, both fusion types).
+    `main.HEAD_EXPORT_ATOL = 1e-4` replaces 1e-3.
+    - The heads are one Dense layer, so the CPU costs nothing. The RespiNets stay on the GPU.
+    - The served heads now equal the scikit-learn models that cross-validation scored.
+  - **Verification:** in a GPU process with TF32 enabled, `predict_head` reproduces scikit-learn to
+    3.5e-6 / 3.3e-7 / 7.7e-7. New test
+    `test_fusion.py::test_predict_head_matches_scikit_learn_within_the_export_tolerance`; the server
+    fusion tests' fake heads are now called like Keras models.
+  - **Earlier artifacts:** YAMNet's smallest validation top-1/top-2 margin was 2.8e-4, about its
+    TF32 error, so a GPU-served head could change a top class in rare near-ties. Artifacts produced
+    before this fix (the round-1 and round-2 fusions) stored temperatures fitted on TF32 head outputs.
+    The difference is ≤ 6.3e-4 in probability for C = 0.01 heads, and they were not refitted.
+  - The partial run is archived in `backend/artifacts/failed-prod2b-tf32-2026-10-23/` (with its
+    log). The production run was repeated from a clean tree.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

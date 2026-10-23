@@ -283,8 +283,11 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 - **Never pick variants on the test split.** It has 49 patients (±12-point CI). Compare with
   `backend/experiments/cv.py` (3-fold patient-grouped CV on the development patients, test
   patients asserted absent) and touch the test set once per adopted configuration.
-- **GPU TF32:** Keras Dense layers on the RTX 4060 differ from scikit-learn by up to ~3e-4 in
-  probability; equivalence checks use 1e-3 plus identical argmax.
+- **GPU TF32 (fixed 2026-10-23, D-23):** on the RTX 4060 a Keras Dense head differs from
+  scikit-learn by up to 2.2e-3 (OPERA-CE, C = 0.1), because the TF32 error grows with the weights.
+  Exported heads therefore always run on the CPU via `pretrained.predict_head` (training, the export
+  check and the server); the check is 1e-4 (`main.HEAD_EXPORT_ATOL`) plus identical argmax. Never call
+  `head.predict` directly. The RespiNet networks still train and infer on the GPU.
 
 - **The pre-2026-10-22 metrics are contaminated.** 52% of Kaggle Asthma V2 (631 clips, including
   all 401 COPD clips) are verbatim cuts of ICBHI recordings that were also in the merged cohort,

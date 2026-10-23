@@ -53,6 +53,7 @@ from pretrained import (
     load_yamnet,
     load_yamnet_audio,
     lung_sound_gate,
+    predict_head,
     yamnet_embedding,
 )
 from model import (
@@ -344,13 +345,13 @@ def _aggregate_window_probabilities(
                 continue
             _, extractor, head = next(loaded)
             embedding = extractor.embed_waveform(yamnet_audio)[None, :]
-            member_probabilities.append(np.asarray(head.predict(embedding, verbose=0)))
+            member_probabilities.append(predict_head(head, embedding))
         aggregated = fuse_members(member_probabilities, CONTRACT.fusion)
     elif CONTRACT is not None and CONTRACT.fusion is not None:
         if yamnet_audio is None or FUSION_HEAD is None or YAMNET is None:
             raise RuntimeError("Fusion artifact requires YAMNet audio and its loaded members")
         embedding = yamnet_embedding(YAMNET, yamnet_audio)[None, :]
-        head_probabilities = np.asarray(FUSION_HEAD.predict(embedding, verbose=0))
+        head_probabilities = predict_head(FUSION_HEAD, embedding)
         aggregated = fuse_probabilities(aggregated, head_probabilities, CONTRACT.fusion)
     temperature = 1.0
     if CONTRACT is not None:

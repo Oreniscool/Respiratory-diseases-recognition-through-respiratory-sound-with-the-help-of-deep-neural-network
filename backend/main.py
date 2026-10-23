@@ -46,6 +46,10 @@ from featureExtraction import (
 )
 from preprocessing import FEATURE_TYPES, PreprocessingConfig
 
+# An exported logistic head (run on the CPU in float32) matched scikit-learn to 3.5e-6 on the
+# round-2b validation set; anything near this tolerance means the export itself is wrong.
+HEAD_EXPORT_ATOL = 1e-4
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train RespiNet without patient leakage")
@@ -867,6 +871,7 @@ def fit_yamnet_fusion(
         directory_sha256,
         export_logistic_head,
         fit_logistic_head,
+        predict_head,
         fuse_probabilities,
         load_yamnet,
         load_yamnet_audio,
@@ -891,15 +896,15 @@ def fit_yamnet_fusion(
     )
     head = export_logistic_head(pipeline, class_names, output_dir / "yamnet_head.keras")
     order = [list(pipeline.classes_).index(name) for name in class_names]
-    validation_head = np.asarray(head.predict(matrix(validation_paths), verbose=0))
-    # GPU matmuls run in TF32 (about 3 decimal digits), so allow 1e-3 but require identical classes.
+    validation_head = predict_head(head, matrix(validation_paths))
+    # The head runs on the CPU in full float32 (predict_head), so it must match scikit-learn closely.
     reference = pipeline.predict_proba(matrix(validation_paths))[:, order]
     if not (
-        np.allclose(validation_head, reference, atol=1e-3)
+        np.allclose(validation_head, reference, atol=HEAD_EXPORT_ATOL)
         and np.array_equal(validation_head.argmax(1), reference.argmax(1))
     ):
         raise RuntimeError("Exported YAMNet head does not reproduce the fitted logistic regression")
-    test_head = np.asarray(head.predict(matrix(test_paths), verbose=0))
+    test_head = predict_head(head, matrix(test_paths))
 
     yamnet_copy = output_dir / "yamnet"
     shutil.copytree(args.yamnet_dir, yamnet_copy, dirs_exist_ok=True)
@@ -953,6 +958,7 @@ def fit_members_fusion(
         directory_sha256,
         export_logistic_head,
         fit_logistic_head,
+        predict_head,
         fuse_members,
     )
 
@@ -991,9 +997,9 @@ def fit_members_fusion(
         head_file = f"{name}_head.keras"
         head = export_logistic_head(pipeline, class_names, output_dir / head_file)
         order = [list(pipeline.classes_).index(c) for c in class_names]
-        validation_head = np.asarray(head.predict(matrix(validation_paths), verbose=0))
+        validation_head = predict_head(head, matrix(validation_paths))
         reference = pipeline.predict_proba(matrix(validation_paths))[:, order]
-        if not (np.allclose(validation_head, reference, atol=1e-3)
+        if not (np.allclose(validation_head, reference, atol=HEAD_EXPORT_ATOL)
                 and np.array_equal(validation_head.argmax(1), reference.argmax(1))):
             raise RuntimeError(f"Exported {name} head does not reproduce the fitted logistic regression")
         members.append({
@@ -1007,7 +1013,7 @@ def fit_members_fusion(
             "temperature": fit_temperature(validation_targets, validation_head)["temperature"],
         })
         validation_members.append(validation_head)
-        test_members.append(np.asarray(head.predict(matrix(test_paths), verbose=0)))
+        test_members.append(predict_head(head, matrix(test_paths)))
     fusion = {
         "type": MEMBERS_FUSION_TYPE,
         "members": members,

@@ -42,6 +42,23 @@ def test_exported_keras_head_reproduces_the_fitted_regression(tmp_path):
     np.testing.assert_allclose(reloaded.predict(x, verbose=0), expected, atol=1e-5)
 
 
+def test_predict_head_matches_scikit_learn_within_the_export_tolerance(tmp_path):
+    from main import HEAD_EXPORT_ATOL
+    from pretrained import predict_head
+
+    # Large, wide features and C = 1 give big logits: the case where GPU TF32 drifted past 1e-3.
+    rng = np.random.default_rng(3)
+    labels = np.asarray([CLASSES[i % 3] for i in range(300)])
+    x = rng.standard_normal((300, 512)) * 8
+    x[np.arange(300), [CLASSES.index(c) for c in labels]] += 6
+    pipeline, _ = fit_logistic_head(x[:200], labels[:200], x[200:], labels[200:])
+    head = export_logistic_head(pipeline, CLASSES, tmp_path / "head.keras")
+    expected = pipeline.predict_proba(x)[:, [list(pipeline.classes_).index(c) for c in CLASSES]]
+    probabilities = predict_head(head, x)
+    assert probabilities.dtype == np.float32 and probabilities.shape == expected.shape
+    np.testing.assert_allclose(probabilities, expected, atol=HEAD_EXPORT_ATOL)
+
+
 def test_fusion_averages_member_calibrated_probabilities():
     respinet = np.asarray([[0.7, 0.2, 0.1]])
     yamnet = np.asarray([[0.2, 0.6, 0.2]])
@@ -129,9 +146,9 @@ def test_server_fuses_yamnet_before_the_final_temperature(tmp_path, monkeypatch)
     model, metadata_path = _fusion_artifact(tmp_path)
     contract = load_verified_contract(model, metadata_path)
 
-    class Head:
-        def predict(self, embedding, verbose=0):
-            assert embedding.shape == (1, 4)
+    class Head:  # called like a Keras model, as pretrained.predict_head does
+        def __call__(self, embedding, training=False):
+            assert embedding.shape == (1, 4) and not training
             return np.asarray([[0.1, 0.1, 0.8]])
 
     monkeypatch.setattr(server, "CONTRACT", contract)
@@ -249,7 +266,7 @@ def test_server_fuses_every_member_in_order(tmp_path, monkeypatch):
         def __init__(self, output):
             self.output = output
 
-        def predict(self, embedding, verbose=0):
+        def __call__(self, embedding, training=False):
             return np.asarray([self.output])
 
     members = contract.fusion["members"]
