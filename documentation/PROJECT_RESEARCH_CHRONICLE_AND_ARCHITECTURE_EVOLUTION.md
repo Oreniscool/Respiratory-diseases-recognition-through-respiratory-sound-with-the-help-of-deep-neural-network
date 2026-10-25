@@ -1325,6 +1325,11 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - **Without the Kaggle remainder:** patient balanced accuracy 68.0% vs 74.9%.
   - **Figures** (`research/figures/`, `research/tools/figures.py`), the manuscript outline and the
     release package (`research/RELEASE.md`, `release_manifest.py`).
+  - **C4 replicated with seed 43** (both Kaggle-only models retrained, `702481d`):
+    - within the model trained with copies, COPD copied vs clean +51.4 [38.9, 63.6] and bronchial
+      +65.5 [32.0, 85.4];
+    - copied healthy 92.3% → 34.6% and pneumonia 94.1% → 38.2% when the copies are removed;
+    - bronchial is again not significant.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

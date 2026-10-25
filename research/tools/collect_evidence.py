@@ -450,6 +450,13 @@ def c4_row() -> dict[str, object]:
                                        "difference_ci95": [r4(v["difference_ci95"]["low"]), r4(v["difference_ci95"]["high"])]}
                                    for k, v in between.items()},
                 "method": a["method"],
+                **({"seed43_within_model": {k: {"difference": r4(v["difference"]),
+                                                "difference_ci95": [r4(v["difference_ci95"]["low"]), r4(v["difference_ci95"]["high"])]}
+                                            for k, v in a["seed43"]["within_model_kaggle_all"].items()},
+                    "seed43_between_models": {k: {"with_copies": r4(v["accuracy_with_copies"]),
+                                                  "without_copies": r4(v["accuracy_without_copies"])}
+                                              for k, v in a["seed43"]["between_models_copied_recordings"].items()}}
+                   if "seed43" in a else {}),
             },
             "code_version": "experiments/contamination.py + research/tools/c4_analysis.py",
             "seed": 42,
@@ -464,7 +471,7 @@ def c4_row() -> dict[str, object]:
                limitations=("Recording-level accuracy with patient-cluster bootstrap. Copied and clean recordings come "
                             "from different patients and may differ systematically (selection by the uploader). The "
                             "between-model comparison also changes the class set (5 → 4; no COPD without the copies) "
-                            "and the training size (715 → 338 recordings). One seed per model. Pneumonia: 6 patients."),
+                            "and the training size (715 → 338 recordings). Two training seeds (42, 43). Pneumonia: 6 patients."),
                decision="supports H6", justification="Mandatory control C4 (novelty review §7; D-22).")
 
 
