@@ -265,7 +265,9 @@ Generated from `backend/artifacts/experiments/results.json` (report run 2026-10-
 - **Pre-registered fusions** of D3_x3 with YAMNet (+ OPERA-CE and/or HeAR): all three that add a second
   embedding member pass the rule. The best passing combination, **D3_x3 + YAMNet + OPERA-CE + HeAR**, is
   adopted: +4.8 balanced accuracy and +4.6 macro F1, P = 0.95, and better on every shortcut-robustness
-  metric. Several non-registered combinations (e.g. D3 + HeAR, D3_mtl + HeAR) also pass. They are
+  metric. **After Holm correction over the 4 pre-registered fusions, the improvement is not significant**
+  (one-sided p 0.048 → 0.164; `research/tools/multiplicity.py`, D-27). The adoption stands under its
+  fixed rule, but the fusion is not claimed to outperform R′. Several non-registered combinations (e.g. D3 + HeAR, D3_mtl + HeAR) also pass. They are
   reported here but were not eligible.
 - **Cost:** serving now needs PyTorch (CPU, OPERA-CE) and HeAR (1.2 GB) in the artifact, and runs three
   RespiNets plus three embedding models per request.

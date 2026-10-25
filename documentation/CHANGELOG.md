@@ -112,7 +112,8 @@ Branch `round2-validity-accuracy`. Report: [`ROUND2_EXPERIMENTS_REPORT.md`](ROUN
   (`main.py --merge-kauh`). 51 KAUH patients stay as a holdout. New split v3: 244 patients
   (146 / 49 / 49).
 - **Served model:** a 3-seed RespiNet ensemble + YAMNet, OPERA-CE and HeAR heads, adopted by the
-  pre-registered cross-validation rule (+4.8 balanced accuracy over the reference, P = 0.95).
+  pre-registered cross-validation rule (+4.8 balanced accuracy over the reference, P = 0.95; not
+  significant after Holm correction over the 4 pre-registered candidates, p = 0.164).
   - Test: 75.51% patient / 82.01% recording accuracy on 49 patients (95% CI 63.3–87.8%). Split v3
     has different test patients, so this is not comparable with round 2's 73.33%.
   - KAUH holdout: 17/24 patients (healthy 17/18, **COPD 0/5**). This is within-site adaptation, not

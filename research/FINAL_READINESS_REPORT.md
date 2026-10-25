@@ -62,11 +62,12 @@ Milestones (RESEARCH_PLAN §7):
   (EXP-016, C-13).
 
 ## Tier-1 gaps (not submittable without these)
-1. **The original 2020 code run verbatim** at `3ec7dc6`, over all 20 runs (the README reports 10
-   selected runs). Needed to explain 0.957 vs 0.878: run selection, test-set checkpointing, or a
-   difference in the re-implementation.
-2. **Source-only baseline** on every test set, and **multiplicity control** over the probes and
-   variants.
+1. ~~The original 2020 code run verbatim~~ **done differently (X1-F):** the code cannot run as
+   published. The fidelity grid over its undocumented choices gives 0.79–0.88, with 0 of 80 runs
+   reaching the paper's lowest reported run.
+2. ~~Source-only baseline and multiplicity control~~ **done:**
+   - SRC: the no-audio rule rivals the models; C-23.
+   - MULT: the round-2b improvement is not significant after Holm; C-22.
 3. ~~Blind listening check~~ **done** (19/19 decided pairs agree). A second independent rater is
    optional but would allow inter-rater agreement.
 4. **Label-mapping table** with the field each label comes from (KAUH "N" appears in both the

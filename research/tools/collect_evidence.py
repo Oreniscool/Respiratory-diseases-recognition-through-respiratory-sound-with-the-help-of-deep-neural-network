@@ -329,8 +329,48 @@ def registry() -> list[dict[str, object]]:
             limitations="Served file is epoch 67 while its reported metrics used epoch 64 (D-24).",
             decision="comparison arm for X3", justification="Pre-registered in ROUND2 report §9."),
         x5_row(),
+        json_row("X1-F", "Fidelity grid: the 2020 protocol (L0) under its undocumented batch size and GRU gate",
+                 "experiments/leakage_ladder/fidelity_summary.json", hypothesis="H1",
+                 primary=("best cell mean accuracy", lambda d: max(v["accuracy_mean"] for k, v in d.items() if k != "paper_reported")),
+                 interpretation=("The published code cannot run (undefined variables, no split/evaluation code). Under every "
+                                 "plausible reading (batch 32 or full, sigmoid or Keras-2 hard sigmoid; 20 seeds each) the "
+                                 "mean is 0.79–0.88 and none of 80 runs reaches the lowest of the paper's ten reported runs "
+                                 "(0.949); keeping the best 10 of 20 adds about 2 points."),
+                 limitations="Re-implementation with minimal patches; librosa and Keras versions differ from 2020.",
+                 decision="0.957 is not reproducible from the published materials", code="experiments/leakage_ladder.py fidelity"),
+        json_row("MULT", "Multiplicity control for the round-2b adoption (Holm)", "experiments/multiplicity.json",
+                 hypothesis="engineering",
+                 primary=("Holm-adjusted p of the adopted fusion (balanced accuracy, 4 pre-registered candidates)",
+                          lambda d: d["balanced_accuracy/preregistered"]["adopted_holm_p"]),
+                 interpretation=("Raw one-sided bootstrap p 0.048 → 0.164 after Holm over the 4 pre-registered fusions "
+                                 "(1.0 over all 35 reported); no candidate is significant after correction."),
+                 limitations="Bootstrap P(Δ>0) read as a one-sided p-value; 1,000 draws.",
+                 decision="adoption stands procedurally (rule fixed in advance); superiority over R′ is not claimed",
+                 code="research/tools/multiplicity.py"),
+        json_row("SRC", "Source-only baselines (no audio)", "experiments/source_baseline.json", hypothesis="H2",
+                 primary=("split v3: recording accuracy of the source+device rule",
+                          lambda d: d["split_v3_round2b"]["source+device"]["recording_accuracy"]),
+                 interpretation=("Predicting the majority training label of each source and stethoscope reaches 84.1% "
+                                 "recording accuracy on split v3 (served model 82.0%) and 70.8% patient balanced accuracy "
+                                 "(model 74.9%). On X1 L3 the device rule (0.440 balanced) beats the 2020 network (0.384); "
+                                 "the network is better in 7 of 20 paired seeds."),
+                 limitations="Rule fitted on train + validation; no confidence intervals for the merged-cohort comparison.",
+                 decision="supports H2: in-cohort scores largely reflect the source", code="research/tools/source_baseline.py"),
     ]
     return rows
+
+
+def json_row(eid, title, path, *, primary, code, hypothesis="", interpretation="", limitations="",
+             decision="", justification="") -> dict[str, object]:
+    """A ledger row whose primary value is read from one JSON artifact (backend/artifacts/<path>)."""
+    file = ART / path
+    metrics = {}
+    if file.is_file():
+        data = json.loads(file.read_text())
+        metrics = {"primary_metric": primary[0], "primary_value": r4(primary[1](data)), "code_version": code}
+    return row(eid, title, hypothesis=hypothesis, status="completed" if metrics else "proposed", metrics=metrics,
+               artifact=f"backend/artifacts/{path}", interpretation=interpretation, limitations=limitations,
+               decision=decision, justification=justification or "Tier-1 item of the readiness report.")
 
 
 def x5_row() -> dict[str, object]:

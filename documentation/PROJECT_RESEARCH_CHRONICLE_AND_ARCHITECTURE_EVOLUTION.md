@@ -1265,6 +1265,34 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     82.4–100%). 1 non-match was marked unsure.
   - One rater only. Result in `backend/artifacts/experiments/match_validation/listening_result.json`.
 
+- **Fidelity grid for the 2020 protocol (X1-F, 2026-10-25; `leakage_ladder.py fidelity`).**
+  - The published code at `3ec7dc6` cannot run as released:
+    - `featureExtraction.py` uses undefined `os`/`data` and mixes tabs and spaces;
+    - `train.py` passes arguments to `K.clear_session(X, y)`, references undefined `x_train`,
+      `x_test`, `num_batch_size`, `num_epochs`, and never imports its callbacks;
+    - there is no split or evaluation code.
+  - X1 already matched everything the code specifies (`go_backwards=True`, `reset_after=False`,
+    Adamax, 1,000 epochs, 75/25, test-set checkpointing).
+  - The two undocumented choices were varied, 20 seeds each:
+    - batch 32, sigmoid: 0.878 (X1 L0);
+    - batch 32, Keras-2 `hard_sigmoid` (`clip(0.2x + 0.5)`): 0.880;
+    - full batch (as `batch_size = X.shape[0]` suggests), sigmoid: 0.832;
+    - full batch, hard sigmoid: 0.792.
+  - **None of the 80 runs reaches the lowest of the paper's ten reported runs (0.949).** Keeping the
+    best 10 of 20 raises the mean by about 2 points. The 95.67% is not reproducible from the
+    published materials.
+- **Multiplicity control (MULT, `research/tools/multiplicity.py`).**
+  - The round-2b adoption's one-sided bootstrap p (0.048) becomes 0.164 after Holm over the 4
+    pre-registered fusions, and 1.0 over all 35 reported candidates. Nothing is significant after
+    correction.
+  - The adoption followed its fixed rule; superiority over R′ is not claimed (D-27).
+- **Source-only baselines (SRC, `research/tools/source_baseline.py`).** A rule that predicts each
+  recording's majority training label from its source and stethoscope, with no audio:
+  - split v3: 84.1% recording accuracy (served model 82.0%), patient balanced 70.8% (74.9%);
+  - split v2: 87.8% (81.2%), patient balanced 68.5% (71.9%);
+  - X1 leak-free rung L3: the device rule gets 0.440 balanced accuracy against the 2020 network's
+    0.384; the network wins in only 7 of 20 paired seeds.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:
