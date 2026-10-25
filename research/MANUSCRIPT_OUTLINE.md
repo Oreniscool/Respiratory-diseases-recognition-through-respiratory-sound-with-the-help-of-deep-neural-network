@@ -76,7 +76,7 @@ protocol, source probes) → key numbers:
 - **Results:**
   - C-18: within one model, COPD copied 81.1% vs clean 41.5% (+39.5 [26.9, 50.9]);
   - C-19: copied healthy recordings 96.2% → 15.4% without the copies;
-  - add the second-seed replication (C4 seed 43) once it is in.
+  - replicated with a second seed: COPD +51.4 [38.9, 63.6].
 - **Figure 2:** accuracy by copy status and class, with patient-bootstrap CIs.
 - **Limitations:** uploader selection; class-set and training-size differences between the two
   models.
@@ -100,17 +100,20 @@ protocol, source probes) → key numbers:
 ## 6. Source confounding (contribution d)
 - **Probes (C-07, C-15):** the source is decodable from every representation, even within one
   diagnosis.
-- **Non-breath probes:** the source stays decodable from the quietest frames and the 100 ms edges,
-  i.e. an acquisition signature. Wording: "an acquisition signature exists that models can
+- **Non-breath probes (C-26):** the source stays decodable from the quietest frames and the 100 ms
+  edges, i.e. an acquisition signature. Wording: "an acquisition signature exists that models can
   exploit".
 - **No-audio rule (C-23):** source + device alone reaches 84.1% recording accuracy against the
   model's 82.0%.
-- **Leave-one-source-out:** normal-vs-abnormal AUROC drops to 0.38–0.59 in 10 of 12 cells.
+- **Leave-one-source-out (C-25):** normal-vs-abnormal AUROC drops to 0.38–0.59 in 10 of 12 cells.
+- **Stronger model (C-29):** frozen AST is best in cohort but has the strongest source signature and
+  is the worst on the unseen site (AUROC 0.21).
 - **External KAUH:**
   - models without KAUH data: 0/45 (CI 0–7.9%), with normal-vs-abnormal AUROC 0.47–0.48 (C-08,
     C-24);
   - not explained by sample rate alone (C-09).
-- **Competing explanations:** device, room, protocol, **age** (DEMOGRAPHICS) and label definitions.
+- **Competing explanations:** device, room, protocol, **age** (DEMOGRAPHICS, C-27) and label
+  definitions.
   The design cannot separate them, so use "site/acquisition/population confounding".
 - **Figure 4:** probe heatmap (full vs non-breath; within-label). **Figure 5:** LOSO AUROC.
 
@@ -120,7 +123,7 @@ protocol, source probes) → key numbers:
   - holdout v1 17/24, v2 16/22;
   - healthy 16/16 but COPD 0/5;
   - out-of-label predictions moved from asthma to healthy.
-- **Learning curve:** fill in from `learning_curve.json`.
+- **Learning curve (C-28):** healthy recall 0 → 0.94 as k goes 0 → 18; COPD stays at 0 (Figure 7).
 - **Abstention (C-12):** no out-of-label signal without site exposure.
 - **Wording:** never "restores generalization".
 

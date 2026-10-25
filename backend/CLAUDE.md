@@ -226,6 +226,16 @@ A deep variant takes ~70 min for 3 folds on the RTX 4060.
 - `pretrained.lung_sound_gate`: server refuses silence, broadband noise, speech, music and tones for
   artifacts that ship YAMNet (`RESPINET_LUNG_SOUND_GATE`, `/health.lung_sound_gate`).
 
+### Research analyses added 2026-10-23…25 (`experiments/`; none changes the served model)
+- `leakage_ladder.py` (X1 + `fidelity` grid), `site_vs_band.py` (X2), `contamination.py` (C4),
+  `match_validation.py` (copy-detector recall and the blind listening set).
+- `nonbreath.py` (source probes on non-breath audio), `loso.py` (leave-one-source-out),
+  `learning_curve.py` (KAUH adaptation), `ast_embed.py` (frozen AST cache; needs `transformers`).
+- `research/tools/*.py` turn their outputs into the ledger, figures and documents;
+  `collect_evidence.py --check` keeps the ledger in sync.
+- `kauh.audio_linked_patients` / `drop_audio_linked` build the v2 holdout.
+  `experiments/external.py` defaults to it and refuses audio-linked patients.
+
 ### `cross_dataset_overlap.py` (evidence tool)
 Finds clips of one dataset that are cut from recordings of another. Audio is band-passed to
 100–1000 Hz at 4 kHz, and each clip is slid over every reference recording with normalized

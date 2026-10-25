@@ -113,6 +113,13 @@ differences", not "the stethoscope".
 
 ## 7. Milestones
 
+**2026-10-25:** all milestones below are done, plus the Tier-1/2 controls listed in
+`FINAL_READINESS_REPORT.md`: fidelity grid, multiplicity, no-audio baselines, label mapping, the
+KAUH-linkage fix, non-breath probes, LOSO, external AUROC, demographics, the C4 second seed, the
+learning curve and frozen AST. Next: writing (`MANUSCRIPT_OUTLINE.md`).
+
+### Original milestone list
+
 1. Governance files plus the literature and novelty reviews — **done**.
 2. X1 leakage ladder — **done**; factorial completion running.
 3. Round-2b adoption — decided (D-21); production run and KAUH-holdout evaluation (X3) running.
