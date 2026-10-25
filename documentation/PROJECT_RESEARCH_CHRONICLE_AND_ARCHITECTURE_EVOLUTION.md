@@ -1498,6 +1498,23 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     applied to them can; the recommendation is data design, not a model change. Not tested: end-to-end
     domain generalization, more data. The research work was wrapped up after this experiment.
 
+- **Frontend check and fixes (2026-10-26).** The real stack was driven in a browser (system Chromium via
+  `playwright-core`, scripts outside the repo): the Vite dev server → Flask → served model, and the production
+  `docker compose` stack (nginx → the backend container).
+  - **Result:** every page loads (landing, analyze, evidence, learn, report, explainability); the Evidence page
+    shows the new second-hospital row; a real COPD recording uploaded on the Analyze page returns the served
+    model's scores (copd 87.0%, the value from `/predict` and from the container), with no console errors in
+    production.
+  - **Bug fixed:** the proxy rule for `/explain` was a *prefix* in the Vite dev server, `frontend/nginx.conf`
+    and the root `Dockerfile`, so loading or refreshing the app's own `/explainability` page was sent to the
+    backend and returned 404 (client-side navigation worked). All three now match `/explain` exactly
+    (`^/explain$`, `location = /explain`); verified in both stacks (GET `/explainability` 200, POST
+    `/explain` reaches the backend).
+  - **Text fixed:** the Analyze page's "Source & limitations" box now names the KAUH training patients and
+    the two external-hospital failures.
+  - **Not exposed in the UI:** the research files (`research/`, figures, ledger) are repository documents;
+    the UI shows the served model and a summary of the evidence.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

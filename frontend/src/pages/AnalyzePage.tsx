@@ -802,7 +802,7 @@ function audioBufferToWav(buffer: AudioBuffer): Blob {
           <Info aria-hidden="true" />
           <div>
             <h3>Source & limitations</h3>
-            <p>Trained on public ICBHI 2017 and Kaggle Asthma V2 recordings, audited so no audio appears in both training and test data. Five disease labels, evaluated on one held-out patient split; this differs from the original event-classification challenge.</p>
+            <p>Trained on public ICBHI 2017, Kaggle Asthma V2 and 21 KAUH hospital patients, audited so no audio appears in both training and test data. Five disease labels, scored on one held-out patient split. On two independent hospitals it was not reliable: it missed every COPD patient at KAUH and performed at chance level on 718 children in Shanghai. Treat every score as unvalidated outside the data it was built on.</p>
             <a href="/evidence#dataset">View evidence and limitations <ArrowRight size={15} /></a>
           </div>
         </div>

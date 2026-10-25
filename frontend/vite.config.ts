@@ -9,7 +9,8 @@ export default defineConfig({
       '/predict': 'http://localhost:5001',
       '/predict-sample': 'http://localhost:5001',
       '/health': 'http://localhost:5001',
-      '/explain': 'http://localhost:5001',
+      // exact match: a prefix '/explain' would also capture the app's own /explainability page
+      '^/explain$': 'http://localhost:5001',
       '/summarize': 'http://localhost:5001',
     },
   },
