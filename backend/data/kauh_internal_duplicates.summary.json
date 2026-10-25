@@ -32,6 +32,23 @@
           "DP100_N,N,P R M,70,F.wav",
           "EP76_N,N,A L U,31,M.wav"
         ]
+      },
+      "holdout_v2_audio_linked_patients_removed": {
+        "patients": 22,
+        "correct": 16,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "16/16"
+        },
+        "dropped_recordings": [
+          "BP100_N,N,P R M,70,F.wav",
+          "BP76_N,N,A L U,31,M.wav",
+          "DP100_N,N,P R M,70,F.wav",
+          "DP76_N,N,A L U,31,M.wav",
+          "EP100_N,N,P R M,70,F.wav",
+          "EP76_N,N,A L U,31,M.wav"
+        ]
       }
     },
     "EXP-017 round-2": {
@@ -56,6 +73,23 @@
         "dropped_recordings": [
           "BP100_N,N,P R M,70,F.wav",
           "DP100_N,N,P R M,70,F.wav",
+          "EP76_N,N,A L U,31,M.wav"
+        ]
+      },
+      "holdout_v2_audio_linked_patients_removed": {
+        "patients": 22,
+        "correct": 0,
+        "per_class": {
+          "bronchial": "0/1",
+          "copd": "0/5",
+          "healthy": "0/16"
+        },
+        "dropped_recordings": [
+          "BP100_N,N,P R M,70,F.wav",
+          "BP76_N,N,A L U,31,M.wav",
+          "DP100_N,N,P R M,70,F.wav",
+          "DP76_N,N,A L U,31,M.wav",
+          "EP100_N,N,P R M,70,F.wav",
           "EP76_N,N,A L U,31,M.wav"
         ]
       }

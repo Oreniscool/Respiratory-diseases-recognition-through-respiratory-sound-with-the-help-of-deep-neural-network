@@ -1293,6 +1293,19 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - X1 leak-free rung L3: the device rule gets 0.440 balanced accuracy against the 2020 network's
     0.384; the network wins in only 7 of 20 paired seeds.
 
+- **KAUH audio-linked patients kept off the holdout (2026-10-25; follow-up to C-21).**
+  - New `kauh.audio_linked_patients` (patients sharing byte-identical audio) and
+    `kauh.drop_audio_linked`.
+  - `python kauh.py --split-for-training` runs the unchanged split, so the cohort and v1 files are
+    byte-identical and split v3 reproduces. It then writes `data/kauh_external_holdout_manifest_v2.csv`
+    without patients 76 and 100: 49 patients, 22 in-label.
+  - `experiments/external.py` now defaults to v2. Its new `assert_no_linked_audio` refuses any holdout
+    patient whose audio is linked to a patient in the artifact's split.
+  - Rescored from the saved predictions:
+    - round-2b model on v2: 16/22 (healthy 16/16, COPD 0/5, bronchial 0/1);
+    - previous model: 0/22.
+  - Tests: `test_kauh.py`, `test_external.py`.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

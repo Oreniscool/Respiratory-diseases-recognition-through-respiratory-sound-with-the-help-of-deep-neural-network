@@ -97,6 +97,39 @@ def external_manifest(audio_dir: str | Path, evidence_csv: str | Path) -> list[d
     return rows
 
 
+def audio_linked_patients(audio_dir: str | Path) -> dict[int, set[int]]:
+    """KAUH patient number → other patients that have a byte-identical recording.
+
+    The public KAUH files contain identical audio filed under different patients with different
+    diagnoses (100/101 and 76/77: normal vs asthma; C-21, ``data/kauh_internal_duplicates.csv``).
+    Such patients must sit on the same side of every split.
+    """
+    import hashlib
+
+    by_hash: dict[str, set[int]] = {}
+    for path in Path(audio_dir).glob("*.wav"):
+        by_hash.setdefault(hashlib.sha256(path.read_bytes()).hexdigest(), set()).add(parse_name(path).patient)
+    linked: dict[int, set[int]] = {}
+    for patients in by_hash.values():
+        for patient in patients:
+            if len(patients) > 1:
+                linked.setdefault(patient, set()).update(patients - {patient})
+    return linked
+
+
+def drop_audio_linked(
+    rows: list[dict[str, object]], training_patients: set[int], linked: dict[int, set[int]]
+) -> tuple[list[dict[str, object]], set[int]]:
+    """Remove holdout patients whose audio is identical to a training-side patient's audio.
+
+    ``training_patients`` are KAUH patient numbers (not 900,000-based IDs) on the training side:
+    patients whose clips are in Kaggle and patients moved into the cohort.
+    """
+    dropped = {int(row["patient_id"]) - KAUH_ID_BASE for row in rows
+               if linked.get(int(row["patient_id"]) - KAUH_ID_BASE, set()) & training_patients}
+    return [row for row in rows if int(row["patient_id"]) - KAUH_ID_BASE not in dropped], dropped
+
+
 def split_for_training(
     rows: list[dict[str, object]], fraction: float = 0.5, seed: int = 42
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
@@ -155,9 +188,16 @@ def main() -> None:
     if args.split_for_training:
         cohort, holdout = split_for_training(rows)
         _write("data/kauh_cohort_manifest.csv", cohort)
-        _write("data/kauh_external_holdout_manifest.csv", holdout)
+        _write("data/kauh_external_holdout_manifest.csv", holdout)  # v1: as used for X3 (round 2b)
         _describe("cohort", cohort)
-        _describe("external holdout", holdout)
+        _describe("external holdout (v1)", holdout)
+        # v2: the split above is unchanged (so split v3 reproduces); holdout patients whose audio is
+        # identical to a training-side patient's are removed afterwards (C-21).
+        training_side = {r.patient for r in matched_patients(args.evidence).values()}
+        training_side |= {int(row["patient_id"]) - KAUH_ID_BASE for row in cohort}
+        holdout_v2, dropped = drop_audio_linked(holdout, training_side, audio_linked_patients(args.audio))
+        _write("data/kauh_external_holdout_manifest_v2.csv", holdout_v2)
+        _describe(f"external holdout (v2, dropped audio-linked patients {sorted(dropped)})", holdout_v2)
     _write(args.output, rows)
     _describe("external (all)", rows)
 

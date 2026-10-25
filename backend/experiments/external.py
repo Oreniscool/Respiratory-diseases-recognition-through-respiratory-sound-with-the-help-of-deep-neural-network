@@ -82,14 +82,35 @@ def assert_not_in_training(manifest: list[dict[str, str]], split_manifest: Path)
         raise SystemExit(f"{len(shared)} 'external' patients are in this model's cohort: {sorted(shared)[:5]}")
 
 
+def assert_no_linked_audio(manifest: list[dict[str, str]], split_manifest: Path, audio_dir: Path) -> None:
+    """Refuse "external" patients whose audio is byte-identical to a patient in the artifact's split.
+
+    Patient IDs alone missed this (C-21): KAUH files the same audio under different patients.
+    """
+    from kauh import KAUH_ID_BASE, audio_linked_patients
+
+    if not split_manifest.is_file():
+        return
+    with split_manifest.open(newline="", encoding="utf-8") as handle:
+        cohort = {int(row["patient_id"]) - KAUH_ID_BASE for row in csv.DictReader(handle)
+                  if int(row["patient_id"]) >= KAUH_ID_BASE}
+    linked = audio_linked_patients(audio_dir)
+    leaking = sorted({int(row["patient_id"]) for row in manifest
+                      if linked.get(int(row["patient_id"]) - KAUH_ID_BASE, set()) & cohort})
+    if leaking:
+        raise SystemExit(f"{len(leaking)} 'external' patients share audio with this model's cohort: {leaking}; "
+                         "use data/kauh_external_holdout_manifest_v2.csv")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--name", required=True, help="label for the output file, e.g. current")
     parser.add_argument(
         "--manifest",
-        default="data/kauh_external_holdout_manifest.csv",
-        help="KAUH patients to evaluate (the holdout half since round 2b; the full 72-patient "
-        "manifest was used before the split)",
+        default="data/kauh_external_holdout_manifest_v2.csv",
+        help="KAUH patients to evaluate: the holdout half without audio-linked patients (v2). X3 used "
+        "v1 (data/kauh_external_holdout_manifest.csv); the full 72-patient manifest was used "
+        "before round 2b",
     )
     args = parser.parse_args()
 
@@ -101,6 +122,8 @@ def main() -> None:
     with Path(args.manifest).open(newline="", encoding="utf-8") as handle:
         manifest = list(csv.DictReader(handle))
     assert_not_in_training(manifest, server.CONTRACT.metadata_path.parent / "split_manifest.csv")
+    assert_no_linked_audio(manifest, server.CONTRACT.metadata_path.parent / "split_manifest.csv",
+                           Path("dataset/KAUH/audio"))
     rows = []
     for index, entry in enumerate(manifest):
         path = Path(entry["path"])

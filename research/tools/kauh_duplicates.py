@@ -101,7 +101,11 @@ def main() -> None:
     for name, path in (("X3 round-2b", "experiments/external/served_round2b_final_recordings.json"),
                        ("EXP-017 round-2", "experiments/external/previous_round2_on_holdout_recordings.json")):
         recordings = json.loads((BACKEND / "artifacts" / path).read_text())
-        summary["sensitivity"][name] = {"as_registered": rescore(recordings, set()), "duplicates_removed": rescore(recordings, drop)}
+        with (BACKEND / "data/kauh_external_holdout_manifest_v2.csv").open(newline="", encoding="utf-8") as handle:
+            v2 = {Path(row["path"]).name for row in csv.DictReader(handle)}
+        not_v2 = {Path(r["path"]).name for r in recordings} - v2
+        summary["sensitivity"][name] = {"as_registered": rescore(recordings, set()), "duplicates_removed": rescore(recordings, drop),
+                                        "holdout_v2_audio_linked_patients_removed": rescore(recordings, not_v2)}
     (BACKEND / "data/kauh_internal_duplicates.summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
 

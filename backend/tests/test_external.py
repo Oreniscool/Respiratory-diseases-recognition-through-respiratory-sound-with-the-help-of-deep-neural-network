@@ -40,3 +40,19 @@ def test_external_patients_must_not_be_in_the_models_cohort(tmp_path):
     assert_not_in_training([{"patient_id": "900006"}], split)
     with pytest.raises(SystemExit, match="in this model's cohort"):
         assert_not_in_training([{"patient_id": "900005"}], split)
+
+
+def test_external_refuses_patients_whose_audio_is_in_the_cohort(tmp_path):
+    import pytest
+
+    from experiments.external import assert_no_linked_audio
+
+    audio = tmp_path / "audio"
+    audio.mkdir()
+    (audio / "BP100_N,N,P R M,70,F.wav").write_bytes(b"same")
+    (audio / "BP101_Asthma,E W,P L M,12,F.wav").write_bytes(b"same")
+    split = tmp_path / "split_manifest.csv"
+    split.write_text("split,patient_id,disease,source,path\nvalidation,900101,asthma,kaggle_asthma_v2,x.wav\n")
+    with pytest.raises(SystemExit, match="share audio"):
+        assert_no_linked_audio([{"patient_id": "900100"}], split, audio)
+    assert_no_linked_audio([{"patient_id": "900005"}], split, audio)  # unrelated patient passes

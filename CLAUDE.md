@@ -292,7 +292,11 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   2026-10-23; `backend/data/kauh_internal_duplicates.csv`). Patients 100/101 and 76/77 are healthy vs
   asthma with identical audio, and patient 9's bell and diaphragm files are identical. Split v3 groups
   KAUH by patient ID only, so 3 holdout recordings duplicate training-side audio. The X3 sensitivity
-  without them is 18/24. A future KAUH split must keep audio-linked patients on one side.
+  without them is 18/24. **Fixed 2026-10-25:** `kauh.audio_linked_patients` and `drop_audio_linked`
+  produce `data/kauh_external_holdout_manifest_v2.csv` (patients 76 and 100 removed; the cohort and
+  the v1 files are unchanged), which is now the default of `experiments/external.py`.
+  `assert_no_linked_audio` refuses any holdout patient whose audio is linked to the artifact's split.
+  X3 on v2: 16/22 (healthy 16/16, COPD 0/5).
 - **`data/kauh_external_manifest.csv` is an external test set:** never train on it or use it to
   pick between candidates (`experiments/external.py` evaluates a served artifact once).
 

@@ -72,7 +72,8 @@ Milestones (RESEARCH_PLAN §7):
    optional but would allow inter-rater agreement.
 4. **Label-mapping table** with the field each label comes from (KAUH "N" appears in both the
    diagnosis and sound-type columns; BRON ≠ bronchial ≠ bronchiectasis).
-5. **Audio-linked KAUH patients on one side of every split** (C-21). `kauh.split_for_training`
+5. ~~Audio-linked KAUH patients on one side of every split~~ **done (2026-10-25):** v2 holdout and
+   guard in `experiments/external.py`. X3 on v2 is 16/22, healthy 16/16, COPD 0/5. (C-21) `kauh.split_for_training`
    groups by patient ID only. The next split version must merge patients that share identical audio
    and report how the KAUH duplicates are handled.
 

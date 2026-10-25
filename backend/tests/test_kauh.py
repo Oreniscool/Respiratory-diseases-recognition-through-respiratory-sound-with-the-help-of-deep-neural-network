@@ -93,3 +93,22 @@ def test_training_split_takes_half_of_each_class_and_keeps_out_of_label_external
     assert {r["patient_id"] for r in cohort}.isdisjoint({r["patient_id"] for r in external})
     assert sum(r["label"] == OUT_OF_LABEL for r in external) == 3
     assert split_for_training(rows) == (cohort, external)  # deterministic
+
+
+def test_audio_linked_patients_and_dropping_them_from_the_holdout(tmp_path):
+    from kauh import audio_linked_patients, drop_audio_linked
+
+    audio = tmp_path / "audio"
+    audio.mkdir()
+    (audio / "BP100_N,N,P R M,70,F.wav").write_bytes(b"same")
+    (audio / "BP101_Asthma,E W,P L M,12,F.wav").write_bytes(b"same")  # identical audio, other patient
+    (audio / "BP9_Asthma,E W,P R L ,59,M.wav").write_bytes(b"x")
+    (audio / "DP9_Asthma,E W,P R L ,59,M.wav").write_bytes(b"x")  # same patient, two filters
+    (audio / "BP5_COPD,E W,P R L ,59,M.wav").write_bytes(b"unique")
+    linked = audio_linked_patients(audio)
+    assert linked == {100: {101}, 101: {100}}
+    rows = [{"patient_id": 900_100, "label": "healthy"}, {"patient_id": 900_005, "label": "copd"}]
+    kept, dropped = drop_audio_linked(rows, training_patients={101}, linked=linked)
+    assert dropped == {100} and [r["patient_id"] for r in kept] == [900_005]
+    kept, dropped = drop_audio_linked(rows, training_patients={7}, linked=linked)
+    assert not dropped and len(kept) == 2
