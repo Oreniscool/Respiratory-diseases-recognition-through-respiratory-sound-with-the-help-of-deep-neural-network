@@ -11,3 +11,5 @@
 torch==2.14.1+cu126
 transformers==5.20.2
 numpy
+librosa
+soundfile
