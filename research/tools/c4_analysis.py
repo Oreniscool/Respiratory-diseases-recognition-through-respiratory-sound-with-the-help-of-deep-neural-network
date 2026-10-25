@@ -92,6 +92,15 @@ def main() -> None:
             label: between_models(with_copies, without, label, rng) for label in ("healthy", "pneumonia", "bronchial")
         },
     }
+    # Replication with a second training seed (43), when its outputs exist.
+    if (DIR / "kaggle_all_s43_recordings.json").is_file() and (DIR / "kaggle_clean_s43_recordings.json").is_file():
+        with_s43, without_s43 = load("kaggle_all_s43"), load("kaggle_clean_s43")
+        result["seed43"] = {
+            "within_model_kaggle_all": {label: within_model(with_s43, label, rng) for label in ("copd", "bronchial")},
+            "between_models_copied_recordings": {
+                label: between_models(with_s43, without_s43, label, rng) for label in ("healthy", "pneumonia", "bronchial")
+            },
+        }
     (DIR / "analysis.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))
 

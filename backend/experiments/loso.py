@@ -63,9 +63,14 @@ def main() -> None:
     representations: dict[str, dict[str, np.ndarray]] = {}
     X, meta = load_cache("mfcc")
     representations["mfcc_statistics"] = summary_statistics(X, meta)
-    for name in ("yamnet", "opera_ce", "hear"):
-        stored = np.load(OUTPUT_DIR / "cache" / f"emb_{name}.npz", allow_pickle=False)
-        representations[name] = dict(zip(stored["paths"].tolist(), stored["embeddings"]))
+    for name in ("yamnet", "opera_ce", "hear", "ast"):
+        cache = OUTPUT_DIR / "cache" / f"emb_{name}.npz"
+        if not cache.is_file():
+            continue
+        stored = np.load(cache, allow_pickle=False)
+        table = dict(zip(stored["paths"].tolist(), stored["embeddings"]))
+        if all(p in table for p in paths):  # skip a partially computed cache (e.g. AST in progress)
+            representations[name] = table
 
     rng = np.random.default_rng(SEED)
     icbhi = np.asarray([r.source == "icbhi" for r in records])
