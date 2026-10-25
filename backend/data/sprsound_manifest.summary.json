@@ -1,0 +1,57 @@
+{
+  "source": "https://github.com/SJTU-YONGFU-RESEARCH-GRP/SPRSound (CC-BY-4.0)",
+  "source_commit": "bca1e51422a42a042441010081519610ef3845d0",
+  "files": 6567,
+  "status": {
+    "ok": 5215,
+    "patient_label_conflict": 22,
+    "byte_duplicate": 1,
+    "no_patient_number": 390,
+    "not_in_summary": 939
+  },
+  "evaluated_patients": 747,
+  "evaluated_recordings": 5215,
+  "by_label": {
+    "asthma": {
+      "patients": 66,
+      "recordings": 434,
+      "age_median": 6.1,
+      "age_min": 0.9,
+      "age_max": 13.9
+    },
+    "bronchial": {
+      "patients": 133,
+      "recordings": 779,
+      "age_median": 3.9,
+      "age_min": 0.2,
+      "age_max": 16.8
+    },
+    "healthy": {
+      "patients": 74,
+      "recordings": 492,
+      "age_median": 5.1,
+      "age_min": 0.2,
+      "age_max": 15.3
+    },
+    "out_of_label": {
+      "patients": 29,
+      "recordings": 237,
+      "age_median": 6.5,
+      "age_min": 0.5,
+      "age_max": 13.2
+    },
+    "pneumonia": {
+      "patients": 445,
+      "recordings": 3273,
+      "age_median": 5.0,
+      "age_min": 0.1,
+      "age_max": 16.2
+    }
+  },
+  "by_release_ok": {
+    "BioCAS2022": 2660,
+    "BioCAS2023": 824,
+    "BioCAS2024": 1598,
+    "BioCAS2025": 133
+  }
+}
