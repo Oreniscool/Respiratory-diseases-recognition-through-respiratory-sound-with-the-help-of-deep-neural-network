@@ -10,3 +10,12 @@ htmlcov/
 env/
 venv/
 dataset/
+
+# Only the served artifact belongs in the image. Everything else under artifacts/ is research output
+# (experiment caches alone are ~25 GB), plus the other virtualenvs.
+artifacts/*
+!artifacts/latest
+venv.old/
+venv-gpu/
+.env.*
+!.env.example

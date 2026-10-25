@@ -344,5 +344,5 @@ once for run #2):**
 
 **Serving requirements:**
 - PyTorch (CPU build, `requirements-experiments.txt`) for OPERA-CE. Both Dockerfiles install it;
-  not yet build-tested.
+  the backend image was built and tested on 2026-10-26 (see the chronicle).
 - The artifact is about 1.3 GB, of which HeAR is 1.2 GB.

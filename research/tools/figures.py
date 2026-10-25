@@ -126,13 +126,12 @@ def fig_ladder() -> None:
         sds = [summary[r]["balanced_accuracy"]["sd"] for r in rungs]
         xs = np.arange(3) + (i - 0.5) * 0.12
         ax.errorbar(xs, means, yerr=sds, color=SERIES[i], marker="o", markersize=6, linewidth=2, capsize=3, label=name)
-        for xx, m in zip(xs, means):
-            ax.annotate(f"{m:.2f}", (xx, m), xytext=(8 if i else -8, 0), textcoords="offset points",
-                        ha="left" if i else "right", va="center", fontsize=7, color=INK2)
+        for xx, m, sd in zip(xs, means, sds):
+            ax.annotate(f"{m:.2f}", (xx, m + (sd if i == 0 else -sd)), xytext=(0, 4 if i == 0 else -4),
+                        textcoords="offset points", ha="center", va="bottom" if i == 0 else "top", fontsize=7, color=INK2)
     ax.axhline(1 / 6, color=INK2, linestyle="--", linewidth=1)
-    ax.text(-0.25, 1 / 6 + 0.012, "chance (6 classes)", fontsize=7, color=INK2, ha="left")
-    ax.axhline(baseline, color=SERIES[2], linestyle=":", linewidth=1.5)
-    ax.text(-0.25, baseline + 0.012, f"no-audio device rule, patient split ({baseline:.2f})", fontsize=7, color=INK2, ha="left")
+    ax.text(1.0, 1 / 6 + 0.012, "chance (6 classes)", fontsize=7, color=INK2, ha="center")
+    ax.scatter([2], [baseline], marker="D", s=46, color=SERIES[2], zorder=5, label=f"no-audio device rule, patient-level split ({baseline:.2f})")
     ax.set_xticks(range(3), [f"{u}-level split" for u in units])
     ax.set_ylim(0, 1)
     ax.set_ylabel("balanced accuracy (20 seeds, mean ± sd)")
@@ -163,7 +162,8 @@ def fig_probes() -> None:
     ax.set_xticks(range(len(columns)), [c for _, c in columns], rotation=20, ha="right")
     ax.set_yticks(range(len(rows)), [r for r, _ in rows])
     ax.grid(False)
-    ax.set_title("Linear probes: balanced accuracy (patient-grouped 3-fold CV)")
+    ax.set_title("Linear probes: balanced accuracy (patient-grouped 3-fold CV)\n"
+                 "chance: dataset 0.33, ICBHI device 0.25, disease 0.20, source | diagnosis 0.33-0.50", fontsize=8)
     fig.colorbar(image, ax=ax, fraction=0.03, pad=0.02)
     save(fig, "fig4_source_probes")
 
@@ -184,7 +184,7 @@ def fig_loso() -> None:
             ax.errorbar(xs, ys, xerr=err, fmt="o", color=SERIES[i], markersize=6, capsize=2, linewidth=1.2, label=label)
         ax.axvline(0.5, color=INK2, linestyle="--", linewidth=1)
         ax.set_title(source.replace("_", " "))
-        ax.set_xlim(0.2, 1.0)
+        ax.set_xlim(0.0, 1.0)
         ax.set_yticks(range(len(reps)), [names[r] for r in reps])
         ax.set_xlabel("normal vs abnormal AUROC")
     handles, labels = axes[0].get_legend_handles_labels()
@@ -201,6 +201,8 @@ def fig_no_audio() -> None:
         bars = ax.bar(x + (i - 0.5) * 0.36, [g[key]["patient_balanced_accuracy"] for _, g in groups], 0.34,
                       color=SERIES[i], label=label, edgecolor=SURFACE, linewidth=1.5)
         bar_labels(ax, bars)
+    ax.axhline(0.2, color=INK2, linestyle="--", linewidth=1)
+    ax.text(1.45, 0.215, "chance (5 classes)", fontsize=7, color=INK2, ha="right")
     ax.set_xticks(x, [name for name, _ in groups])
     ax.set_ylim(0, 1)
     ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0], ["0%", "25%", "50%", "75%", "100%"])
@@ -223,8 +225,10 @@ def fig_learning_curve() -> None:
                     capsize=3, label=label)
         ax.annotate(f"{means[-1]:.2f}", (int(ks[-1]), means[-1]), xytext=(6, 0), textcoords="offset points",
                     va="center", fontsize=7, color=INK2)
+    ax.axhline(0.5, color=INK2, linestyle="--", linewidth=1)
+    ax.text(0.2, 0.515, "AUROC chance", fontsize=7, color=INK2, ha="left")
     ax.set_xticks([int(k) for k in ks])
-    ax.set_xlabel("KAUH patients added to training (k)")
+    ax.set_xlabel("KAUH patients added to training (k); no error bars at k = 0 or 18 (one draw)")
     ax.set_ylim(-0.03, 1.03)
     ax.set_title("Within-site adaptation on the KAUH holdout (embedding members)")
     ax.legend(loc="center right", fontsize=7)

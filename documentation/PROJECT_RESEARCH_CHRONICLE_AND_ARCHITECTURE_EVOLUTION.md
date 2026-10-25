@@ -1219,10 +1219,10 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     identical.
   - **Serving dependencies changed:** OPERA-CE needs PyTorch.
     - `backend/Dockerfile` and the root `Dockerfile` now also install `requirements-experiments.txt`
-      (CPU build). Not build-tested: the Docker daemon was not running.
+      (CPU build). Built and tested on 2026-10-26, see the entry below.
     - The artifact is about 1.3 GB (HeAR 1.2 GB).
-    - Pre-existing, not changed: neither `.dockerignore` excludes `backend/venv.old/` or the
-      multi-GB `artifacts/experiments*` caches.
+    - Pre-existing at that time: neither `.dockerignore` excluded `backend/venv.old/` or the
+      multi-GB `artifacts/experiments*` caches (fixed 2026-10-26, below).
 
 - **X5 abstention under site shift (`research/tools/x5_abstention.py`; patient-cluster bootstrap).**
   - Out-of-label KAUH recordings vs in-label ones:
@@ -1230,7 +1230,7 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - round-2 model 42.0% vs 34.1% (+7.9, CI −8.6 to +24.2) and, on the holdout, 42.0% vs 41.7%;
     - round-2b model 64.2% vs 45.8% (**+18.4, CI 2.8–33.6**), with in-label accuracy rising from
       69.4% to 79.5% on the recordings it did not abstain on.
-  - Without site exposure, abstention does not flag out-of-label audio, and about two thirds of the
+  - For models with no KAUH healthy/COPD patients in training, abstention does not flag out-of-label audio, and about two thirds of the
     (all wrong) external in-label calls pass the rule.
   - The identical 34/81 for the pre-round-2 and round-2 models was checked: they are different
     models (SHA-256 `67cdf7f7…` vs `f9e262e4…`) with different probabilities.
@@ -1315,10 +1315,12 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - age is confounded with source and label.
     - The ICBHI demographics came from the Kaggle mirror: the official site's TLS certificate has
       expired, and certificate checks were not bypassed.
-  - **External normal vs abnormal (BIN, C-24):** without KAUH training data, AUROC 0.47–0.48 on 72
+  - **External normal vs abnormal (BIN, C-24):** with no KAUH healthy/COPD patients in training, AUROC 0.47–0.48 on 72
     KAUH patients, against 0.94 [0.87, 0.99] in cohort. After round 2b, 0.83 (within site).
-  - **Leave-one-source-out (LOSO, C-25, `experiments/loso.py`):** held-out AUROC 0.38–0.59 in 10 of
-    12 cells. Leave-one-device-out is impossible on this data.
+  - **Leave-one-source-out (LOSO, C-25, `experiments/loso.py`):** held-out AUROC 0.38–0.59 in 9 of
+    12 cells (10 of 15 with AST; corrected from "10 of 12" by the second audit), 11 of 12 CIs
+    include 0.5. The KAUH-site and ICBHI cells are confounded by construction. Leave-one-device-out
+    is impossible on this data.
   - **Non-breath probes (NONBREATH, C-26, `experiments/nonbreath.py`):** the source stays decodable
     from the quietest 10% of frames and the 100 ms edges.
   - **Served model vs no-audio rule, paired (TESTPRED):** +4.1 points [−6.9, +16.1].
@@ -1338,8 +1340,9 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - **Frozen AST (`MIT/ast-finetuned-audioset-10-10-0.4593`; `experiments/ast_embed.py`, AST, C-29).**
     - Embeddings: mean ‖ std of the pooled output over 10.24 s chunks.
     - CV patient balanced accuracy 78.3%, the best single member (HeAR 71.6%; +6.7 [1.5, 12.6]).
-    - Strongest dataset probe (0.94).
-    - Held-out KAUH-site AUROC 0.21, i.e. inverted (within cohort 0.95).
+    - Highest dataset-of-origin probe (0.94); third on the device probe, lowest on source-within-COPD.
+    - Held-out KAUH-site AUROC 0.21, i.e. inverted (within cohort 0.95), but that cell is confounded
+      with file origin.
     - Exploratory: AST was not a pre-registered round-2b candidate, so the served model is
       unchanged. A fine-tune needs a CUDA PyTorch build (PyTorch here is CPU-only by design).
     - `transformers==5.20.2` was added to `requirements-experiments.txt`.
@@ -1368,10 +1371,67 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - **Paired comparisons:**
       - vs frozen AST: −9.2 to +1.1 points, P(improvement) 0.075;
       - vs the adopted fusion: −6.3 to +5.3, P 0.42.
-    - **Conclusion:** negative. Fine-tuning did not help, and it lowered off-device COPD sensitivity.
+    - **Conclusion:** negative. Fine-tuning did not help. Its off-device COPD sensitivity is 23 points below frozen AST
+      (CI −37 to −10) but not distinguishable from the fusion (−13, CI −29 to +4).
       The rules were not relaxed after seeing the result (D-29), and the served model is unchanged.
     - **Limits:** one seed, noisy inner-validation splits of 123–159 recordings, no tuning, weights
       not kept.
+
+- **Docker image fixed and verified (2026-10-26).**
+  - **Problem:** the first build of `backend/Dockerfile` was **72.7 GB**.
+    - `COPY . .` copied about 40 GB of research data: `artifacts/experiments*` (25 GB), `venv.old`
+      (6.8 GB), the other artifact directories and the embedding caches.
+    - `backend/.dockerignore` excluded only `venv/` and `dataset/`.
+    - The root `.dockerignore` (all-in-one image) excluded `.env` only at the top level, so
+      `backend/.env`, which may hold API keys, would have been copied into that image.
+  - **Fix:** both files now whitelist `artifacts/latest` only (`artifacts/*` then `!artifacts/latest`),
+    exclude `venv.old/`, `venv-gpu/`, `**/.env*` (keeping `.env.example`) and, for the root file,
+    `backend/dataset/` and `research/`.
+  - **Result:** the rebuilt backend image is 18.6 GB (TensorFlow, PyTorch, the 1.3 GB artifact), with no
+    `.env` and only `artifacts/latest` under `/app`.
+  - **Verification** (container on the CPU, port 5050):
+    - `/live` and `/ready` 200 with a verified contract; `/health` ready, gate on, denoising off;
+    - `/predict` on 9 test recordings (3 ICBHI, 3 Kaggle, 3 KAUH): max |Δp| = 0.0 and the same class
+      as the CPU export, so the PyTorch/OPERA-CE dependency works in the image;
+    - a pure tone is refused (422); memory use about 5.7 GiB with two gunicorn workers.
+  - The root all-in-one `Dockerfile` has the same two added lines but was not built.
+
+- **Second independent audit pass (`research/AUDIT_REPORT_2.md`, D-31, 2026-10-26).**
+  - **Scope:** C-21…C-30, the changed notes, `DEMOGRAPHICS.md`, `LABEL_MAPPING.md`, the seven figures and three
+    analysis scripts; 82 checks over about 190 values.
+  - **Result:** 69 matched, 6 mismatched, 2 statuses not justified, 5 unverifiable.
+  - **Corrected:**
+    - C-25: "10 of 12" cells is 9 of 12 (10 of 15 with AST); 11 of 12 held-out CIs include 0.5;
+      status → partly supported;
+    - C-23's stale "no CIs" sentence, the empty LABEL_MAPPING sentence, the v1-holdout labelling of the
+      two tables, C-29 ("strongest source signature" holds for the dataset probe only), C-30 (fewer
+      off-device COPD hits only against frozen AST: −23.3, CI −36.8 to −10.4; vs the fusion −12.9,
+      CI −28.9 to +3.9), C-26's range, C-28 ("in proportion");
+    - "without KAUH data" → "no KAUH healthy/COPD patients in training" (the earlier models trained on
+      316 Kaggle clips cut from 40 KAUH patients).
+  - **Methodological risks recorded:** the KAUH-site LOSO group is perfectly confounded with file origin
+    (normals are raw KAUH files; 29 of 32 abnormal patients are Kaggle clips cut from KAUH); the ICBHI
+    group's normals are Meditron children; the Kaggle remainder's filename-group "patients" may inflate
+    within-cohort AUROCs. `learning_curve.py` and `source_baseline.py` were checked and are clean.
+  - **Multiplicity:** the "pre-registered" Holm family ignores the earlier choice of D3_x3 among six
+    D3 variants, so p = 0.164 is optimistic.
+  - **Figures:** a rule line drawn across splits, a truncated axis and missing chance references were
+    fixed.
+- **Independent copy detector (`experiments/fingerprint_match.py`, C-31, D-30, 2026-10-26).** Landmark
+  fingerprinting (spectrogram peaks hashed in pairs, votes per reference and time offset), 4 kHz,
+  100–1,000 Hz, threshold 25 votes.
+  - **Chance level:** median 8, 99th percentile 16, maximum 21 on 300 time-reversed ICBHI windows.
+  - **Synthetic cuts:** recall 93/100 (cross-correlation 99/100).
+  - **Agreement on every Kaggle clip:**
+    - ICBHI: 631 of 631 cross-correlation matches found, same source recording in all, 0 additional;
+    - KAUH: 313 of 316 (the 3 missed are clips ≤ 0.7 s), 0 additional;
+    - the 10 differences in best KAUH reference are all ties between byte-identical KAUH files.
+  - **Observation:** the Kaggle clips cut from the audio filed as "healthy" KAUH patients 100 and 76
+    carry Kaggle's asthma/wheezing label, which suggests those two "normal" files are mislabeled copies
+    of asthma recordings (inference only).
+- **Second listening rater:** a clean package for a second human (`listening_rater2.zip`: 20 pairs, images,
+  blank sheet, instructions, no first-rater answers) was prepared; `listening_score.py` now scores two raters
+  (agreement and Cohen's kappa). A model cannot be the second rater: it cannot hear and had seen the key.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

@@ -23,8 +23,8 @@ folders, the KAUH file names and the split-v3 cohort audit. Do not edit by hand.
 | **pneumonia** | Pneumonia (6) | `pneumonia` (285) | `pneumonia` (5) |
 | *out of label* | — | — | `asthma and lung fibrosis` (1), `heart failure` (18), `heart failure + copd` (2), `heart failure + lung fibrosis` (1), `lung fibrosis` (4), `plueral effusion` (2) |
 
-ICBHI diagnoses not listed under a class are excluded upstream. KAUH out-of-label patients are
-used only as out-of-label external audio (X5), never for training.
+All 8 ICBHI diagnoses map to a class and all 126 ICBHI patients are used. KAUH out-of-label
+patients are used only as out-of-label external audio (X5), never for training.
 
 ## 3. Counts in the split-v3 cohort (recordings, after overlap exclusion and deduplication)
 
@@ -36,7 +36,9 @@ used only as out-of-label external audio (X5), never for training.
 
 KAUH recordings by side (labels as mapped):
 - in training cohort (`data/kauh_cohort_manifest.csv`): {'copd': 12, 'healthy': 51}
-- external holdout (`data/kauh_external_holdout_manifest.csv`): {'healthy': 54, 'out_of_label': 81, 'copd': 15, 'bronchial': 3}
+- external holdout v1 (`data/kauh_external_holdout_manifest.csv`, as used for X3): {'healthy': 54, 'out_of_label': 81, 'copd': 15, 'bronchial': 3}
+- holdout v2 (`data/kauh_external_holdout_manifest_v2.csv`) drops patients 76 and 100 (both healthy, audio-linked to
+  training-side asthma patients, C-21); every number above that mentions the holdout is v1.
 
 ## 4. Definition mismatches a reader must know
 

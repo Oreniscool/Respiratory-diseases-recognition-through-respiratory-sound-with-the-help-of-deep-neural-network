@@ -105,12 +105,14 @@ protocol, source probes) → key numbers:
   exploit".
 - **No-audio rule (C-23):** source + device alone reaches 84.1% recording accuracy against the
   model's 82.0%.
-- **Leave-one-source-out (C-25):** normal-vs-abnormal AUROC drops to 0.38–0.59 in 10 of 12 cells.
-- **Stronger model (C-29, C-30):** frozen AST is best in cohort but has the strongest source signature
-  and is the worst on the unseen site (AUROC 0.21). Fine-tuning it did not help (74.4% vs 78.3%) and
-  lowered off-device COPD sensitivity (62% vs 85%).
+- **Leave-one-source-out (C-25, partly supported):** held-out AUROC is 0.38–0.59 in 9 of 12 cells
+  (CIs include 0.5 in 11); report with the confounding caveats (KAUH-site cell = file origin).
+- **Stronger model (C-29, C-30):** frozen AST is best in cohort and has the highest dataset-of-origin
+  probe; its unseen-source cell (0.21) is confounded with file origin. Fine-tuning it did not help
+  (74.4% vs 78.3%) and has lower off-device COPD sensitivity than frozen AST (62% vs 85%) but not
+  than the fusion.
 - **External KAUH:**
-  - models without KAUH data: 0/45 (CI 0–7.9%), with normal-vs-abnormal AUROC 0.47–0.48 (C-08,
+  - models with no KAUH healthy/COPD patients in training: 0/45 (CI 0–7.9%), with normal-vs-abnormal AUROC 0.47–0.48 (C-08,
     C-24);
   - not explained by sample rate alone (C-09).
 - **Competing explanations:** device, room, protocol, **age** (DEMOGRAPHICS, C-27) and label
@@ -125,7 +127,7 @@ protocol, source probes) → key numbers:
   - healthy 16/16 but COPD 0/5;
   - out-of-label predictions moved from asthma to healthy.
 - **Learning curve (C-28):** healthy recall 0 → 0.94 as k goes 0 → 18; COPD stays at 0 (Figure 7).
-- **Abstention (C-12):** no out-of-label signal without site exposure.
+- **Abstention (C-12):** no out-of-label signal for models with no KAUH healthy/COPD training patients.
 - **Wording:** never "restores generalization".
 
 ## 8. Discussion

@@ -309,8 +309,11 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   `model_metadata.json["fusion"]` pins every SHA-256 and member temperature, and
   `load_verified_contract` refuses the artifact if anything changes. **Serving needs PyTorch (CPU
   build) for OPERA-CE:** `pip install -r requirements-experiments.txt --extra-index-url
-  https://download.pytorch.org/whl/cpu`. Both Dockerfiles do this (added 2026-10-23, not yet
-  build-tested). The server decodes uploads twice (22.05 kHz for RespiNet, 16 kHz for the embedding
+  https://download.pytorch.org/whl/cpu`. Both Dockerfiles do this. `backend/Dockerfile` (the compose backend) was built and tested on
+  2026-10-26: `/ready` 200, `/predict` identical to the CPU export on 9 test recordings, tone → 422; the
+  image is 18.6 GB. The root all-in-one `Dockerfile` has the same two lines but was not built.
+  Both `.dockerignore` files whitelist `artifacts/latest` only (an earlier build had copied ~40 GB of
+  experiment caches into the image, and the root file did not exclude `backend/.env`). The server decodes uploads twice (22.05 kHz for RespiNet, 16 kHz for the embedding
   members). `/explain` saliency covers RespiNet only. Two-member (`yamnet_fusion`) and unfused
   artifacts still load.
 - **Never pick variants on the test split.** It has 49 patients (±12-point CI). Compare with

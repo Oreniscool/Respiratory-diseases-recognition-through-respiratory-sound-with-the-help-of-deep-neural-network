@@ -37,16 +37,20 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   from audio without breath sounds (C-26): an acquisition signature exists.
 - A no-audio source + stethoscope rule reaches 84.1% recording accuracy against the model's 82.0%.
   Paired at patient level: model − rule +4.1 [−6.9, +16.1] (C-23).
-- Normal vs abnormal: 0.94 in cohort, but 0.47–0.48 at the external KAUH site for models without KAUH
-  data (C-24). Each source left out of training drops to 0.38–0.59 in 10 of 12 cells (C-25).
+- Normal vs abnormal: 0.94 in cohort, but 0.47–0.48 at the external KAUH site for models with no KAUH
+  healthy or COPD patients in training (C-24).
+- A source left out of training gives held-out AUROC of 0.38–0.59 in 9 of 12 cells (10 of 15 with AST;
+  C-25, partly supported). The KAUH-site and ICBHI cells are confounded by construction (see risks).
   Leave-one-device-out is impossible (healthy ICBHI = Meditron only).
 - The external failure is not explained by sample rate alone (C-09).
 - Age is confounded with source and label: ICBHI healthy are all children, KAUH healthy are adults
   (C-27). Wording must be "site/acquisition/population confounding".
-- A stronger model (frozen AST) is the best in cohort (78.3%), carries the strongest source signature
-  (0.94), and fails worst on the unseen site (AUROC 0.21) (C-29, exploratory).
+- A stronger model (frozen AST) is the best in cohort (78.3%) and has the highest dataset-of-origin probe
+  (0.94); its unseen-source cell (KAUH site, AUROC 0.21) is confounded with file origin (C-29,
+  exploratory, partly supported).
 - Fine-tuning it did not help: 74.4% vs 78.3% frozen and 74.9% for the adopted fusion, with off-device
-  COPD sensitivity down to 62.1% from 85.3% (C-30, one seed, rules fixed in advance).
+  COPD sensitivity 23 points below frozen AST (62.1% vs 85.3%, CI −37 to −10) but not distinguishable
+  from the fusion (C-30, one seed, rules fixed in advance).
 
 **(e) Exploratory: within-site adaptation**
 - With 21 KAUH patients in training: holdout v1 17/24, v2 16/22. Healthy 16/16, COPD 0/5 (C-10).
@@ -55,7 +59,7 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   cross-site generalization.
 
 **Secondary / engineering**
-- Abstention carries no out-of-label signal without site exposure (C-12).
+- Abstention carries no out-of-label signal for models with no KAUH healthy/COPD training patients (C-12).
 - The round-2b fusion was adopted under its fixed rule, but its gain over the reference is not
   significant after Holm (C-22).
 - Served-model test result: 75.5% patient accuracy [63.3, 87.8] (C-13). Without the Kaggle remainder
@@ -71,13 +75,21 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
 - **Re-used evaluation data:** the test split and the holdout were used twice for the round-2b
   configuration (D-24); the holdout was used diagnostically for X5 and the learning curve. Nothing was
   chosen on them; this is disclosed.
+- **Leave-one-source-out cells are confounded by construction:** the KAUH-site group's normals are raw
+  KAUH files while 29 of its 32 abnormal patients are Kaggle clips cut from KAUH; the ICBHI normals are
+  Meditron-recorded children; the Kaggle remainder's filename-group "patients" may inflate within-cohort
+  AUROCs (second audit).
 - **Population confound (age)** cannot be separated from site/device with this data.
 - **No clinical collaborators or prospective data.** The paper is a validity study.
 - **The strong-model checks** are one frozen and one fine-tuned AST with a single seed and a fixed
   6-epoch budget (D-28); a longer or tuned fine-tune was not tried.
 
 ## Optional before submission
-- A **second blind rater** for the listening check, to report inter-rater agreement.
+- A **second blind human rater** for the listening check, to report inter-rater agreement. The package is
+  ready (`backend/artifacts/experiments/match_validation/listening_rater2.zip`: pairs, images, blank
+  sheet, instructions, no first-rater answers); `listening_score.py` then reports agreement and kappa.
+  A model cannot serve as this rater (it cannot hear, and the first scoring run printed the key).
+  The fingerprint cross-check (C-31) is a second *method*, not a second rater.
 - A **second external site** (SPRSound, HF_Lung) if the labels can be mapped.
 
 ## Writing (next)
@@ -91,5 +103,12 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
 - 120 checks covering about 400 values, re-derived from the raw files (C-01…C-20).
 - 113 matched, 2 mismatched and were corrected, and 2 statuses were corrected.
 - It also found C-21.
-- Claims C-21…C-30 were added after the audit and have not been independently re-derived. A second
-  audit pass is recommended before submission.
+- **Second pass** (`AUDIT_REPORT_2.md`, D-31): 82 checks over about 190 values for C-21…C-30, the changed
+  notes, the new tables and the figures: 69 matched, 6 mismatched, 2 statuses not justified, 5 not
+  checkable. All were corrected or qualified; the main ones were C-25 ("10 of 12" is 9 of 12 and its
+  status is partly supported), the "without KAUH data" wording, C-29, C-30 and several figure problems.
+  The coordinator re-derived the key numbers before changing anything.
+- It also raised methodological risks for loso.py, learning_curve.py and source_baseline.py: the
+  learning curve and the no-audio rule are clean (checked by patient, path and byte hash); the LOSO cells
+  are confounded by construction (recorded under the principal risks).
+- Claim C-31 (the fingerprint cross-check) was added after this pass.

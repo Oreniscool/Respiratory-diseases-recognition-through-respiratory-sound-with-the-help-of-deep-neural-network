@@ -232,6 +232,8 @@ A deep variant takes ~70 min for 3 folds on the RTX 4060.
 - `nonbreath.py` (source probes on non-breath audio), `loso.py` (leave-one-source-out),
   `learning_curve.py` (KAUH adaptation), `ast_embed.py` (frozen AST cache; needs `transformers`),
   `ast_finetune.py` (`prepare` / `finish` in the main venv, `train` in `venv-gpu`).
+- `fingerprint_match.py`: a second, independent copy detector (landmark fingerprinting) that cross-checks
+  the cross-correlation audit (C-31).
 - **PyTorch on the GPU lives in a separate venv, `backend/venv-gpu`** (`requirements-gpu.txt`). Never
   install CUDA PyTorch into `venv`: it downgrades the NVIDIA libraries TensorFlow's GPU setup uses.
   `venv` keeps the CPU PyTorch build (OPERA, transformers) on purpose.

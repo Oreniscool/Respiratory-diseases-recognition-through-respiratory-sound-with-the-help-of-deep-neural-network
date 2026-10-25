@@ -348,25 +348,30 @@ def registry() -> list[dict[str, object]]:
                  decision="adoption stands procedurally (rule fixed in advance); superiority over R′ is not claimed",
                  code="research/tools/multiplicity.py"),
         json_row("BIN", "Normal vs abnormal AUROC: in cohort vs external KAUH", "experiments/binary_external.json",
-                 hypothesis="H2", primary=("external AUROC, round-2 model (72 KAUH patients, no KAUH training data)",
+                 hypothesis="H2", primary=("external AUROC, round-2 model (72 KAUH patients; no KAUH healthy/COPD patients in training)",
                                            lambda d: d["EXP-013 round-2 model, 72 external patients"]["auroc"]),
-                 interpretation=("Models without KAUH training data: AUROC 0.47-0.48 on 72 external KAUH patients "
+                 interpretation=("Models with no KAUH healthy/COPD patients in training: AUROC 0.47-0.48 on 72 external KAUH patients "
                                  "(chance); in cohort the served model reaches 0.94 [0.87, 0.99] "
                                  "(test_prediction_analyses.json). After round 2b the KAUH holdout gives 0.83 (within site)."),
                  limitations="Patient-level; out-of-label KAUH diagnoses counted as abnormal; 18-35 normal patients.",
                  decision="supports H2; comparable to Ong Ly et al. 2024 (0.97 -> 0.60)", code="research/tools/binary_external.py"),
         json_row("LOSO", "Leave-one-source-out, normal vs abnormal (dev patients)", "experiments/loso.json", hypothesis="H2",
                  primary=("held-out-source AUROC, HeAR on the KAUH site", lambda d: d["hear"]["held_out_source"]["kauh_site"]["auroc"]),
-                 interpretation=("Held out of training, each source drops to AUROC 0.38-0.59 in 10 of 12 representation x source "
-                                 "cells (within-cohort 0.51-0.97). Leave-one-device-out is impossible: every healthy ICBHI "
+                 interpretation=("Held out of training, the source's AUROC is 0.38-0.59 in 9 of 12 representation x source cells (10 of 15 "
+                                 "with AST); exceptions are on the Kaggle remainder and AST/KAUH-site (0.21). 11 of 12 held-out CIs include "
+                                 "0.5. Within cohort 0.51-0.96. Leave-one-device-out is impossible: every healthy ICBHI "
                                  "recording is Meditron and the AKG C417L recorded only COPD."),
-                 limitations="Linear heads on frozen embeddings; development patients only; three sources.",
-                 decision="supports H2", code="backend/experiments/loso.py"),
+                 limitations=("Linear heads on frozen embeddings; development patients only; three sources. The KAUH-site group "
+                              "is confounded with file origin (raw KAUH normals vs Kaggle clips cut from KAUH for 29 of 32 abnormal "
+                              "patients), ICBHI normals are Meditron children, and the Kaggle remainder's filename-group 'patients' "
+                              "may inflate within-cohort AUROCs: cells measure confounding by construction."),
+                 decision="partly supports H2", code="backend/experiments/loso.py"),
         json_row("NONBREATH", "Source probes on non-breath audio", "experiments/nonbreath_probes.json", hypothesis="H2",
                  primary=("dataset-of-origin probe from the quietest 10% of frames", lambda d: d["quietest"]["dataset_of_origin"]),
                  interpretation=("The source stays decodable from the quietest frames (dataset 0.79, device 0.81, within-diagnosis "
-                                 "0.77-0.98) and the first/last 100 ms (0.76 / 0.83 / 0.72-0.96), close to the whole recording "
-                                 "(0.86 / 0.83 / 0.88-1.00): an acquisition signature exists outside the breath sounds."),
+                                 "0.93-0.98 for diagnoses with >= 5 patients per source; COPD, with 3 KAUH patients, 0.77) and the first/last "
+                                 "100 ms (0.76 / 0.83 / 0.93-0.96; COPD 0.72), close to the whole recording "
+                                 "(0.86 / 0.83 / 0.95-1.00; COPD 0.88): an acquisition signature exists outside the breath sounds."),
                  limitations="Quietest frames are not guaranteed breath-free; linear probes; shows the signature exists, not that models use it.",
                  decision="'acquisition signature that models can exploit' may be stated", code="backend/experiments/nonbreath.py"),
         json_row("TESTPRED", "Served model test outputs: no-audio rule (paired), without Kaggle remainder",
@@ -376,6 +381,18 @@ def registry() -> list[dict[str, object]]:
                                  "Kaggle-remainder test patients: patient balanced accuracy 68.0% (74.9% with them)."),
                  limitations="CPU export (1 of 389 recordings differs from the GPU evaluation; patient metrics identical).",
                  decision="in-cohort score not distinguishable from the no-audio rule", code="research/tools/test_prediction_analyses.py"),
+        json_row("FP", "Independent copy detector (landmark fingerprinting) vs the cross-correlation audit",
+                 "experiments/fingerprint_match.json", hypothesis="H0",
+                 primary=("share of the 631 NCC ICBHI matches also found by the fingerprint detector",
+                          lambda d: d["icbhi"]["both_found"] / (d["icbhi"]["both_found"] + d["icbhi"]["ncc_only"])),
+                 interpretation=("ICBHI: 631 of 631 NCC matches found, 0 additional, same source recording in all 631. KAUH: 313 of 316 "
+                                 "(the 3 missed are clips <= 0.7 s with <= 21 landmarks), 0 additional; the 10 best-reference differences are all "
+                                 "ties between byte-identical KAUH files. Synthetic recall 93/100 (cross-correlation 99/100). Chance votes "
+                                 "(300 time-reversed windows): median 8, p99 16, max 21 vs threshold 25; real matches median 239."),
+                 limitations=("Same 100-1,000 Hz band at 4 kHz as the first detector, so not independent of that preprocessing; the "
+                              "threshold margin over the chance maximum is thin (25 vs 21) although real matches are far above it; "
+                              "clips under about 1 s are invisible to fingerprints."),
+                 decision="the 631/316 counts are not a cross-correlation artifact", code="backend/experiments/fingerprint_match.py"),
         json_row("LC", "KAUH adaptation learning curve (embedding members, v2 holdout)", "experiments/learning_curve.json",
                  hypothesis="H3", primary=("healthy recall at k = 18", lambda d: d["curve"]["18"]["healthy_recall"]["mean"]),
                  interpretation=("Healthy recall 0 → 0.16 → 0.67 → 0.94 and normal-vs-abnormal AUROC 0.66 → 0.88 as k = 0, 4, 9, 18 "
@@ -387,16 +404,18 @@ def registry() -> list[dict[str, object]]:
                  "experiments/ast_summary.json", hypothesis="H2 / H4",
                  primary=("CV patient balanced accuracy, AST + linear head", lambda d: d["cv_patient_level"]["ast"]["balanced_accuracy"]),
                  interpretation=("Best single member in cohort (78.3% vs HeAR 71.6%, +6.7 [1.5, 12.6], P = 0.995) but the strongest "
-                                 "source signature (dataset probe 0.94) and the worst held-out KAUH-site AUROC (0.21, inverted)."),
+                                 "dataset-of-origin probe (0.94; third on the device probe, lowest on source-within-COPD) and the lowest held-out "
+                                 "KAUH-site AUROC (0.21, inverted; that cell is confounded with file origin)."),
                  limitations=("Frozen, not fine-tuned (needs a CUDA PyTorch build); not a pre-registered round-2b candidate, so "
                               "exploratory: no adoption without a new pre-registered comparison; development patients only."),
-                 decision="a stronger model exploits the source confound more, not less", code="backend/experiments/ast_embed.py; research/tools/strong_model.py"),
+                 decision="a stronger model is not protected from source confounding (highest dataset probe; unseen-source cell inverted)", code="backend/experiments/ast_embed.py; research/tools/strong_model.py"),
         json_row("AST-FT", "Fine-tuned AST under 3-fold patient-grouped CV (exploratory, D-28)", "experiments/ast_finetune_summary.json",
                  hypothesis="H4",
                  primary=("CV patient balanced accuracy, fine-tuned AST", lambda d: d["variants"]["D_ast"]["patient_balanced_accuracy"]),
                  interpretation=("74.4% vs frozen AST 78.3% (paired -9.2 to +1.1 points, P(improvement) 0.075) and vs the adopted "
                                  "fusion 74.9% (-6.3 to +5.3, P 0.42): fine-tuning did not help. Off-device COPD sensitivity fell "
-                                 "from 85.3% (frozen) to 62.1% (116 recordings); Meditron 56.2% (unchanged); KAUH in-cohort 83.3%."),
+                                 "from 85.3% (frozen; -23.3 points, CI -36.8 to -10.4) to 62.1% (116 recordings) but is not distinguishable from the adopted "
+                                 "fusion (75.0%; -12.9, CI -28.9 to +3.9); Meditron 56.2% (unchanged); KAUH in-cohort 83.3%."),
                  limitations=("One seed; rules fixed in advance (6-epoch cap, lr 1e-5, no tuning); small inner-validation splits "
                               "(123-159 recordings) made epoch selection noisy; weights not kept (not for serving)."),
                  decision="no adoption; the fine-tune does not change C-29", code="backend/experiments/ast_finetune.py"),
@@ -446,12 +465,12 @@ def x5_row() -> dict[str, object]:
     return row("X5", "Abstention under site shift (all KAUH evaluations)", hypothesis="H5 (uncertainty)",
                status="completed" if metrics else "proposed", metrics=metrics,
                artifact="backend/artifacts/experiments/x5_abstention.json",
-               interpretation=("Models without KAUH exposure abstain about as often on out-of-label as on in-label KAUH "
+               interpretation=("Models with no KAUH healthy/COPD patients in training abstain about as often on out-of-label as on in-label KAUH "
                                "audio (CIs include 0) and pass most of their wrong external calls; after round 2b the "
                                "difference is +18.4 points [2.8, 33.6]."),
                limitations=("Out-of-label = KAUH diagnoses outside the five classes, not other audio domains. Recording "
                             "level with patient-cluster bootstrap; 24–45 in-label patients."),
-               decision="H5 unsupported without site exposure; weakly supported after it",
+               decision="H5 unsupported for models with no KAUH healthy/COPD training patients; weakly supported after round 2b",
                justification="Descriptive analysis planned in RESEARCH_PLAN (H5).")
 
 

@@ -125,7 +125,8 @@ Branch `round2-validity-accuracy`. Report: [`ROUND2_EXPERIMENTS_REPORT.md`](ROUN
     the served files could differ from the evaluated weights.
   - `tf.data` is built on the CPU (GPU out-of-memory).
   - Dataset audits store portable paths.
-- **Serving:** needs PyTorch (CPU build) for OPERA-CE; both Dockerfiles install it (not yet
-  build-tested). The artifact is about 1.3 GB.
+- **Serving:** needs PyTorch (CPU build) for OPERA-CE; both Dockerfiles install it. The backend image
+  was built and tested on 2026-10-26 (18.6 GB; `/ready`, `/predict` parity, gate). The artifact is
+  about 1.3 GB.
 - **New deployment check:** every test recording goes through the served files and must reproduce
   `test_metrics.json`.
