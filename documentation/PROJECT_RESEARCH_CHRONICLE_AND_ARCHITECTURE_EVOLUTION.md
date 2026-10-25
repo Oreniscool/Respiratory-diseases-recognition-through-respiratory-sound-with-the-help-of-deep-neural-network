@@ -1343,6 +1343,35 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - Exploratory: AST was not a pre-registered round-2b candidate, so the served model is
       unchanged. A fine-tune needs a CUDA PyTorch build (PyTorch here is CPU-only by design).
     - `transformers==5.20.2` was added to `requirements-experiments.txt`.
+  - **Fine-tuned AST (AST-FT, C-30, D-28/D-29, 2026-10-26; `experiments/ast_finetune.py`).**
+    - **Environment:** a separate virtualenv, `backend/venv-gpu` (`requirements-gpu.txt`:
+      PyTorch 2.14.1+cu126, transformers 5.20.2). Installing CUDA PyTorch into the TensorFlow venv
+      would have downgraded 9 NVIDIA libraries (cuDNN 9.27 → 9.10, cuBLAS 12.9 → 12.6, ...) that its
+      GPU setup uses; a dry run showed this before anything was installed.
+    - **Verification:** after the install, TensorFlow still saw its GPU and its libraries were
+      unchanged.
+    - **Protocol (fixed in D-28 before any result):**
+      - the same 3-fold patient-grouped CV on the development patients, test locked;
+      - one seed (42 + fold); AdamW lr 1e-5, batch 8, ≤ 6 epochs, bf16 autocast;
+      - early stopping (patience 2) on inner-validation recording accuracy;
+      - balanced class weights, label smoothing 0.1, SpecAugment;
+      - temperature on the inner validation split.
+    - **Run:** peak memory 4.9 GiB; best epochs 5 / 2 / 2; 12.6 GPU-minutes.
+    - **Result (patient level):**
+
+      | | balanced accuracy | off-device COPD | Meditron | KAUH in cohort |
+      |---|---:|---:|---:|---:|
+      | fine-tuned AST | 74.4% | 62.1% (116 rec.) | 56.2% | 83.3% |
+      | frozen AST | 78.3% | 85.3% | 56.2% | 81.5% |
+      | adopted fusion | 74.9% | 75.0% | 61.5% | 72.2% |
+
+    - **Paired comparisons:**
+      - vs frozen AST: −9.2 to +1.1 points, P(improvement) 0.075;
+      - vs the adopted fusion: −6.3 to +5.3, P 0.42.
+    - **Conclusion:** negative. Fine-tuning did not help, and it lowered off-device COPD sensitivity.
+      The rules were not relaxed after seeing the result (D-29), and the served model is unchanged.
+    - **Limits:** one seed, noisy inner-validation splits of 123–159 recordings, no tuning, weights
+      not kept.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

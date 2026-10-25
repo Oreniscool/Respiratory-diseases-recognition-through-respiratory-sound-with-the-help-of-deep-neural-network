@@ -106,8 +106,9 @@ protocol, source probes) → key numbers:
 - **No-audio rule (C-23):** source + device alone reaches 84.1% recording accuracy against the
   model's 82.0%.
 - **Leave-one-source-out (C-25):** normal-vs-abnormal AUROC drops to 0.38–0.59 in 10 of 12 cells.
-- **Stronger model (C-29):** frozen AST is best in cohort but has the strongest source signature and
-  is the worst on the unseen site (AUROC 0.21).
+- **Stronger model (C-29, C-30):** frozen AST is best in cohort but has the strongest source signature
+  and is the worst on the unseen site (AUROC 0.21). Fine-tuning it did not help (74.4% vs 78.3%) and
+  lowered off-device COPD sensitivity (62% vs 85%).
 - **External KAUH:**
   - models without KAUH data: 0/45 (CI 0–7.9%), with normal-vs-abnormal AUROC 0.47–0.48 (C-08,
     C-24);

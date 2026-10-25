@@ -230,7 +230,11 @@ A deep variant takes ~70 min for 3 folds on the RTX 4060.
 - `leakage_ladder.py` (X1 + `fidelity` grid), `site_vs_band.py` (X2), `contamination.py` (C4),
   `match_validation.py` (copy-detector recall and the blind listening set).
 - `nonbreath.py` (source probes on non-breath audio), `loso.py` (leave-one-source-out),
-  `learning_curve.py` (KAUH adaptation), `ast_embed.py` (frozen AST cache; needs `transformers`).
+  `learning_curve.py` (KAUH adaptation), `ast_embed.py` (frozen AST cache; needs `transformers`),
+  `ast_finetune.py` (`prepare` / `finish` in the main venv, `train` in `venv-gpu`).
+- **PyTorch on the GPU lives in a separate venv, `backend/venv-gpu`** (`requirements-gpu.txt`). Never
+  install CUDA PyTorch into `venv`: it downgrades the NVIDIA libraries TensorFlow's GPU setup uses.
+  `venv` keeps the CPU PyTorch build (OPERA, transformers) on purpose.
 - `research/tools/*.py` turn their outputs into the ledger, figures and documents;
   `collect_evidence.py --check` keeps the ledger in sync.
 - `kauh.audio_linked_patients` / `drop_audio_linked` build the v2 holdout.

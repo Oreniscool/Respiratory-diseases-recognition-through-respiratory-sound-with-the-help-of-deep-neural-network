@@ -391,6 +391,15 @@ def registry() -> list[dict[str, object]]:
                  limitations=("Frozen, not fine-tuned (needs a CUDA PyTorch build); not a pre-registered round-2b candidate, so "
                               "exploratory: no adoption without a new pre-registered comparison; development patients only."),
                  decision="a stronger model exploits the source confound more, not less", code="backend/experiments/ast_embed.py; research/tools/strong_model.py"),
+        json_row("AST-FT", "Fine-tuned AST under 3-fold patient-grouped CV (exploratory, D-28)", "experiments/ast_finetune_summary.json",
+                 hypothesis="H4",
+                 primary=("CV patient balanced accuracy, fine-tuned AST", lambda d: d["variants"]["D_ast"]["patient_balanced_accuracy"]),
+                 interpretation=("74.4% vs frozen AST 78.3% (paired -9.2 to +1.1 points, P(improvement) 0.075) and vs the adopted "
+                                 "fusion 74.9% (-6.3 to +5.3, P 0.42): fine-tuning did not help. Off-device COPD sensitivity fell "
+                                 "from 85.3% (frozen) to 62.1% (116 recordings); Meditron 56.2% (unchanged); KAUH in-cohort 83.3%."),
+                 limitations=("One seed; rules fixed in advance (6-epoch cap, lr 1e-5, no tuning); small inner-validation splits "
+                              "(123-159 recordings) made epoch selection noisy; weights not kept (not for serving)."),
+                 decision="no adoption; the fine-tune does not change C-29", code="backend/experiments/ast_finetune.py"),
         json_row("SRC", "Source-only baselines (no audio)", "experiments/source_baseline.json", hypothesis="H2",
                  primary=("split v3: recording accuracy of the source+device rule",
                           lambda d: d["split_v3_round2b"]["source+device"]["recording_accuracy"]),

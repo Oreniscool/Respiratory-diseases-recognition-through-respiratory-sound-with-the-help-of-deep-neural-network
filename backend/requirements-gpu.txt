@@ -1,0 +1,13 @@
+# Separate virtualenv for PyTorch on the GPU (backend/venv-gpu; gitignored). Do NOT install this into
+# backend/venv: CUDA PyTorch would downgrade the NVIDIA libraries (cuDNN 9.27 -> 9.10, cuBLAS 12.9 ->
+# 12.6, ...) that TensorFlow's GPU setup relies on.
+#
+#   ~/.pyenv/versions/3.11.9/bin/python -m venv venv-gpu
+#   venv-gpu/bin/pip install -r requirements-gpu.txt \
+#       --index-url https://download.pytorch.org/whl/cu126 --extra-index-url https://pypi.org/simple
+#
+# Used only by experiments/ast_finetune.py `train` (about 4.9 GiB peak on an 8 GB RTX 4060). Not needed to
+# train the served model or to serve it.
+torch==2.14.1+cu126
+transformers==5.20.2
+numpy

@@ -45,6 +45,8 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   (C-27). Wording must be "site/acquisition/population confounding".
 - A stronger model (frozen AST) is the best in cohort (78.3%), carries the strongest source signature
   (0.94), and fails worst on the unseen site (AUROC 0.21) (C-29, exploratory).
+- Fine-tuning it did not help: 74.4% vs 78.3% frozen and 74.9% for the adopted fusion, with off-device
+  COPD sensitivity down to 62.1% from 85.3% (C-30, one seed, rules fixed in advance).
 
 **(e) Exploratory: within-site adaptation**
 - With 21 KAUH patients in training: holdout v1 17/24, v2 16/22. Healthy 16/16, COPD 0/5 (C-10).
@@ -71,10 +73,10 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   chosen on them; this is disclosed.
 - **Population confound (age)** cannot be separated from site/device with this data.
 - **No clinical collaborators or prospective data.** The paper is a validity study.
-- **The strong-model check is frozen AST,** not a fine-tune.
+- **The strong-model checks** are one frozen and one fine-tuned AST with a single seed and a fixed
+  6-epoch budget (D-28); a longer or tuned fine-tune was not tried.
 
 ## Optional before submission
-- An **AST fine-tune** under the CV protocol. It needs a separate CUDA PyTorch environment.
 - A **second blind rater** for the listening check, to report inter-rater agreement.
 - A **second external site** (SPRSound, HF_Lung) if the labels can be mapped.
 
@@ -89,5 +91,5 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
 - 120 checks covering about 400 values, re-derived from the raw files (C-01…C-20).
 - 113 matched, 2 mismatched and were corrected, and 2 statuses were corrected.
 - It also found C-21.
-- Claims C-21…C-29 were added after the audit and have not been independently re-derived. A second
+- Claims C-21…C-30 were added after the audit and have not been independently re-derived. A second
   audit pass is recommended before submission.
