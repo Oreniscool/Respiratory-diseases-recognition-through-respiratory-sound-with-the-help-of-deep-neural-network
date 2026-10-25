@@ -434,6 +434,17 @@ def registry() -> list[dict[str, object]]:
                                  "supported. The same heads reach 0.82-0.96 within their own sources (loso.json)."),
                  limitations="Linear heads on frozen embeddings; development patients only; healthy vs diseased (718 patients, 74 healthy).",
                  decision="frozen general-audio representations, including the best in cohort, do not transfer", code="backend/experiments/sprsound_heads.py"),
+        json_row("DG", "Domain-generalization comparison, leave-one-site-out (D-35)", "experiments/dg_loso.json", hypothesis="H10",
+                 primary=("best SPRSound AUROC over the 20 method x representation cells",
+                          lambda d: max(c["sprsound"]["auroc"] for r in d["representations"].values() for c in r.values())),
+                 interpretation=("0 of 20 cells reach AUROC 0.70 with a lower CI bound above 0.60 on held-out SPRSound (range 0.449-0.586; highest "
+                                 "upper bound 0.656). Mean over representations: ERM 0.523, per-site standardization 0.516, group-balanced 0.513, INLP "
+                                 "0.517, group DRO 0.519. One cell is nominally above ERM (AST + per-site standardization, +0.036 [0.009, 0.065]) but "
+                                 "reaches only 0.586. 18 of 60 development-site folds are below 0.45 (inverted)."),
+                 limitations=("Frozen embeddings with linear heads only (no end-to-end DG); healthy vs diseased; the KAUH-site fold is confounded with "
+                              "file origin, ICBHI normals are Meditron children, Kaggle-remainder patients are filename groups; methods not tuned "
+                              "by design (D-35)."),
+                 decision="no standard DG method closes the gap: H10 supported", code="backend/experiments/dg_loso.py"),
         json_row("LC", "KAUH adaptation learning curve (embedding members, v2 holdout)", "experiments/learning_curve.json",
                  hypothesis="H3", primary=("healthy recall at k = 18", lambda d: d["curve"]["18"]["healthy_recall"]["mean"]),
                  interpretation=("Healthy recall 0 → 0.16 → 0.67 → 0.94 and normal-vs-abnormal AUROC 0.66 → 0.88 as k = 0, 4, 9, 18 "

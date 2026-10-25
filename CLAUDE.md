@@ -288,7 +288,10 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   0.25) and the model before it is at chance (0.26); healthy-vs-diseased AUROC is 0.47 and 0.55, and
   frozen YAMNet/OPERA-CE/HeAR/AST heads reach 0.50–0.55. The round-2b changes made it worse there
   (−7.2 points). It abstains on 96% of that site's recordings, but cannot tell in-label from
-  out-of-label patients. Never describe the model as working on new hospitals or children.
+  out-of-label patients. Never describe the model as working on new hospitals or children. Five standard domain-generalization
+  methods (per-site standardization, site×class balancing, INLP, group DRO, plain training) on four frozen
+  representations also fail there (0 of 20 cells above AUROC 0.59; C-38): it is a data problem, not a
+  modelling one.
 - **Round 2b fixed KAUH healthy, not KAUH COPD.** With 21 KAUH patients in training, the holdout gets
   healthy 17/18 but COPD 0/5. Out-of-label KAUH recordings swung from mostly "asthma" to mostly
   "healthy" (52 of 81): the model follows what the site's training patients mostly were. This is

@@ -111,6 +111,10 @@ protocol, source probes) → key numbers:
   probe; its unseen-source cell (0.21) is confounded with file origin. Fine-tuning it did not help
   (74.4% vs 78.3%) and has lower off-device COPD sensitivity than frozen AST (62% vs 85%) but not
   than the fusion.
+- **Domain generalization (C-38, Figure 9):** five standard approaches on frozen embeddings, each site held
+  out in turn; none reaches AUROC 0.70 on held-out SPRSound (range 0.45–0.59); 18 of 60 held-out
+  development folds are inverted. Frame as "a data problem": the training data do not separate disease
+  from recording source.
 - **Second external site, SPRSound (C-32…C-37, Figure 8):** 718 labelled children, never trained on;
   balanced accuracy 0.19 (round 2b) and 0.26 (previous) over four classes (chance 0.25); AUROC 0.47 and
   0.55; frozen heads 0.50–0.55; round 2b worse than the previous model; age-shortcut hypothesis not
@@ -141,12 +145,17 @@ protocol, source probes) → key numbers:
   - patient-level splits;
   - no-audio baselines next to every reported score;
   - source-stratified reporting;
-  - an external site that contributes nothing to training.
+  - an external site that contributes nothing to training;
+  - **data design**: the same diseases recorded at several sites and devices, ideally the same patient on
+    two stethoscopes, because no modelling fix tested here (including five domain-generalization methods)
+    can separate disease from recording source when the data do not.
 - **Limits:**
-  - one external site;
-  - small classes;
-  - one rater;
-  - frozen AST rather than fine-tuned;
+  - two external sites (KAUH and SPRSound): one adult site with 24 labelled patients, one paediatric site
+    without COPD;
+  - small classes (per-class claims restricted to ≥ 5 patients);
+  - one human listening rater;
+  - AST was tested frozen and fine-tuned with one seed and a fixed budget; domain generalization was tested
+    on frozen embeddings only;
   - no clinical collaborators.
 
 ## 9. Data and code availability

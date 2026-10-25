@@ -41,8 +41,9 @@ gets healthy 17/18 right but COPD 0/5. That is within-site adaptation, not gener
 hospital. **On a second, independent external set (SPRSound: 718 labelled children from a Shanghai
 hospital) the model is at or below chance**: balanced accuracy 0.19 over four classes (guessing gives
 0.25) and healthy-vs-diseased AUROC 0.47. The model before it scored 0.26 and 0.55, and frozen
-YAMNet, OPERA-CE, HeAR and AST heads reach only 0.50–0.55. Do not expect this model to work on other
-hospitals, devices or children.
+YAMNet, OPERA-CE, HeAR and AST heads reach only 0.50–0.55. Five standard domain-generalization methods
+did not fix it (best of 20 combinations: AUROC 0.59). Do not expect this model to work on other hospitals,
+devices or children.
 
 The round-2 numbers were on 45 test patients of a corrected split in which Kaggle clips cut from the
 KAUH hospital dataset carry their real patient IDs. **On 45 external KAUH patients from another

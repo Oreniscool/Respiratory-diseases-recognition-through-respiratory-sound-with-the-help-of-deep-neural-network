@@ -277,8 +277,30 @@ def fig_sprsound() -> None:
     save(fig, "fig8_sprsound_second_site")
 
 
+def fig_dg() -> None:
+    """Domain-generalization comparison: held-out SPRSound AUROC by method and representation, next to the development sites."""
+    cells = json.loads((ART / "dg_loso.json").read_text())["representations"]
+    methods = ["erm", "site_standardized", "group_balanced", "inlp", "group_dro"]
+    labels = ["ERM (plain)", "per-site standardization", "site×class balancing", "INLP site removal", "group DRO"]
+    reps = list(cells)
+    names = {"yamnet": "YAMNet", "opera_ce": "OPERA-CE", "hear": "HeAR", "ast": "AST"}
+    fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.2), sharey=True)
+    for ax, (title, getter) in zip(axes, (("Held-out SPRSound (children)", lambda r, m: cells[r][m]["sprsound"]["auroc"]),
+                                          ("Mean of 3 held-out development sites", lambda r, m: cells[r][m]["mean_dev_auroc"]))):
+        data = np.asarray([[getter(r, m) for r in reps] for m in methods])
+        ax.imshow(data, cmap=BLUES, vmin=0.3, vmax=0.8, aspect="auto")
+        for (i, j), v in np.ndenumerate(data):
+            ax.text(j, i, f"{v:.2f}", ha="center", va="center", fontsize=8, color="white" if v > 0.62 else INK)
+        ax.set_xticks(range(len(reps)), [names[r] for r in reps])
+        ax.set_title(title, fontsize=9)
+        ax.grid(False)
+    axes[0].set_yticks(range(len(methods)), labels)
+    fig.suptitle("Healthy vs diseased AUROC when a whole site is held out (chance 0.50; pre-registered bar 0.70 on SPRSound)", fontsize=9, fontweight="bold")
+    save(fig, "fig9_domain_generalization", rect=(0, 0, 1, 0.93))
+
+
 def main() -> None:
-    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio, fig_learning_curve, fig_sprsound):
+    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio, fig_learning_curve, fig_sprsound, fig_dg):
         make()
 
 

@@ -1475,6 +1475,29 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - **Tooling:** `external_sprsound.py`, `fingerprint_sprsound.py`, `sprsound_embed.py` (AST in `venv-gpu`),
     `sprsound_heads.py`, `research/tools/sprsound_analysis.py`, Figure 8.
 
+- **Domain-generalization comparison (D-35, D-36, C-38; `backend/experiments/dg_loso.py`, 2026-10-26).**
+  - **Question** (requested by the user; the novelty review had listed these as expected baselines): can
+    a standard method make a disease head transfer to a held-out site?
+  - **Design**, fixed before the run:
+    - task: healthy vs diseased on frozen YAMNet, OPERA-CE, HeAR and AST embeddings;
+    - sites: ICBHI, Kaggle remainder and KAUH-site (development patients; the test split locked) and
+      SPRSound; each held out in turn; **SPRSound is never trained on**;
+    - methods (linear heads, C = 0.1, nothing tuned): plain training (ERM), per-site standardization,
+      site×class balancing, INLP site removal (30 rounds), group DRO (15 reweighting rounds);
+    - hypothesis H10: no cell reaches AUROC 0.70 with a lower CI bound above 0.60 on held-out SPRSound;
+      a cell is "effective" only if it also beats ERM on the other three sites by 0.05.
+  - **Result:** H10 supported.
+    - **0 of 20 cells** reach the bar. SPRSound AUROC ranges 0.449–0.586 and the highest upper CI bound is
+      0.656. Method means are 0.51–0.52, against 0.523 for ERM.
+    - The best non-ERM cell is AST + per-site standardization, 0.586 [0.515, 0.656], paired +0.036
+      [0.009, 0.065] over ERM: one of 20 comparisons, with no gain on the development sites.
+    - On the development sites, site×class balancing and INLP average 0.595 and 0.590 against 0.552 for
+      ERM (confounded, noisy folds). **18 of 60** held-out development folds are below 0.45, i.e.
+      inverted.
+  - **Reading** (D-36): the training data do not separate disease from recording source, so no method
+    applied to them can; the recommendation is data design, not a model change. Not tested: end-to-end
+    domain generalization, more data. The research work was wrapped up after this experiment.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:
