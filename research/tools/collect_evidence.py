@@ -347,6 +347,35 @@ def registry() -> list[dict[str, object]]:
                  limitations="Bootstrap P(Δ>0) read as a one-sided p-value; 1,000 draws.",
                  decision="adoption stands procedurally (rule fixed in advance); superiority over R′ is not claimed",
                  code="research/tools/multiplicity.py"),
+        json_row("BIN", "Normal vs abnormal AUROC: in cohort vs external KAUH", "experiments/binary_external.json",
+                 hypothesis="H2", primary=("external AUROC, round-2 model (72 KAUH patients, no KAUH training data)",
+                                           lambda d: d["EXP-013 round-2 model, 72 external patients"]["auroc"]),
+                 interpretation=("Models without KAUH training data: AUROC 0.47-0.48 on 72 external KAUH patients "
+                                 "(chance); in cohort the served model reaches 0.94 [0.87, 0.99] "
+                                 "(test_prediction_analyses.json). After round 2b the KAUH holdout gives 0.83 (within site)."),
+                 limitations="Patient-level; out-of-label KAUH diagnoses counted as abnormal; 18-35 normal patients.",
+                 decision="supports H2; comparable to Ong Ly et al. 2024 (0.97 -> 0.60)", code="research/tools/binary_external.py"),
+        json_row("LOSO", "Leave-one-source-out, normal vs abnormal (dev patients)", "experiments/loso.json", hypothesis="H2",
+                 primary=("held-out-source AUROC, HeAR on the KAUH site", lambda d: d["hear"]["held_out_source"]["kauh_site"]["auroc"]),
+                 interpretation=("Held out of training, each source drops to AUROC 0.38-0.59 in 10 of 12 representation x source "
+                                 "cells (within-cohort 0.51-0.97). Leave-one-device-out is impossible: every healthy ICBHI "
+                                 "recording is Meditron and the AKG C417L recorded only COPD."),
+                 limitations="Linear heads on frozen embeddings; development patients only; three sources.",
+                 decision="supports H2", code="backend/experiments/loso.py"),
+        json_row("NONBREATH", "Source probes on non-breath audio", "experiments/nonbreath_probes.json", hypothesis="H2",
+                 primary=("dataset-of-origin probe from the quietest 10% of frames", lambda d: d["quietest"]["dataset_of_origin"]),
+                 interpretation=("The source stays decodable from the quietest frames (dataset 0.79, device 0.81, within-diagnosis "
+                                 "0.77-0.98) and the first/last 100 ms (0.76 / 0.83 / 0.72-0.96), close to the whole recording "
+                                 "(0.86 / 0.83 / 0.88-1.00): an acquisition signature exists outside the breath sounds."),
+                 limitations="Quietest frames are not guaranteed breath-free; linear probes; shows the signature exists, not that models use it.",
+                 decision="'acquisition signature that models can exploit' may be stated", code="backend/experiments/nonbreath.py"),
+        json_row("TESTPRED", "Served model test outputs: no-audio rule (paired), without Kaggle remainder",
+                 "experiments/test_prediction_analyses.json", hypothesis="H2",
+                 primary=("model − no-audio rule, patient balanced accuracy", lambda d: d["model_minus_no_audio_rule"]["difference"]),
+                 interpretation=("Model vs source+stethoscope rule: +4.1 points [-6.9, +16.1], P(model better) 0.77. Without the 6 "
+                                 "Kaggle-remainder test patients: patient balanced accuracy 68.0% (74.9% with them)."),
+                 limitations="CPU export (1 of 389 recordings differs from the GPU evaluation; patient metrics identical).",
+                 decision="in-cohort score not distinguishable from the no-audio rule", code="research/tools/test_prediction_analyses.py"),
         json_row("SRC", "Source-only baselines (no audio)", "experiments/source_baseline.json", hypothesis="H2",
                  primary=("split v3: recording accuracy of the source+device rule",
                           lambda d: d["split_v3_round2b"]["source+device"]["recording_accuracy"]),

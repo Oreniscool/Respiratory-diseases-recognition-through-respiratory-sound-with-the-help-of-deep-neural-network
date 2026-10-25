@@ -1306,6 +1306,26 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     - previous model: 0/22.
   - Tests: `test_kauh.py`, `test_external.py`.
 
+- **Overnight analyses, 2026-10-25 (Tier-2/3 items of the readiness report).**
+  - **Label mapping** (`research/LABEL_MAPPING.md`, generated): source fields, the mapping,
+    definition mismatches. Kaggle clips cut from multi-diagnosis KAUH patients keep the folder label.
+  - **Demographics** (`research/DEMOGRAPHICS.md`, C-27):
+    - ICBHI healthy = 26 children (0–16, median 5); ICBHI COPD median age 69;
+    - KAUH healthy adults (median 32–42);
+    - age is confounded with source and label.
+    - The ICBHI demographics came from the Kaggle mirror: the official site's TLS certificate has
+      expired, and certificate checks were not bypassed.
+  - **External normal vs abnormal (BIN, C-24):** without KAUH training data, AUROC 0.47–0.48 on 72
+    KAUH patients, against 0.94 [0.87, 0.99] in cohort. After round 2b, 0.83 (within site).
+  - **Leave-one-source-out (LOSO, C-25, `experiments/loso.py`):** held-out AUROC 0.38–0.59 in 10 of
+    12 cells. Leave-one-device-out is impossible on this data.
+  - **Non-breath probes (NONBREATH, C-26, `experiments/nonbreath.py`):** the source stays decodable
+    from the quietest 10% of frames and the 100 ms edges.
+  - **Served model vs no-audio rule, paired (TESTPRED):** +4.1 points [−6.9, +16.1].
+  - **Without the Kaggle remainder:** patient balanced accuracy 68.0% vs 74.9%.
+  - **Figures** (`research/figures/`, `research/tools/figures.py`), the manuscript outline and the
+    release package (`research/RELEASE.md`, `release_manifest.py`).
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:
