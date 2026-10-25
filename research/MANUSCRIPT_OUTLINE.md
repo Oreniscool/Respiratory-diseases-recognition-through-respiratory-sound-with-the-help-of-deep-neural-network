@@ -111,6 +111,11 @@ protocol, source probes) → key numbers:
   probe; its unseen-source cell (0.21) is confounded with file origin. Fine-tuning it did not help
   (74.4% vs 78.3%) and has lower off-device COPD sensitivity than frozen AST (62% vs 85%) but not
   than the fusion.
+- **Second external site, SPRSound (C-32…C-37, Figure 8):** 718 labelled children, never trained on;
+  balanced accuracy 0.19 (round 2b) and 0.26 (previous) over four classes (chance 0.25); AUROC 0.47 and
+  0.55; frozen heads 0.50–0.55; round 2b worse than the previous model; age-shortcut hypothesis not
+  supported; abstention fires on 96% of recordings but cannot separate classes. Report with the caveats
+  (paediatric, one hospital, no COPD, pneumonia-heavy).
 - **External KAUH:**
   - models with no KAUH healthy/COPD patients in training: 0/45 (CI 0–7.9%), with normal-vs-abnormal AUROC 0.47–0.48 (C-08,
     C-24);
@@ -154,7 +159,7 @@ generator.
 | Risk | Covered by |
 |---|---|
 | R1 power | exact and bootstrap CIs throughout; per-class claims only with ≥ 5 patients |
-| R2 single external site | LOSO across three sources; claims narrowed |
+| R2 single external site | **a second independent site (SPRSound, 718 patients)** and a cleaner held-out-source test; claims narrowed |
 | R3 label definitions | `LABEL_MAPPING.md`; demographics |
 | R5 shortcut vs site | non-breath probes; wording "confounding" |
 | R6 forking paths | pre-registered rules; MULT (Holm); all variants reported in the ledger |

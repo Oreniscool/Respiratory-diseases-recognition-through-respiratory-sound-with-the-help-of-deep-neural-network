@@ -228,6 +228,7 @@ and must not be cited as performance.**
 | Macro OvR AUROC | 0.9190 / 0.9394 | `test_metrics.json` |
 | Patient-bootstrap 95% CI (acc) | 63.3% – 87.8% (1,000 samples) | `test_metrics.json` |
 | By source, accuracy rec. / patient | ICBHI (29 patients) 87.55% / 75.86%; Kaggle (17) 71.54% / 76.47%; KAUH (3) 66.67% / 66.67% | `test_metrics.json["by_source"]` |
+| **Second external site: SPRSound (718 labelled children, Shanghai)** | patient balanced accuracy **0.192** [0.159, 0.224] over 4 classes (chance 0.25), accuracy 28% (always "pneumonia": 62%), healthy-vs-diseased AUROC **0.474** [0.400, 0.549]. The previous model: 0.264 and 0.547. No transfer (H7 supported, D-32) | `artifacts/experiments/sprsound_analysis.json` |
 | **KAUH holdout (24 in-label of 51 patients; within-site, not cross-site)** | **17/24 (70.8%, exact CI 48.9–87.4%)**: healthy 17/18, **COPD 0/5** (CI 0–52%), bronchial 0/1; balanced 31.5%. Previous model on the same holdout: 0/24 | `artifacts/experiments/external/served_round2b_final.json`, `previous_round2_on_holdout.json` |
 | Reproduction | served files reproduce `test_metrics.json` exactly on the GPU; on the CPU (Docker) 1 of 389 test recordings flips (TF32 near-tie), patient metrics identical | `artifacts/experiments/deployment_checks/round2b_final*.json` |
 | Code revision | `724c52c` | `model_metadata.json` |
@@ -281,6 +282,13 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   C417L). Probes identify the dataset/device far more easily than the disease, even within one
   diagnosis. Never present in-cohort accuracy as real-world performance; see
   `documentation/ROUND2_EXPERIMENTS_REPORT.md`.
+- **The model does not transfer to a second independent site either (SPRSound, 2026-10-26).** On 718
+  labelled children from a Shanghai hospital (CC-BY-4.0; `backend/sprsound.py`; audited: no overlap with
+  ICBHI, KAUH or Kaggle V2) the served model is below chance on four classes (balanced accuracy 0.19 vs
+  0.25) and the model before it is at chance (0.26); healthy-vs-diseased AUROC is 0.47 and 0.55, and
+  frozen YAMNet/OPERA-CE/HeAR/AST heads reach 0.50–0.55. The round-2b changes made it worse there
+  (−7.2 points). It abstains on 96% of that site's recordings, but cannot tell in-label from
+  out-of-label patients. Never describe the model as working on new hospitals or children.
 - **Round 2b fixed KAUH healthy, not KAUH COPD.** With 21 KAUH patients in training, the holdout gets
   healthy 17/18 but COPD 0/5. Out-of-label KAUH recordings swung from mostly "asthma" to mostly
   "healthy" (52 of 81): the model follows what the site's training patients mostly were. This is

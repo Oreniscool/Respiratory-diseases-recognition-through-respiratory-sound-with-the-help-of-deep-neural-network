@@ -52,6 +52,19 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   COPD sensitivity 23 points below frozen AST (62.1% vs 85.3%, CI −37 to −10) but not distinguishable
   from the fusion (C-30, one seed, rules fixed in advance).
 
+**(d2) Second independent external site (SPRSound, D-32/D-33/D-34; C-32…C-37)**
+- 718 labelled children from a Shanghai hospital, different country, stethoscope and age group, audited for
+  overlap (0 matches with ICBHI, KAUH or Kaggle V2). Rules and hypotheses were fixed before any model ran.
+- The round-2b model scores balanced accuracy **0.19** over four classes (chance 0.25) and healthy-vs-diseased
+  AUROC **0.47**; the previous model 0.26 and 0.55. H7 (no transfer) is supported for both.
+- Round 2b is **worse** than the model before it at this site (−7.2 points, CI −11.3 to −3.3).
+- Frozen YAMNet, OPERA-CE, HeAR and AST heads reach AUROC 0.50–0.55 here (0.82–0.96 within their own
+  sources): H9 supported. This is a cleaner version of the leave-one-source-out result (C-25).
+- The age-shortcut hypothesis is not supported (H8 inconclusive / refuted): the models do not simply call
+  children healthy.
+- The abstention rule fires on 96% (round 2b) of this site's recordings but cannot separate in-label from
+  out-of-label patients (C-35).
+
 **(e) Exploratory: within-site adaptation**
 - With 21 KAUH patients in training: holdout v1 17/24, v2 16/22. Healthy 16/16, COPD 0/5 (C-10).
 - Learning curve: healthy recall 0 → 0.94 as k goes 0 → 18; COPD stays at 0 (C-28).
@@ -71,7 +84,8 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   - 22–24 in-label holdout patients, only 5 with COPD;
   - C4 pneumonia rests on 6 patients;
   - per-class claims are kept to classes with ≥ 5 patients.
-- **One external site** (KAUH), which is also the adaptation site.
+- **Two external sites** now (KAUH and SPRSound). KAUH is also the adaptation site, and SPRSound is
+  paediatric only, without COPD and with a pneumonia-heavy inpatient population (62% of patients).
 - **Re-used evaluation data:** the test split and the holdout were used twice for the round-2b
   configuration (D-24); the holdout was used diagnostically for X5 and the learning curve. Nothing was
   chosen on them; this is disclosed.
@@ -90,7 +104,8 @@ All claims below cite `CLAIM_EVIDENCE_MATRIX.csv`. Every number there is generat
   sheet, instructions, no first-rater answers); `listening_score.py` then reports agreement and kappa.
   A model cannot serve as this rater (it cannot hear, and the first scoring run printed the key).
   The fingerprint cross-check (C-31) is a second *method*, not a second rater.
-- A **second external site** (SPRSound, HF_Lung) if the labels can be mapped.
+- A **third external site** (adult, with COPD) if one becomes available; SPSC-HCM-16C has no public download.
+- A fine-tune on **SPRSound** itself is deliberately not planned: it would turn the external set into a training set.
 
 ## Writing (next)
 - `MANUSCRIPT_OUTLINE.md`: section plan with claim IDs for every result.

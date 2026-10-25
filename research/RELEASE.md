@@ -10,6 +10,7 @@ SHA-256 (`python research/tools/release_manifest.py`; `--check` detects drift).
 | Evidence | `backend/data/kaggle_icbhi_overlap.csv`, `kaggle_kauh_overlap.csv`, `kauh_icbhi_overlap.csv` (+ `.summary.json`) | Every Kaggle clip with its best-matching ICBHI/KAUH recording, offset and NCC score; the KAUH ↔ ICBHI negative control |
 | Evidence | `backend/data/kauh_internal_duplicates.csv` (+ summary) | Byte-identical KAUH files and their conflicting diagnoses (C-21) |
 | Manifests | `backend/data/kauh_cohort_manifest.csv`, `kauh_external_holdout_manifest.csv` (v1, as used for X3), `kauh_external_holdout_manifest_v2.csv` (audio-linked patients removed), `kauh_external_manifest.csv` | Which KAUH patients were trained on or held out |
+| Second external set | `backend/data/sprsound_manifest.csv` (+ `.summary.json`), `sprsound_overlap.csv` is absent because no overlap exists | Which SPRSound files were evaluated or excluded, and why (the audio and summaries come from the SPRSound repository, CC-BY-4.0) |
 | Splits | `research/splits/v0`–`v3` | Frozen split manifests with SHA-256 (v0 = the contaminated one, kept for the record) |
 | Governance | `research/*.md`, `EXPERIMENT_LEDGER.csv`, `CLAIM_EVIDENCE_MATRIX.csv` | Plan, frozen protocol, decisions, claims, audit, label mapping, demographics |
 | Tools | `backend/cross_dataset_overlap.py`, `backend/kauh.py`, `backend/experiments/*.py`, `research/tools/*.py` | Re-derive every number from the original datasets |

@@ -18,6 +18,11 @@ screening, triage, treatment, or reassurance.
 >   balanced 74.87% / 73.47%, macro F1 0.739 / 0.704, AUROC 0.939 / 0.919, ECE 0.085 / 0.074.
 > - **KAUH holdout (24 in-label patients of the same hospital; within-site):** 17/24, healthy 17/18,
 >   **COPD 0/5**.
+> - **Second external site (SPRSound, 718 labelled children, Shanghai; pre-registered D-32):** balanced
+>   accuracy **0.19** over four classes (chance 0.25), accuracy 28% (always "pneumonia": 62%),
+>   healthy-vs-diseased AUROC **0.47** [0.40, 0.55]. The model served before it: 0.26 and 0.55. The model
+>   abstains on 96% of that site's recordings but cannot tell in-label from out-of-label patients. **It
+>   does not transfer to other hospitals, devices or age groups.**
 > - **Serving:** needs PyTorch (CPU) for OPERA-CE, and the artifact is about 1.3 GB (HeAR 1.2 GB).
 >   On the CPU, 1 of 389 test recordings differs from the GPU evaluation (TF32).
 >

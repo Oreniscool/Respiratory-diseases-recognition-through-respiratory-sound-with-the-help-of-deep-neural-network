@@ -144,7 +144,8 @@ def main() -> None:
     loaded = {n: load(n) for n in names}
     result = {n: analyse(*loaded[n]) for n in names}
     if len(names) == 2:
-        result["paired_first_minus_second"] = paired(*loaded[names[0]], *loaded[names[1]])
+        (rows_a, classes_a), (rows_b, classes_b) = loaded[names[0]], loaded[names[1]]
+        result["paired_first_minus_second"] = paired(rows_a, rows_b, classes_a, classes_b)
     (ROOT / "backend/artifacts/experiments/sprsound_analysis.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     for n in names:
         r = result[n]

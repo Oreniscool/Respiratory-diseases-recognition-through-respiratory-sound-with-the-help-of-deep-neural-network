@@ -1433,6 +1433,48 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   blank sheet, instructions, no first-rater answers) was prepared; `listening_score.py` now scores two raters
   (agreement and Cohen's kappa). A model cannot be the second rater: it cannot hear and had seen the key.
 
+- **Second external dataset: SPRSound (2026-10-26; D-32, D-33, D-34; `backend/sprsound.py`, C-32…C-37).**
+  - **Choice.** SPSC-HCM-16C (the better label fit: asthma, COPD, pneumonia, pleural effusion) has no
+    public download. SPRSound (SJTU Paediatric Respiratory Sound Database, CC-BY-4.0 by the GitHub API,
+    commit `bca1e51`; Shanghai Children's Medical Center, Yunting II stethoscope) was chosen. It has patient-level
+    diagnoses in `Patient Summary/*.csv`, so it supports a four-class external evaluation. It is paediatric
+    and has no COPD.
+  - **Manifest** (`data/sprsound_manifest.csv`): 6,567 files from four releases.
+    - 5,215 recordings of 747 patients are evaluated; 718 in-label patients: pneumonia 445, bronchial 133,
+      healthy 74, asthma 66; 29 out-of-label.
+    - Excluded with a recorded status: 390 files without a patient number, 939 recordings of patients in no
+      summary, 22 of a patient with contradictory labels (bronchitis vs pneumonia), 1 byte duplicate.
+    - 384 patients appear in several summaries, so the patient is the unit.
+  - **Rules fixed before any model ran** (D-32): a label map, one served-path pass per artifact, patient-level
+    primary outcomes (P1 balanced accuracy, P2 healthy-vs-diseased AUROC), and hypotheses H7 (no transfer:
+    AUROC < 0.70) and H8 (age shortcut: ≥ 50% of diseased patients called healthy).
+  - **Overlap audit** (fingerprint detector, D-30 settings): 0 of 6,567 SPRSound recordings match ICBHI,
+    KAUH or the Kaggle clips; 0 of 1,211 Kaggle clips are in SPRSound, so the 264 clips of unknown origin
+    do not come from it.
+  - **Results** (718 in-label patients; 5,215 recordings; 1 gate refusal each):
+
+    | | Balanced accuracy (chance 0.25) | Accuracy | AUROC healthy vs diseased | H7 | H8 |
+    |---|---|---:|---|---|---|
+    | Round-2b served model | **0.192** [0.159, 0.224] | 28% | 0.474 [0.400, 0.549] | supported | inconclusive (29% called healthy) |
+    | Previous served model | 0.264 [0.234, 0.297] | 49% | 0.547 [0.479, 0.615] | supported | refuted (1.6%) |
+
+    - Always guessing "pneumonia" gives 62% accuracy.
+    - Paired, round 2b is worse than the previous model: −7.2 points [−11.3, −3.3].
+    - The round-2b model predicts COPD for 74 children, a class absent from the cohort; the previous model
+      predicts "pneumonia" for 550 of 718.
+    - Spearman(age, P(healthy)) is +0.10 and −0.03, not in the age-shortcut direction.
+    - **Abstention** flags 95.8% (round 2b) and 67.9% (previous) of in-label recordings as uncertain, against
+      80% coverage by design on development data. It cannot separate in-label from out-of-label patients
+      (CIs include 0).
+  - **Frozen representations** (D-33, `sprsound_heads.py`): heads trained on the 1,162 development
+    recordings (healthy vs diseased) score AUROC 0.501 (YAMNet), 0.535 (OPERA-CE), 0.508 (HeAR) and 0.550
+    (AST) on SPRSound, every CI including 0.5. H9 (none transfers) is supported. The same heads reach
+    0.82–0.96 within their own sources.
+  - **Conclusion** (D-34): nothing was changed after seeing the results. The served model's limits now cite two
+    external sites (KAUH and SPRSound).
+  - **Tooling:** `external_sprsound.py`, `fingerprint_sprsound.py`, `sprsound_embed.py` (AST in `venv-gpu`),
+    `sprsound_heads.py`, `research/tools/sprsound_analysis.py`, Figure 8.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

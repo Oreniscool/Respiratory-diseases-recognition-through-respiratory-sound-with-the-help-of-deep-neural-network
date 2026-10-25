@@ -14,15 +14,17 @@ folders, the KAUH file names and the split-v3 cohort audit. Do not edit by hand.
 
 ## 2. Mapping
 
-| Project class | ICBHI diagnoses (patients) | Kaggle folder (clips, before exclusions) | KAUH diagnosis (patients) |
-|---|---|---|---|
-| **asthma** | Asthma (1) | `asthma` (288) | `asthma` (32) |
-| **bronchial** | URTI (14), Bronchiectasis (7), Bronchiolitis (6), LRTI (2) | `Bronchial` (104) | `bron` (3) |
-| **copd** | COPD (64) | `copd` (401) | `copd` (9) |
-| **healthy** | Healthy (26) | `healthy` (133) | `n` (35) |
-| **pneumonia** | Pneumonia (6) | `pneumonia` (285) | `pneumonia` (5) |
-| *out of label* | — | — | `asthma and lung fibrosis` (1), `heart failure` (18), `heart failure + copd` (2), `heart failure + lung fibrosis` (1), `lung fibrosis` (4), `plueral effusion` (2) |
+| Project class | ICBHI diagnoses (patients) | Kaggle folder (clips, before exclusions) | KAUH diagnosis (patients) | SPRSound summary diagnosis (patients; external only) |
+|---|---|---|---|---|
+| **asthma** | Asthma (1) | `asthma` (288) | `asthma` (32) | `asthma` (66) |
+| **bronchial** | URTI (14), Bronchiectasis (7), Bronchiolitis (6), LRTI (2) | `Bronchial` (104) | `bron` (3) | `bronchitis` (105), `protracted bacterial bronchitis` (1), `bronchiolitis` (8), `bronchiectasia` (8), `acute upper respiratory infection` (11) |
+| **copd** | COPD (64) | `copd` (401) | `copd` (9) | — |
+| **healthy** | Healthy (26) | `healthy` (133) | `n` (35) | `control group` (74) |
+| **pneumonia** | Pneumonia (6) | `pneumonia` (285) | `pneumonia` (5) | `pneumonia (non-severe)` (404), `pneumonia (severe)` (41) |
+| *out of label* | — | — | `asthma and lung fibrosis` (1), `heart failure` (18), `heart failure + copd` (2), `heart failure + lung fibrosis` (1), `lung fibrosis` (4), `plueral effusion` (2) | `airway foreign body` (2), `chronic cough` (4), `hemoptysis` (4), `kawasaki disease` (1), `other respiratory` (2), `other respiratory diseases` (14), `pulmonary hemosiderosis` (2) |
 
+SPRSound (second external set, paediatric; never trained on) has no COPD; its diagnoses come from the patient summaries,
+with generic "other respiratory" entries replaced by the specific diagnosis another table gives (`sprsound.py`).
 All 8 ICBHI diagnoses map to a class and all 126 ICBHI patients are used. KAUH out-of-label
 patients are used only as out-of-label external audio (X5), never for training.
 

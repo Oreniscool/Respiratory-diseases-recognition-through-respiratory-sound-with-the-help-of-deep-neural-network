@@ -393,6 +393,47 @@ def registry() -> list[dict[str, object]]:
                               "threshold margin over the chance maximum is thin (25 vs 21) although real matches are far above it; "
                               "clips under about 1 s are invisible to fingerprints."),
                  decision="the 631/316 counts are not a cross-correlation artifact", code="backend/experiments/fingerprint_match.py"),
+        json_row("SPR-DATA", "SPRSound as a second external set: manifest and exclusions", "../data/sprsound_manifest.summary.json",
+                 hypothesis="H7", primary=("evaluated labelled patients", lambda d: d["evaluated_patients"]),
+                 artifact="backend/data/sprsound_manifest.csv (+ .summary.json)",
+                 interpretation=("747 patients / 5,215 recordings after excluding 390 files without a patient number, 939 not in any "
+                                 "summary (the 2025 release), 22 recordings of one patient with contradictory labels and 1 byte duplicate. "
+                                 "718 in-label patients: pneumonia 445, bronchial 133, healthy 74, asthma 66 (+29 out-of-label). No COPD."),
+                 limitations=("Paediatric (1 month-18 years), one hospital, one stethoscope; diagnoses are the dataset's patient summaries; "
+                              "'bronchial' pools bronchitis, bronchiolitis, bronchiectasis and URTI (as ICBHI's grouping)."),
+                 decision="usable as an external set (never trained on)", code="backend/sprsound.py"),
+        json_row("SPR-AUDIT", "SPRSound overlap audit with ICBHI, KAUH and Kaggle V2 (fingerprint detector)",
+                 "experiments/fingerprint_sprsound.json", hypothesis="H7",
+                 primary=("SPRSound recordings matching a training dataset", lambda d: d["sprsound_matches"]),
+                 interpretation=("0 of 6,567 SPRSound recordings match ICBHI, KAUH or the Kaggle clips (max votes 18, 12, 18 vs threshold 25); "
+                                 "0 of 1,211 Kaggle clips are found in SPRSound, so the 264 clips of unknown origin do not come from SPRSound."),
+                 limitations="Same detector and band as C-31; clips under about 1 s are invisible to it.",
+                 decision="no exclusions needed", code="backend/experiments/fingerprint_sprsound.py"),
+        json_row("SPR-EVAL-A", "Round-2b served model on SPRSound (served path, one pass; D-32)", "experiments/sprsound_analysis.json",
+                 hypothesis="H7", primary=("patient balanced accuracy, 4 in-label classes (chance 0.25)",
+                                           lambda d: d["round2b"]["P1_patient_balanced_accuracy"]["value"]),
+                 artifact="backend/artifacts/experiments/external/sprsound_round2b*.json",
+                 interpretation=("718 patients: balanced accuracy 0.192 [0.159, 0.224] (below chance), accuracy 28% vs 62% for always "
+                                 "'pneumonia'; healthy-vs-diseased AUROC 0.474 [0.400, 0.549]. H7 supported, H8 inconclusive (29% of diseased "
+                                 "patients called healthy; healthy recall 27%; rho(age, P(healthy)) +0.10). 95.8% of in-label recordings are flagged uncertain."),
+                 limitations="Paediatric hospital population; labels are patient-level summaries; no COPD in the cohort.",
+                 decision="the model does not transfer to a second site", code="backend/experiments/external_sprsound.py; research/tools/sprsound_analysis.py"),
+        json_row("SPR-EVAL-B", "Model served before round 2b on SPRSound (served path, one pass; D-32)", "experiments/sprsound_analysis.json",
+                 hypothesis="H7", primary=("patient balanced accuracy, 4 in-label classes (chance 0.25)",
+                                           lambda d: d["round2split2"]["P1_patient_balanced_accuracy"]["value"]),
+                 artifact="backend/artifacts/experiments/external/sprsound_round2split2*.json",
+                 interpretation=("balanced accuracy 0.264 [0.234, 0.297] (chance), accuracy 49%; AUROC 0.547 [0.479, 0.615]; predicts "
+                                 "'pneumonia' for 550 of 718 patients (H8 refuted: 1.6% called healthy). Round-2b minus this model: -7.2 points "
+                                 "[-11.3, -3.3] balanced accuracy."),
+                 limitations="As SPR-EVAL-A; served file is epoch 67 while its reported metrics used epoch 64 (D-24).",
+                 decision="neither artifact transfers; the newer one is worse here", code="research/tools/sprsound_analysis.py"),
+        json_row("SPR-HEADS", "Frozen-representation heads trained on development data, scored on SPRSound (D-33)",
+                 "experiments/sprsound_heads.json", hypothesis="H9",
+                 primary=("AUROC of the AST head on SPRSound", lambda d: d["representations"]["ast"]["sprsound_auroc"]),
+                 interpretation=("YAMNet 0.501, OPERA-CE 0.535, HeAR 0.508, AST 0.550 (every CI includes 0.5; none reaches 0.70): H9 "
+                                 "supported. The same heads reach 0.82-0.96 within their own sources (loso.json)."),
+                 limitations="Linear heads on frozen embeddings; development patients only; healthy vs diseased (718 patients, 74 healthy).",
+                 decision="frozen general-audio representations, including the best in cohort, do not transfer", code="backend/experiments/sprsound_heads.py"),
         json_row("LC", "KAUH adaptation learning curve (embedding members, v2 holdout)", "experiments/learning_curve.json",
                  hypothesis="H3", primary=("healthy recall at k = 18", lambda d: d["curve"]["18"]["healthy_recall"]["mean"]),
                  interpretation=("Healthy recall 0 → 0.16 → 0.67 → 0.94 and normal-vs-abnormal AUROC 0.66 → 0.88 as k = 0, 4, 9, 18 "
@@ -433,7 +474,7 @@ def registry() -> list[dict[str, object]]:
 
 
 def json_row(eid, title, path, *, primary, code, hypothesis="", interpretation="", limitations="",
-             decision="", justification="") -> dict[str, object]:
+             decision="", justification="", artifact=None, split=None) -> dict[str, object]:
     """A ledger row whose primary value is read from one JSON artifact (backend/artifacts/<path>)."""
     file = ART / path
     metrics = {}
@@ -441,7 +482,7 @@ def json_row(eid, title, path, *, primary, code, hypothesis="", interpretation="
         data = json.loads(file.read_text())
         metrics = {"primary_metric": primary[0], "primary_value": r4(primary[1](data)), "code_version": code}
     return row(eid, title, hypothesis=hypothesis, status="completed" if metrics else "proposed", metrics=metrics,
-               artifact=f"backend/artifacts/{path}", interpretation=interpretation, limitations=limitations,
+               artifact=artifact or f"backend/artifacts/{path}", interpretation=interpretation, limitations=limitations,
                decision=decision, justification=justification or "Tier-1 item of the readiness report.")
 
 

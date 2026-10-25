@@ -73,7 +73,17 @@ def main() -> None:
         for row in csv.DictReader(handle):
             groups[("KAUH (holdout)", row["label"])][int(row["patient_id"])] = kauh.get(int(row["patient_id"]), (None, None))
 
-    sources = ("ICBHI", "Kaggle clips from KAUH", "KAUH (cohort)", "KAUH (holdout)", "Kaggle remainder")
+    manifest = BACKEND / "data/sprsound_manifest.csv"
+    if manifest.is_file():  # second external set (evaluation only): age and sex from the file names
+        with manifest.open(newline="", encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                if row["status"] == "ok":
+                    ages = groups[("SPRSound (external)", row["label"])].setdefault(row["patient_id"], ([], row["gender"]))
+                    ages[0].append(float(row["age"]))
+        for key, members in list(groups.items()):
+            if key[0] == "SPRSound (external)":
+                groups[key] = {p: (statistics.median(a), "F" if g == "1" else "M") for p, (a, g) in members.items()}
+    sources = ("ICBHI", "Kaggle clips from KAUH", "KAUH (cohort)", "KAUH (holdout)", "Kaggle remainder", "SPRSound (external)")
     lines = [
         "# Demographics by source and class",
         "",

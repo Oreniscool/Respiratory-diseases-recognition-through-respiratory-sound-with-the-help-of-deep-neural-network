@@ -14,6 +14,7 @@ KAUH: age and sex from the file names. Kaggle remainder: no demographics exist.
 | KAUH (cohort) | — | — | n=4; age 58 [53–63]; F 0/4 | n=17; age 32 [18–75]; F 3/17 | — | — |
 | KAUH (holdout) | — | n=1; age 24 [24–24]; F 0/1 | n=5; age 57 [42–76]; F 1/5 | n=18; age 42 [18–81]; F 8/18 | — | n=27; age 67 [24–90]; F 11/27 |
 | Kaggle remainder | n=6; unknown | n=9; unknown | — | n=13; unknown | n=29; unknown | — |
+| SPRSound (external) | n=66; age 6 [1–14]; F 25/66 | n=133; age 4 [0–17]; F 53/133 | — | n=74; age 5 [0–15]; F 32/74 | n=445; age 5 [0–16]; F 247/445 | n=29; age 6 [0–13]; F 11/29 |
 
 **Reading:** age differs sharply between sources and classes, so an age effect cannot be
 separated from the source effect with this data. ICBHI includes children (mainly

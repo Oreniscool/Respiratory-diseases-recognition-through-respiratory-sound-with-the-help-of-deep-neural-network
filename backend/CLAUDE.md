@@ -232,6 +232,9 @@ A deep variant takes ~70 min for 3 folds on the RTX 4060.
 - `nonbreath.py` (source probes on non-breath audio), `loso.py` (leave-one-source-out),
   `learning_curve.py` (KAUH adaptation), `ast_embed.py` (frozen AST cache; needs `transformers`),
   `ast_finetune.py` (`prepare` / `finish` in the main venv, `train` in `venv-gpu`).
+- `sprsound.py` (manifest builder for the second external set), `experiments/external_sprsound.py` (one
+  served-path pass per artifact), `fingerprint_sprsound.py` (overlap audit), `sprsound_embed.py` and
+  `sprsound_heads.py` (frozen-representation test; AST embeddings need `venv-gpu`).
 - `fingerprint_match.py`: a second, independent copy detector (landmark fingerprinting) that cross-checks
   the cross-correlation audit (C-31).
 - **PyTorch on the GPU lives in a separate venv, `backend/venv-gpu`** (`requirements-gpu.txt`). Never

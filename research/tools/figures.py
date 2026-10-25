@@ -235,8 +235,50 @@ def fig_learning_curve() -> None:
     save(fig, "fig7_kauh_learning_curve")
 
 
+def fig_sprsound() -> None:
+    """Second external site: both served models and four frozen-representation heads, all near chance."""
+    analysis = json.loads((ART / "sprsound_analysis.json").read_text())
+    heads = json.loads((ART / "sprsound_heads.json").read_text())["representations"]
+    entries = [("Round-2b served model", analysis["round2b"]["P2_healthy_vs_diseased_auroc"], SERIES[0]),
+               ("Previous served model", analysis["round2split2"]["P2_healthy_vs_diseased_auroc"], SERIES[0])]
+    names = {"yamnet": "YAMNet head", "opera_ce": "OPERA-CE head", "hear": "HeAR head", "ast": "AST head (frozen)"}
+    entries += [(names[k], {"value": v["sprsound_auroc"], "ci95": v["ci95"]}, SERIES[2]) for k, v in heads.items()]
+    fig, axes = plt.subplots(1, 2, figsize=(8.6, 3.3), gridspec_kw={"width_ratios": [1.5, 1]})
+    ax = axes[0]
+    for i, (label, e, color) in enumerate(entries):
+        y = len(entries) - 1 - i
+        ax.errorbar([e["value"]], [y], xerr=[[e["value"] - e["ci95"][0]], [e["ci95"][1] - e["value"]]], fmt="o", color=color,
+                    markersize=7, capsize=3, linewidth=1.5)
+        ax.annotate(f"{e['value']:.2f}", (e["ci95"][1], y), xytext=(5, 0), textcoords="offset points", va="center", fontsize=7, color=INK2)
+    ax.axvline(0.5, color=INK2, linestyle="--", linewidth=1)
+    ax.axvline(0.7, color=SERIES[1], linestyle=":", linewidth=1.5)
+    ax.set_ylim(-0.95, len(entries) - 0.5)
+    ax.text(0.5, -0.8, "chance", fontsize=7, color=INK2, ha="center")
+    ax.text(0.7, -0.8, "H7 / H9 bar", fontsize=7, color=INK2, ha="center")
+    ax.set_yticks(range(len(entries)), [e[0] for e in reversed(entries)])
+    ax.set_xlim(0.3, 1.0)
+    ax.set_xlabel("healthy vs diseased AUROC, 718 patients (95% CI)")
+    ax.set_title("Second external site (SPRSound, children)")
+    ax.grid(axis="y", visible=False)
+    ax = axes[1]
+    for i, key in enumerate(("round2b", "round2split2")):
+        p1 = analysis[key]["P1_patient_balanced_accuracy"]
+        ax.bar([i], [p1["value"]], 0.55, color=SERIES[0], edgecolor=SURFACE, linewidth=1.5)
+        ax.errorbar([i], [p1["value"]], yerr=[[p1["value"] - p1["ci95"][0]], [p1["ci95"][1] - p1["value"]]], color=INK2, capsize=3, linewidth=1.2)
+        ax.annotate(f"{p1['value']:.2f}", (i, p1["value"] / 2), ha="center", va="center", fontsize=8, color="white")
+    ax.axhline(0.25, color=INK2, linestyle="--", linewidth=1)
+    ax.text(-0.45, 0.265, "chance (4 classes)", fontsize=7, color=INK2, ha="left")
+    ax.set_xticks([0, 1], ["Round-2b", "Previous"])
+    ax.set_ylim(0, 1)
+    ax.set_yticks([0, 0.25, 0.5, 0.75, 1.0], ["0%", "25%", "50%", "75%", "100%"])
+    ax.set_ylabel("patient balanced accuracy")
+    ax.set_title("Four-class balanced accuracy")
+    ax.grid(axis="x", visible=False)
+    save(fig, "fig8_sprsound_second_site")
+
+
 def main() -> None:
-    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio, fig_learning_curve):
+    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio, fig_learning_curve, fig_sprsound):
         make()
 
 

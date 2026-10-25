@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BACKEND = ROOT / "backend"
 sys.path.insert(0, str(BACKEND))
 from kauh import LABELS, parse_name  # noqa: E402
+from sprsound import LABELS as SPR_LABELS  # noqa: E402
 from reorganize_icbhi import ICBHI_TO_5CLASS  # noqa: E402
 
 KAGGLE = BACKEND / "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2"
@@ -56,18 +57,29 @@ def main() -> None:
         "",
         "## 2. Mapping",
         "",
-        "| Project class | ICBHI diagnoses (patients) | Kaggle folder (clips, before exclusions) | KAUH diagnosis (patients) |",
-        "|---|---|---|---|",
+        "| Project class | ICBHI diagnoses (patients) | Kaggle folder (clips, before exclusions) | KAUH diagnosis (patients) | SPRSound summary diagnosis (patients; external only) |",
+        "|---|---|---|---|---|",
     ]
+    spr_patients: dict[str, set[str]] = defaultdict(set)
+    spr_manifest = BACKEND / "data/sprsound_manifest.csv"
+    if spr_manifest.is_file():
+        with spr_manifest.open(newline="", encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                if row["status"] == "ok":
+                    spr_patients[row["diagnosis_raw"]].add(row["patient_id"])
     for project in ("asthma", "bronchial", "copd", "healthy", "pneumonia"):
         icbhi_part = ", ".join(f"{k} ({icbhi[k]})" for k, v in ICBHI_TO_5CLASS.items() if v == project and k in icbhi) or "—"
         kaggle_part = ", ".join(f"`{k}` ({n})" for k, n in kaggle.items() if k.lower() == project) or "—"
         kauh_part = ", ".join(f"`{k}` ({len(kauh_patients[k])})" for k, v in LABELS.items() if v == project and k in kauh_patients) or "—"
-        lines.append(f"| **{project}** | {icbhi_part} | {kaggle_part} | {kauh_part} |")
+        spr_part = ", ".join(f"`{k}` ({len(spr_patients[k])})" for k, v in SPR_LABELS.items() if v == project and k in spr_patients) or "—"
+        lines.append(f"| **{project}** | {icbhi_part} | {kaggle_part} | {kauh_part} | {spr_part} |")
     unmapped = sorted(k for k in kauh_patients if k not in LABELS)
     lines += [
-        f"| *out of label* | — | — | {', '.join(f'`{k}` ({len(kauh_patients[k])})' for k in unmapped)} |",
+        f"| *out of label* | — | — | {', '.join(f'`{k}` ({len(kauh_patients[k])})' for k in unmapped)} | "
+        f"{', '.join(f'`{k}` ({len(v)})' for k, v in sorted(spr_patients.items()) if k not in SPR_LABELS)} |",
         "",
+        "SPRSound (second external set, paediatric; never trained on) has no COPD; its diagnoses come from the patient summaries,",
+        "with generic \"other respiratory\" entries replaced by the specific diagnosis another table gives (`sprsound.py`).",
         "All 8 ICBHI diagnoses map to a class and all 126 ICBHI patients are used. KAUH out-of-label",
         "patients are used only as out-of-label external audio (X5), never for training.",
         "",

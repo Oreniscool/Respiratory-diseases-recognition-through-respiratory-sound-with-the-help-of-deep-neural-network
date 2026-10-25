@@ -38,7 +38,11 @@ Asthma Detection Dataset V2**, after an audit removed audio that appeared twice:
 Split v3 has different test patients from round 2's split v2 (73.33% patient accuracy on 45
 patients), so the two are not directly comparable. On 24 held-out KAUH patients, the round-2b model
 gets healthy 17/18 right but COPD 0/5. That is within-site adaptation, not generalization to a new
-hospital.
+hospital. **On a second, independent external set (SPRSound: 718 labelled children from a Shanghai
+hospital) the model is at or below chance**: balanced accuracy 0.19 over four classes (guessing gives
+0.25) and healthy-vs-diseased AUROC 0.47. The model before it scored 0.26 and 0.55, and frozen
+YAMNet, OPERA-CE, HeAR and AST heads reach only 0.50–0.55. Do not expect this model to work on other
+hospitals, devices or children.
 
 The round-2 numbers were on 45 test patients of a corrected split in which Kaggle clips cut from the
 KAUH hospital dataset carry their real patient IDs. **On 45 external KAUH patients from another
