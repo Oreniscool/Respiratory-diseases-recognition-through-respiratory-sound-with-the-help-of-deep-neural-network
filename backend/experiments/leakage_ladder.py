@@ -28,6 +28,16 @@ Rungs (each repeated over seeds 0…N−1; the same seed gives the same split wi
 - **L2T / L3T:** L2 / L3 splits with the checkpoint selected on the test split, completing the
   split-unit × selection factorial.
 
+**Fidelity grid** (``fidelity`` command): the original code cannot run as published (undefined
+``x_train``/``num_batch_size``/``data``, no split or evaluation code, Keras-2 APIs). L0 is therefore
+re-run under the two undocumented choices that could plausibly matter:
+- batch size: Keras's default of 32, or full-batch, which the original ``batch_size = X.shape[0]``
+  suggests;
+- GRU gate activation: ``sigmoid`` (Keras ≥ 2.3) or Keras 2's ``hard_sigmoid``, which is
+  ``clip(0.2·x + 0.5, 0, 1)``, not Keras 3's slope-1/6 version.
+
+Results go to ``results_fidelity.csv`` / ``fidelity_summary.json``.
+
 Usage (from ``backend/``)::
 
     python -m experiments.leakage_ladder features
@@ -184,14 +194,27 @@ def split_indices(rung: str, data: dict[str, np.ndarray], seed: int) -> dict[str
 # --------------------------------------------------------------------------- model and training
 
 
-def original_model(num_classes: int = 6):
-    """The 2021 network (``3ec7dc6:model.py``) in Keras 3."""
+def keras2_hard_sigmoid(x):
+    """Keras 2's hard sigmoid, clip(0.2·x + 0.5, 0, 1) (Keras 3's has slope 1/6)."""
+    import tensorflow as tf
+
+    return tf.clip_by_value(0.2 * x + 0.5, 0.0, 1.0)
+
+
+def original_model(num_classes: int = 6, recurrent_activation: str = "sigmoid"):
+    """The 2021 network (``3ec7dc6:model.py``) in Keras 3.
+
+    ``recurrent_activation`` is "sigmoid" (Keras ≥ 2.3 default) or "hard_sigmoid_keras2" (Keras < 2.3).
+    """
     from tensorflow.keras import Input, Model
     from tensorflow.keras.layers import GRU, Dense, Dropout, LeakyReLU, add
 
+    gate = keras2_hard_sigmoid if recurrent_activation == "hard_sigmoid_keras2" else recurrent_activation
+
     def gru(units, x):
         # reset_after=False: the Keras 2 default the 2021 code ran with (one bias per gate)
-        return GRU(units, return_sequences=True, activation=None, go_backwards=True, reset_after=False)(x)
+        return GRU(units, return_sequences=True, activation=None, go_backwards=True, reset_after=False,
+                   recurrent_activation=gate)(x)
 
     inputs = Input(shape=(1, 40))
     m21 = gru(32, inputs)
@@ -210,7 +233,8 @@ def original_model(num_classes: int = 6):
 
 def run_one(job: tuple[str, int, int]) -> dict[str, object]:
     """Train one rung/seed and return its test metrics (selection per the rung's rules)."""
-    rung, seed, epochs = job
+    rung, seed, epochs = job[:3]
+    variant = job[3] if len(job) > 3 else {}
     os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
     import tensorflow as tf
     from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
@@ -227,7 +251,7 @@ def run_one(job: tuple[str, int, int]) -> dict[str, object]:
     X = data["X"][:, None, :]
     selection = parts["test"] if rung in SELECT_ON_TEST else parts["validation"]
 
-    model = original_model(len(CLASSES))
+    model = original_model(len(CLASSES), variant.get("recurrent_activation", "sigmoid"))
     model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adamax(), metrics=["accuracy"])
     best = {"score": -1.0, "weights": None, "epoch": 0}
 
@@ -239,7 +263,8 @@ def run_one(job: tuple[str, int, int]) -> dict[str, object]:
                 best.update(score=score, weights=self.model.get_weights(), epoch=epoch + 1)
 
     started = time.time()
-    model.fit(X[parts["train"]], onehot[parts["train"]], batch_size=BATCH_SIZE, epochs=epochs,
+    batch_size = len(parts["train"]) if variant.get("batch_size") == "full" else BATCH_SIZE
+    model.fit(X[parts["train"]], onehot[parts["train"]], batch_size=batch_size, epochs=epochs,
               verbose=0, callbacks=[Select()])
     model.set_weights(best["weights"])
     probabilities = model.predict(X[parts["test"]], verbose=0)[:, 0, :]
@@ -254,6 +279,9 @@ def run_one(job: tuple[str, int, int]) -> dict[str, object]:
         "weighted_f1": float(f1_score(truth, predicted, average="weighted")),
         "minutes": round((time.time() - started) / 60, 2),
     }
+    if variant:
+        result.update(batch_size=variant.get("batch_size", BATCH_SIZE),
+                      recurrent_activation=variant.get("recurrent_activation", "sigmoid"))
     if rung in ("L3", "L3T"):  # L4: the same model scored per patient
         patients = data["patient"][parts["test"]]
         unique = np.unique(patients)
@@ -293,6 +321,52 @@ def run(rungs: list[str], repeats: int, workers: int, epochs: int) -> None:
                   f"bal {result['balanced_accuracy']:.4f} ({result['minutes']} min)", flush=True)
 
 
+FIDELITY_CELLS = [
+    {"batch_size": 32, "recurrent_activation": "hard_sigmoid_keras2"},
+    {"batch_size": "full", "recurrent_activation": "sigmoid"},
+    {"batch_size": "full", "recurrent_activation": "hard_sigmoid_keras2"},
+]  # (32, sigmoid) is L0 in results.csv
+
+
+def fidelity(repeats: int, workers: int, epochs: int) -> None:
+    """L0 under the undocumented batch-size and gate-activation choices; resumable."""
+    out = OUTPUT_DIR / "results_fidelity.csv"
+    cell = lambda r: (str(r["batch_size"]), r["recurrent_activation"])  # noqa: E731
+    done = set()
+    if out.is_file():
+        with out.open(newline="", encoding="utf-8") as handle:
+            done = {(cell(row), int(row["seed"])) for row in csv.DictReader(handle)}
+    jobs = [("L0", seed, epochs, v) for v in FIDELITY_CELLS for seed in range(repeats) if (cell(v), seed) not in done]
+    print(f"[fidelity] {len(jobs)} runs ({len(done)} already done)", flush=True)
+    fields = ["rung", "seed", "epochs", "best_epoch", "selection_split", "train_samples", "test_samples",
+              "accuracy", "balanced_accuracy", "weighted_f1", "minutes", "batch_size", "recurrent_activation"]
+    write_header = not out.is_file()
+    with ProcessPoolExecutor(workers) as pool, out.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        if write_header:
+            writer.writeheader()
+        for result in pool.map(run_one, jobs):
+            writer.writerow(result)
+            handle.flush()
+            print(f"[fidelity] batch {result['batch_size']} {result['recurrent_activation']} seed {result['seed']}: "
+                  f"acc {result['accuracy']:.4f} ({result['minutes']} min)", flush=True)
+    rows = list(csv.DictReader(out.open(newline="", encoding="utf-8")))
+    with (OUTPUT_DIR / "results.csv").open(newline="", encoding="utf-8") as handle:
+        rows += [{**r, "batch_size": "32", "recurrent_activation": "sigmoid"}
+                 for r in csv.DictReader(handle) if r["rung"] == "L0"]
+    summary = {"paper_reported": {"accuracy_mean": 0.9567, "accuracy_sd": 0.0077, "runs_shown": "10 of 20",
+                                  "lowest_run_shown": 0.9486}}
+    for key in sorted({cell(r) for r in rows}):
+        acc = np.sort([float(r["accuracy"]) for r in rows if cell(r) == key])[::-1]
+        summary[f"batch {key[0]}, {key[1]}"] = {
+            "runs": int(acc.size), "accuracy_mean": float(acc.mean()), "accuracy_sd": float(acc.std(ddof=1)),
+            "accuracy_max": float(acc[0]), "top10_mean": float(acc[:10].mean()),
+            "runs_at_or_above_lowest_reported": int((acc >= 0.9486).sum()),
+        }
+    (OUTPUT_DIR / "fidelity_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    print(json.dumps(summary, indent=2))
+
+
 def summarize() -> dict[str, object]:
     with (OUTPUT_DIR / "results.csv").open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
@@ -323,7 +397,7 @@ def summarize() -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=["features", "run", "report", "params"])
+    parser.add_argument("command", choices=["features", "run", "report", "params", "fidelity"])
     parser.add_argument("--rungs", nargs="+", default=list(RUNGS), choices=RUNGS)
     parser.add_argument("--repeats", type=int, default=20)
     parser.add_argument("--workers", type=int, default=6)
@@ -335,6 +409,8 @@ def main() -> None:
         run(args.rungs, args.repeats, args.workers, args.epochs)
     elif args.command == "report":
         summarize()
+    elif args.command == "fidelity":
+        fidelity(args.repeats, args.workers, args.epochs)
     else:
         print(original_model().count_params())
 

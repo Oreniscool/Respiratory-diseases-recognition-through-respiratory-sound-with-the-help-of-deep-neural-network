@@ -63,3 +63,11 @@ def test_test_selected_rungs_share_the_splits_of_their_validation_twins():
         a, b = split_indices(twin, data, seed=4), split_indices(rung, data, seed=4)
         for part in ("train", "validation", "test"):
             np.testing.assert_array_equal(a[part], b[part])
+
+
+def test_keras2_hard_sigmoid_matches_the_keras2_definition_and_keeps_the_parameter_count():
+    from experiments.leakage_ladder import ORIGINAL_PARAMETERS, keras2_hard_sigmoid, original_model
+
+    x = np.asarray([-5.0, -2.5, -1.0, 0.0, 1.0, 2.5, 5.0], dtype=np.float32)
+    np.testing.assert_allclose(keras2_hard_sigmoid(x).numpy(), np.clip(0.2 * x + 0.5, 0.0, 1.0), atol=1e-7)
+    assert original_model(recurrent_activation="hard_sigmoid_keras2").count_params() == ORIGINAL_PARAMETERS
