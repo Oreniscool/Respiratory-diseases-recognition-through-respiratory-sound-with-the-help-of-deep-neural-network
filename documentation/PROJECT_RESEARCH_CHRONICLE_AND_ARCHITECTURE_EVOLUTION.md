@@ -1335,6 +1335,14 @@ Governance and evidence now live in `research/` (see `research/README.md`).
       10 draws per k.
     - Healthy recall 0 → 0.16 → 0.67 → 0.94, and AUROC 0.66 → 0.88.
     - COPD recall is 0 at every k (only 3 KAUH COPD development patients).
+  - **Frozen AST (`MIT/ast-finetuned-audioset-10-10-0.4593`; `experiments/ast_embed.py`, AST, C-29).**
+    - Embeddings: mean ‖ std of the pooled output over 10.24 s chunks.
+    - CV patient balanced accuracy 78.3%, the best single member (HeAR 71.6%; +6.7 [1.5, 12.6]).
+    - Strongest dataset probe (0.94).
+    - Held-out KAUH-site AUROC 0.21, i.e. inverted (within cohort 0.95).
+    - Exploratory: AST was not a pre-registered round-2b candidate, so the served model is
+      unchanged. A fine-tune needs a CUDA PyTorch build (PyTorch here is CPU-only by design).
+    - `transformers==5.20.2` was added to `requirements-experiments.txt`.
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

@@ -383,6 +383,14 @@ def registry() -> list[dict[str, object]]:
                  limitations=("Embedding members only (YAMNet + OPERA-CE + HeAR heads), not the full fusion; diagnostic reuse of the "
                               "holdout (chooses nothing); within-site only; 10 draws per k."),
                  decision="H3 partly supported: dose-response for healthy, none for COPD", code="backend/experiments/learning_curve.py"),
+        json_row("AST", "Frozen AST (AudioSet) embeddings vs the other members: CV, probes, leave-one-source-out",
+                 "experiments/ast_summary.json", hypothesis="H2 / H4",
+                 primary=("CV patient balanced accuracy, AST + linear head", lambda d: d["cv_patient_level"]["ast"]["balanced_accuracy"]),
+                 interpretation=("Best single member in cohort (78.3% vs HeAR 71.6%, +6.7 [1.5, 12.6], P = 0.995) but the strongest "
+                                 "source signature (dataset probe 0.94) and the worst held-out KAUH-site AUROC (0.21, inverted)."),
+                 limitations=("Frozen, not fine-tuned (needs a CUDA PyTorch build); not a pre-registered round-2b candidate, so "
+                              "exploratory: no adoption without a new pre-registered comparison; development patients only."),
+                 decision="a stronger model exploits the source confound more, not less", code="backend/experiments/ast_embed.py; research/tools/strong_model.py"),
         json_row("SRC", "Source-only baselines (no audio)", "experiments/source_baseline.json", hypothesis="H2",
                  primary=("split v3: recording accuracy of the source+device rule",
                           lambda d: d["split_v3_round2b"]["source+device"]["recording_accuracy"]),
