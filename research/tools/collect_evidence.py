@@ -376,6 +376,13 @@ def registry() -> list[dict[str, object]]:
                                  "Kaggle-remainder test patients: patient balanced accuracy 68.0% (74.9% with them)."),
                  limitations="CPU export (1 of 389 recordings differs from the GPU evaluation; patient metrics identical).",
                  decision="in-cohort score not distinguishable from the no-audio rule", code="research/tools/test_prediction_analyses.py"),
+        json_row("LC", "KAUH adaptation learning curve (embedding members, v2 holdout)", "experiments/learning_curve.json",
+                 hypothesis="H3", primary=("healthy recall at k = 18", lambda d: d["curve"]["18"]["healthy_recall"]["mean"]),
+                 interpretation=("Healthy recall 0 → 0.16 → 0.67 → 0.94 and normal-vs-abnormal AUROC 0.66 → 0.88 as k = 0, 4, 9, 18 "
+                                 "KAUH patients are added; COPD recall stays 0 at every k (3 KAUH COPD patients available)."),
+                 limitations=("Embedding members only (YAMNet + OPERA-CE + HeAR heads), not the full fusion; diagnostic reuse of the "
+                              "holdout (chooses nothing); within-site only; 10 draws per k."),
+                 decision="H3 partly supported: dose-response for healthy, none for COPD", code="backend/experiments/learning_curve.py"),
         json_row("SRC", "Source-only baselines (no audio)", "experiments/source_baseline.json", hypothesis="H2",
                  primary=("split v3: recording accuracy of the source+device rule",
                           lambda d: d["split_v3_round2b"]["source+device"]["recording_accuracy"]),

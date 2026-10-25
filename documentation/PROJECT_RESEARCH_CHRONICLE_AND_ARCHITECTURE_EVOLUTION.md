@@ -1330,6 +1330,11 @@ Governance and evidence now live in `research/` (see `research/README.md`).
       +65.5 [32.0, 85.4];
     - copied healthy 92.3% → 34.6% and pneumonia 94.1% → 38.2% when the copies are removed;
     - bronchial is again not significant.
+  - **KAUH learning curve (LC, C-28, `experiments/learning_curve.py`).**
+    - Setup: embedding-member fusion; k ∈ {0, 4, 9, 18} development KAUH patients; v2 holdout;
+      10 draws per k.
+    - Healthy recall 0 → 0.16 → 0.67 → 0.94, and AUROC 0.66 → 0.88.
+    - COPD recall is 0 at every k (only 3 KAUH COPD development patients).
 
 ## 9. Comprehensive Synthesis for University Major Project Reports
 

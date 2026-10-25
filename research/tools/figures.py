@@ -211,8 +211,28 @@ def fig_no_audio() -> None:
     save(fig, "fig6_no_audio_rule")
 
 
+def fig_learning_curve() -> None:
+    d = json.loads((ART / "learning_curve.json").read_text())["curve"]
+    ks = sorted(d, key=int)
+    fig, ax = plt.subplots(figsize=(5.6, 3.2))
+    for i, (key, label) in enumerate((("healthy_recall", "healthy recall"), ("copd_recall", "COPD recall"),
+                                      ("normal_vs_abnormal_auroc", "normal vs abnormal AUROC"))):
+        means = [d[k][key]["mean"] for k in ks]
+        sds = [d[k][key]["sd"] for k in ks]
+        ax.errorbar([int(k) for k in ks], means, yerr=sds, color=SERIES[i], marker="o", markersize=6, linewidth=2,
+                    capsize=3, label=label)
+        ax.annotate(f"{means[-1]:.2f}", (int(ks[-1]), means[-1]), xytext=(6, 0), textcoords="offset points",
+                    va="center", fontsize=7, color=INK2)
+    ax.set_xticks([int(k) for k in ks])
+    ax.set_xlabel("KAUH patients added to training (k)")
+    ax.set_ylim(-0.03, 1.03)
+    ax.set_title("Within-site adaptation on the KAUH holdout (embedding members)")
+    ax.legend(loc="center right", fontsize=7)
+    save(fig, "fig7_kauh_learning_curve")
+
+
 def main() -> None:
-    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio):
+    for make in (fig_provenance, fig_c4, fig_ladder, fig_probes, fig_loso, fig_no_audio, fig_learning_curve):
         make()
 
 
