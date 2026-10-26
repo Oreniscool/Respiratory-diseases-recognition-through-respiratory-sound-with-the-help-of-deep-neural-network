@@ -56,3 +56,15 @@ it("predict posts the file and denoise=0 as multipart form data", async () => {
   expect((body.get("file") as File).name).toBe("rec.wav");
   expect(body.get("denoise")).toBe("0");
 });
+
+it("a proxy in front of a stopped backend (502/504) also means offline", async () => {
+  for (const status of [502, 504]) {
+    vi.stubGlobal("fetch", vi.fn(() => json(status, {})));
+    await expect(predict(file, "x.wav")).rejects.toBeInstanceOf(OfflineError);
+  }
+});
+
+it("any failed health check counts as offline", async () => {
+  vi.stubGlobal("fetch", vi.fn(() => json(500, { error: "boom" })));
+  await expect(getHealth()).rejects.toBeInstanceOf(OfflineError);
+});

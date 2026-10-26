@@ -15,6 +15,7 @@ import { S10Abstain } from "../features/story/scenes/S10Abstain";
 import { S11Challenges } from "../features/story/scenes/S11Challenges";
 import { S12Performance } from "../features/story/scenes/S12Performance";
 import { S13EndToEnd } from "../features/story/scenes/S13EndToEnd";
+import { Analyzer } from "../features/analyzer/Analyzer";
 
 export function StoryPage() {
   return (
@@ -39,6 +40,9 @@ export function StoryPage() {
         <S11Challenges />
         <S12Performance />
         <S13EndToEnd />
+        <section id="try" aria-label="Try it" className="relative z-10 mx-auto max-w-5xl px-6 py-24">
+          <Analyzer />
+        </section>
       </main>
     </StoryShell>
   );

@@ -40,7 +40,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new OfflineError();
   }
   const body = await response.json().catch(() => ({}));
-  if (response.status === 503) throw new OfflineError();
+  // 503 from the server; 502/504 from a proxy (Vite, nginx) whose backend is down
+  if (response.status === 502 || response.status === 503 || response.status === 504) throw new OfflineError();
   if (!response.ok) throw new ApiError(body?.error ?? `HTTP ${response.status}`, response.status);
   return body as T;
 }
@@ -54,7 +55,12 @@ function form(file: Blob, filename: string): FormData {
 
 export async function getHealth(): Promise<Health> {
   if (mockMode) return mockHealth();
-  const health = await request<Health>("/health");
+  let health: Health;
+  try {
+    health = await request<Health>("/health");
+  } catch {
+    throw new OfflineError(); // any failed health check means the model cannot be used
+  }
   if (health.model_contract !== "verified-metadata") throw new OfflineError();
   return health;
 }
