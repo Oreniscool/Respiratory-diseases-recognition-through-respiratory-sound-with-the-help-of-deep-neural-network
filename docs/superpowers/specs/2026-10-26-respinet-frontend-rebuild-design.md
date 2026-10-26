@@ -23,6 +23,7 @@ and the demo still works if the backend is down.
 | 3D | **Hybrid**: 3D only for the hero scenes (opening, inside the network, the four models voting) |
 | Lungs | Stylized, generated in code (no third-party model) |
 | Result layout | **Story report**: one column revealed top to bottom (§5) |
+| Challenges | A "problems we hit and how we fixed them" scene (§4, scene 11) with only problems that were solved |
 | Research content | No "limitations" scene (user decision). The 75.5% figure is labelled with its true scope and the research-prototype tag stays (§7) |
 | Old frontend | Archived with `git mv frontend frontend-legacy` (history kept) |
 
@@ -52,10 +53,11 @@ dataviz palette validator on `#f7faf0`: all checks pass, worst adjacent colour-b
 Three are below 3:1 on the paper (the validator's WARN), so every chart using them carries a legend with
 counts and per-mark tooltips. Single-series charts (class scores, member scores) use one hue and direct labels.
 
-## 4. The story (scenes 0–11, then the analyzer)
+## 4. The story (scenes 0–13, then the analyzer)
 Each scene is pinned while its animation plays against scroll progress, and is one presenter-mode step.
 ◆ = 3D. "Real" = drawn from actual data or the visitor's recording; "Illustration" = a labelled schematic.
 The *why* lines are paraphrased from the cited source; scenes without a recorded reason state only *what*.
+Scene 11 deliberately omits the cross-hospital transfer problem, which was not overcome (consistent with the no-limitations decision).
 
 | # | Scene | Content | Real? | Source of numbers / why |
 |---|---|---|---|---|
@@ -70,7 +72,9 @@ The *why* lines are paraphrased from the cited source; scenes without a recorded
 | 8 | ◆ Four models vote | RespiNet, YAMNet (Google, everyday sounds), OPERA-CE (pretrained on respiratory sounds), HeAR (Google, health acoustics) each score; equal weights; the fusion settles. On the sample: three say copd, OPERA-CE says healthy 56.7%, fused copd 87.0%. *Why fusion:* chosen by a rule fixed before the comparison, using patient-grouped cross-validation (stated as procedurally chosen, not as a significant improvement, per D-27 / C-22) | Real scores | `documentation/frontend_sample_predict.json`; D-05, D-21, D-27 |
 | 9 | Honest confidence | Temperature scaling (fused T = 0.5489, fit on validation data) shown on a reliability chart; expected calibration error 0.074 on the test recordings; validation NLL 0.568 → 0.464. *Why:* raw scores are not probabilities | Real calibration | `calibration.json`, `test_metrics.json`; chronicle §5.3 |
 | 10 | Knowing when to abstain | Answer "uncertain" when the top score < 66.3% or normalized entropy > 0.506 (set for 80% coverage on validation) | Real thresholds | `calibration.json`; chronicle line 426 |
-| 11 | How well it does | **75.5% patient accuracy on 49 unseen patients from the same datasets** (95% CI 63.3–87.8%); balanced accuracy 74.9%; per-class view | Real test metrics | `test_metrics.json` |
+| 11 | Problems we hit, and how we fixed them | Six cards, each animating from the problem to the fix: **(1) wrong labels:** a scrambled diagnosis file mislabelled ICBHI patients and validation accuracy collapsed to 27–29% → labels are checked against the published ICBHI distribution before any training; **(2) the same audio twice:** 631 of 1,211 Kaggle clips (all 401 COPD clips) were cuts of ICBHI recordings already in the data, which had inflated an earlier 82% score → copies found by cross-correlation and removed, confirmed by an independent fingerprint method, model retrained; **(3) made-up patient IDs:** Kaggle numbers are not patients and 316 clips were cut from KAUH recordings → those clips carry their real KAUH patient IDs, so a patient never lands on both sides; **(4) exact duplicates:** 12 byte-identical files → removed by SHA-256; **(5) training stopped too early:** early stopping watched a loss that wobbled while validation accuracy climbed 41% → 59% → it now monitors validation accuracy, patience 12 → 18; **(6) the served model was not quite the evaluated one:** GPU TF32 drift in the logistic heads (up to 2.2e-3) and a saved file that could be a later epoch than the reported one → heads run on the CPU with a 1e-4 check, and the restored model is re-saved | Real | chronicle §8.5 and line 136; `backend/data/kaggle_icbhi_overlap.summary.json`, `kaggle_kauh_overlap.summary.json`; D-02, D-08, D-23, D-24, D-30 |
+| 12 | How well it does | **75.5% patient accuracy on 49 unseen patients from the same datasets** (95% CI 63.3–87.8%); balanced accuracy 74.9%; per-class view | Real test metrics | `test_metrics.json` |
+| 13 | From your recording to an answer | One continuous pass of the sample recording through every step: 71 s of audio decoded twice (22,050 Hz for RespiNet, 16 kHz for the three pretrained models) → band-pass → 30 windows → 200 × 120 fingerprints → three RespiNets averaged, three embedding models each with a logistic head → four calibrated member scores → equal-weight fusion → temperature 0.5489 → abstention check (87.0% ≥ 66.3%, uncertainty 0.30 ≤ 0.51) → "Strongest match: COPD" | Real (recorded response) | `documentation/frontend_sample_predict.json`; `server.py` |
 | — | Try it | The analyzer (§5) | Real | — |
 
 All numbers live in `src/content/facts.ts`, each with its source path; the *why* lines in `src/content/why.ts`
@@ -113,7 +117,7 @@ frontend/
     ├── content/facts.ts · why.ts
     ├── lib/api/client.ts · types.ts · mock.ts
     ├── lib/audio/decode.ts · bandpass.ts · windows.ts · spectrogram.ts · mfcc.ts · worker.ts (+ tests)
-    ├── features/story/scenes/S00Opening.tsx … S11Performance.tsx · timeline.ts · presenter/
+    ├── features/story/scenes/S00Opening.tsx … S13EndToEnd.tsx · timeline.ts · presenter/
     ├── features/three/StageCanvas.tsx · Lungs.tsx · NetworkFlow.tsx · FusionVote.tsx · Fallback2D.tsx
     ├── features/analyzer/Uploader.tsx · PipelineReplay.tsx · ResultView.tsx · MemberVotes.tsx · WindowStrip.tsx
     ├── components/                         # Button, Card, ScoreBar, Ring, Badge, SceneFrame, Legend
@@ -132,10 +136,17 @@ on demand and only while a 3D scene is near the viewport. three.js is a lazy chu
 (multipart `file`), `POST /explain`. Types mirror `backend/server.py`, including the 2026-10-26 fields
 `members[{name, kind, weight, probabilities}]` and `window_scores`. Timeout 120 s.
 **Mock mode** (`VITE_MOCK_API=1`, and automatically offered when `/health` fails) answers from recorded real
-responses. Demo clips must be (a) from **test-split patients** (never seen in training) and (b) from a source
-whose licence allows redistribution: KAUH (CC BY 4.0) qualifies; ICBHI audio is included only if its licence
-is confirmed to allow it. Each demo clip ships with its own recorded real `/predict` response, captured from
-the served model, and an attribution line on the page.
+responses.
+
+**Clips.** Chosen for clean, clearly audible audio with visible breath cycles (no clipping, little
+handling noise), loudness-normalized and with short fades.
+- *Scene 1:* 8–12 s excerpts (a normal breath, crackles, wheezes), drawn as smooth waveforms annotated with
+  inspiration/expiration.
+- *Analyzer demo clips:* one per class, full recordings from **test-split patients only**, so the model has
+  never heard them. Each ships with its own real `/predict` response, captured from the served model, and the
+  page shows that real answer.
+- A source credit line (ICBHI 2017, KAUH, Kaggle Asthma V2) is shown on the page. Licensing of the dataset
+  audio is not a constraint (user decision).
 
 ## 7. Content rules
 - Research-only wording everywhere ("model score", "strongest match", "research prototype, not a
@@ -167,7 +178,7 @@ screen readers, the §3 contrast rule, and colour never the only carrier of mean
   the result view's derived values (agreement count, leading class per window) from the recorded response.
 - **Content check:** a script compares `facts.ts` with its sources (sample response always; backend
   artifacts when present locally, skipped otherwise).
-- **Playwright:** the story loads with no console errors; presenter mode reaches every scene; the analyzer
+- **Playwright:** the story loads with no console errors; presenter mode reaches all 14 scenes; the analyzer
   completes in mock mode and, locally, against the real backend.
 - **CI** (`.github/workflows/checks.yml`): typecheck, lint, Vitest, build for `frontend/`; `frontend-legacy/`
   is not built.
