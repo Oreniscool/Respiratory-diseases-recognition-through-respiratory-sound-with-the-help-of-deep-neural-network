@@ -1,7 +1,7 @@
 # Frontend rebuild: brief and resume point
 
 Written 2026-10-26 so the work can continue on another machine (the assistant's memory is local to one
-machine; this file travels with git). Status: **design written** (`docs/superpowers/specs/2026-10-26-respinet-frontend-rebuild-design.md`); awaiting the user's review, then the implementation plan. No frontend code yet. The only
+machine; this file travels with git). Status: **spec approved, implementation plan written** (`docs/superpowers/plans/2026-10-26-respinet-frontend-rebuild.md`, 15 tasks); awaiting the user's review of the plan and choice of execution method. No frontend code yet.
 code change so far is the backend payload addition below.
 
 ## The request
@@ -56,5 +56,5 @@ fresh clone cannot run inference (the server answers 503, by design). To build t
 4. Archive the old frontend (it is committed, including `dist/`) before the new one is scaffolded.
 
 ## Resume prompt (paste into a new session on the other machine)
-> Read `documentation/FRONTEND_REBUILD_BRIEF.md` and continue the frontend rebuild brainstorm from
-> "Still to decide". Do not write frontend code until the design and plan are approved.
+> Read `documentation/FRONTEND_REBUILD_BRIEF.md`, the spec and the plan in `docs/superpowers/`, and continue
+> from the plan's first unchecked task (only after the user has approved the plan).
