@@ -333,7 +333,15 @@ def _aggregate_window_probabilities(
     window_probabilities: np.ndarray, yamnet_audio: np.ndarray | None = None
 ) -> np.ndarray:
     """Average every window, fuse with YAMNet if the artifact is a fusion, then apply temperature."""
+    return _aggregate_with_members(window_probabilities, yamnet_audio)[0]
+
+
+def _aggregate_with_members(
+    window_probabilities: np.ndarray, yamnet_audio: np.ndarray | None = None
+) -> tuple[np.ndarray, list[dict[str, object]]]:
+    """The fused probabilities plus, for a members fusion, each member's own calibrated scores."""
     aggregated = np.mean(window_probabilities, axis=0, keepdims=True)
+    member_scores: list[dict[str, object]] = []
     if CONTRACT is not None and CONTRACT.fusion is not None and CONTRACT.fusion["type"] == MEMBERS_FUSION_TYPE:
         if yamnet_audio is None:
             raise RuntimeError("Fusion artifact requires the 16 kHz recording for its embedding members")
@@ -346,6 +354,19 @@ def _aggregate_window_probabilities(
             _, extractor, head = next(loaded)
             embedding = extractor.embed_waveform(yamnet_audio)[None, :]
             member_probabilities.append(predict_head(head, embedding))
+        weight_total = float(sum(CONTRACT.fusion["weights"]))  # fuse_members divides by it
+        for member, weight, raw in zip(
+            CONTRACT.fusion["members"], CONTRACT.fusion["weights"], member_probabilities
+        ):
+            calibrated = apply_temperature(np.atleast_2d(raw), float(member["temperature"]))[0]
+            member_scores.append({
+                "name": "respinet" if member["kind"] == "respinet" else str(member["extractor"]),
+                "kind": str(member["kind"]),
+                "weight": round(float(weight) / weight_total, 4),
+                "probabilities": {
+                    label: round(float(value) * 100, 2) for label, value in zip(CLASSES, calibrated)
+                },
+            })
         aggregated = fuse_members(member_probabilities, CONTRACT.fusion)
     elif CONTRACT is not None and CONTRACT.fusion is not None:
         if yamnet_audio is None or FUSION_HEAD is None or YAMNET is None:
@@ -358,7 +379,7 @@ def _aggregate_window_probabilities(
         calibration_path = CONTRACT.metadata_path.parent / str(CONTRACT.metadata["calibration_file"])
         with calibration_path.open(encoding="utf-8") as handle:
             temperature = float(json.load(handle).get("temperature", 1.0))
-    return apply_temperature(aggregated, temperature)[0]
+    return apply_temperature(aggregated, temperature)[0], member_scores
 
 
 def _prediction_payload(
@@ -375,7 +396,7 @@ def _prediction_payload(
     window_probabilities = np.mean(
         [_predict_probabilities(member, windows) for member in (m, *ENSEMBLE_MODELS)], axis=0
     )
-    probabilities = _aggregate_window_probabilities(window_probabilities, yamnet_audio)
+    probabilities, member_scores = _aggregate_with_members(window_probabilities, yamnet_audio)
     pred_idx = int(np.argmax(probabilities))
     policy = MODEL_METADATA.get("uncertainty", {}) if MODEL_METADATA else {}
     uncertain, uncertainty = is_uncertain(probabilities, policy)
@@ -395,6 +416,11 @@ def _prediction_payload(
                 "min_confidence": round(float(policy.get("min_confidence", 0.0)), 4),
                 "max_normalized_entropy": round(float(policy.get("max_normalized_entropy", 1.0)), 4),
             },
+            "members": member_scores,
+            "window_scores": [
+                {label: round(float(value) * 100, 2) for label, value in zip(CLASSES, row)}
+                for row in window_probabilities
+            ],
             "mfcc_preview": [round(float(value), 2) for value in windows[0].flatten()[:10]],
             "duration_s": round(float(len(audio)) / sample_rate, 2),
             "sample_rate": int(sample_rate),

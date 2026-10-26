@@ -316,8 +316,12 @@ itself loads lazily (`load_model_once`, thread-locked) or eagerly under `__main_
 
 Prediction payload: `prediction` (class or `"uncertain"`), `model_prediction`, `confidence`
 (%), `probabilities` {class: %}, `uncertain`, `uncertainty{normalized_entropy, min_confidence,
-max_normalized_entropy}`, `mfcc_preview` (10 values), `duration_s`, `sample_rate`,
-`windows_analyzed`, `valid_frames`, `noise_cancellation`, `research_only: true`.
+max_normalized_entropy}`, `members` (members fusion only, added 2026-10-26: one entry per member `{name,
+kind, weight, probabilities}` with the member's own *calibrated* scores in % and the weight as its share of
+the sum; `[]` for other artifacts), `window_scores` (the RespiNet ensemble's per-window scores in %),
+`mfcc_preview` (10 values), `duration_s`, `sample_rate`, `windows_analyzed`, `valid_frames`,
+`noise_cancellation`, `research_only: true`. The fused `probabilities` are the weighted mean of the
+member scores followed by the fused temperature, so the fields can be recombined to reproduce it.
 
 Inference math: per-window softmax, renormalized → **mean over windows** → for a fusion artifact,
 `fuse_probabilities` with the YAMNet head's output on the 16 kHz decode (`model_metadata.json["fusion"]`

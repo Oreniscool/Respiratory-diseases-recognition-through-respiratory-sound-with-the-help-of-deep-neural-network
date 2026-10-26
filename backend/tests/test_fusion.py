@@ -282,3 +282,38 @@ def test_server_fuses_every_member_in_order(tmp_path, monkeypatch):
         contract.fusion,
     ), 1.25)[0]
     np.testing.assert_allclose(fused, expected)
+
+
+def test_server_reports_each_members_calibrated_scores(tmp_path, monkeypatch):
+    import server
+
+    model, metadata_path = _members_artifact(tmp_path)
+    contract = load_verified_contract(model, metadata_path)
+
+    class Extractor:
+        def embed_waveform(self, waveform):
+            return np.zeros(4)
+
+    class Head:
+        def __init__(self, output):
+            self.output = output
+
+        def __call__(self, embedding, training=False):
+            return np.asarray([self.output])
+
+    members = contract.fusion["members"]
+    monkeypatch.setattr(server, "CLASSES", ["a", "b", "c"])
+    monkeypatch.setattr(server, "CONTRACT", contract)
+    monkeypatch.setattr(server, "EMBEDDING_MEMBERS", [
+        (members[1], Extractor(), Head([0.1, 0.8, 0.1])),
+        (members[2], Extractor(), Head([0.2, 0.2, 0.6])),
+    ])
+    windows = np.asarray([[0.6, 0.3, 0.1], [0.8, 0.1, 0.1]])
+    fused, scores = server._aggregate_with_members(windows, yamnet_audio=np.zeros(16_000))
+    np.testing.assert_allclose(fused, server._aggregate_window_probabilities(windows, np.zeros(16_000)))
+    assert [s["name"] for s in scores] == ["respinet", members[1]["extractor"], members[2]["extractor"]]
+    assert [s["kind"] for s in scores] == [m["kind"] for m in members]
+    assert sum(s["weight"] for s in scores) == pytest.approx(1.0, abs=1e-3)
+    expected = apply_temperature(windows.mean(0, keepdims=True), members[0]["temperature"])[0]
+    assert scores[0]["probabilities"] == {k: round(float(v) * 100, 2) for k, v in zip("abc", expected)}
+    assert all(sum(s["probabilities"].values()) == pytest.approx(100, abs=0.1) for s in scores)

@@ -1515,6 +1515,22 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - **Not exposed in the UI:** the research files (`research/`, figures, ledger) are repository documents;
     the UI shows the served model and a summary of the evidence.
 
+- **`/predict` exposes member scores (2026-10-26).** The payload gained two additive fields, for the
+  rebuilt presentation frontend (the model's workings need per-member evidence, not only the fused result):
+  - `members`: for a `late_fusion_members` artifact, one `{name, kind, weight, probabilities}` per member
+    (`respinet`, `yamnet`, `opera_ce`, `hear`), with each member's probabilities after its own temperature
+    (the quantity `fuse_members` averages) and the weight normalized to its share; empty for other artifacts;
+  - `window_scores`: the RespiNet ensemble's per-window class scores (%).
+
+  No model, calibration or fusion maths changed (`server._aggregate_with_members` is the old aggregation
+  plus a record of the member scores; `_aggregate_window_probabilities` keeps its signature).
+  **Verified on the served artifact:** a COPD recording (ICBHI `218_1b1_Al_sc_Meditron.wav`, 30 windows)
+  still returns copd 87.0 / healthy 10.2 / pneumonia 1.2 / asthma 1.0 / bronchial 0.6, and recombining the
+  four reported member scores with their weights and the fused temperature (0.5489) reproduces those
+  numbers. The members disagree on this recording (RespiNet copd 63.6%, YAMNet copd 95.3%, OPERA-CE healthy
+  56.7%, HeAR copd 87.1%). `test_server_reports_each_members_calibrated_scores` pins the fields; ruff clean
+  and the full suite passes.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:
