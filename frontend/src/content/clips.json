@@ -1,0 +1,49 @@
+{
+  "demo": [
+    {
+      "id": "demo-asthma",
+      "label": "Asthma example",
+      "file": "/audio/demo-asthma.mp3",
+      "predictFile": "/demo/demo-asthma.json",
+      "source": "Kaggle Asthma Detection V2",
+      "patientId": "900038"
+    },
+    {
+      "id": "demo-bronchial",
+      "label": "Bronchial example",
+      "file": "/audio/demo-bronchial.mp3",
+      "predictFile": "/demo/demo-bronchial.json",
+      "source": "ICBHI 2017",
+      "patientId": "536823"
+    },
+    {
+      "id": "demo-copd",
+      "label": "COPD example",
+      "file": "/audio/demo-copd.mp3",
+      "predictFile": "/demo/demo-copd.json",
+      "source": "ICBHI 2017",
+      "patientId": "883107"
+    },
+    {
+      "id": "demo-healthy",
+      "label": "Healthy example",
+      "file": "/audio/demo-healthy.mp3",
+      "predictFile": "/demo/demo-healthy.json",
+      "source": "ICBHI 2017",
+      "patientId": "663088"
+    },
+    {
+      "id": "demo-pneumonia",
+      "label": "Pneumonia example",
+      "file": "/audio/demo-pneumonia.mp3",
+      "predictFile": "/demo/demo-pneumonia.json",
+      "source": "Kaggle Asthma Detection V2",
+      "patientId": "900036"
+    }
+  ],
+  "scene": {
+    "normal": "/audio/scene1-normal.mp3",
+    "crackles": "/audio/scene1-crackles.mp3",
+    "wheezes": "/audio/scene1-wheezes.mp3"
+  }
+}

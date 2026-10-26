@@ -10,14 +10,14 @@ import { Waveform } from "./charts/Waveform";
 function ClipCard({ id, label, description, file }: (typeof SCENE_CLIPS)[number]) {
   const { analysis, synthetic } = useSceneAudio(id);
   return (
-    <Card data-card className="space-y-3">
+    <Card data-card className="space-y-2 !py-4">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="m-0 text-xl">{label}</h3>
         {synthetic && <Badge>Synthesised illustration</Badge>}
       </div>
       <p className="m-0 text-sm text-ink-muted">{description}</p>
-      {analysis && <Waveform peaks={analysis.waveform} height={72} />}
-      {file && <audio controls preload="none" src={file} className="w-full" aria-label={`Play: ${label}`} />}
+      {analysis && <Waveform peaks={analysis.waveform} height={52} />}
+      {file && <audio controls preload="none" src={file} className="h-9 w-full" aria-label={`Play: ${label}`} />}
     </Card>
   );
 }

@@ -8,7 +8,7 @@ vi.mock("../../lib/api/client", async (original) => {
   const actual = await original<typeof import("../../lib/api/client")>();
   return { ...actual, ...client, isMockMode: () => false };
 });
-vi.mock("../../lib/api/mock", () => ({ mockPredict: vi.fn(async () => SAMPLE), registerRecorded: vi.fn() }));
+vi.mock("../../lib/api/mock", () => ({ mockPredict: vi.fn(async () => SAMPLE) }));
 
 const { Analyzer } = await import("./Analyzer");
 const { ApiError, OfflineError } = await import("../../lib/api/client");

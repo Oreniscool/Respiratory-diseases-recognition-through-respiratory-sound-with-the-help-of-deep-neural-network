@@ -1,0 +1,105 @@
+{
+  "confidence": 94.11,
+  "duration_s": 6.0,
+  "members": [
+    {
+      "kind": "respinet",
+      "name": "respinet",
+      "probabilities": {
+        "asthma": 10.31,
+        "bronchial": 3.1,
+        "copd": 32.31,
+        "healthy": 51.99,
+        "pneumonia": 2.29
+      },
+      "weight": 0.25
+    },
+    {
+      "kind": "embedding_head",
+      "name": "yamnet",
+      "probabilities": {
+        "asthma": 98.13,
+        "bronchial": 0.28,
+        "copd": 1.09,
+        "healthy": 0.0,
+        "pneumonia": 0.49
+      },
+      "weight": 0.25
+    },
+    {
+      "kind": "embedding_head",
+      "name": "opera_ce",
+      "probabilities": {
+        "asthma": 95.41,
+        "bronchial": 1.87,
+        "copd": 2.55,
+        "healthy": 0.07,
+        "pneumonia": 0.1
+      },
+      "weight": 0.25
+    },
+    {
+      "kind": "embedding_head",
+      "name": "hear",
+      "probabilities": {
+        "asthma": 98.39,
+        "bronchial": 0.19,
+        "copd": 0.23,
+        "healthy": 0.03,
+        "pneumonia": 1.15
+      },
+      "weight": 0.25
+    }
+  ],
+  "mfcc_preview": [
+    -1.08,
+    -1.06,
+    -0.87,
+    0.25,
+    1.12,
+    0.98,
+    0.44,
+    -0.3,
+    -0.74,
+    -0.51
+  ],
+  "model_prediction": "asthma",
+  "noise_cancellation": false,
+  "prediction": "asthma",
+  "probabilities": {
+    "asthma": 94.11,
+    "bronchial": 0.06,
+    "copd": 1.97,
+    "healthy": 3.82,
+    "pneumonia": 0.04
+  },
+  "research_only": true,
+  "sample_rate": 22050,
+  "uncertain": false,
+  "uncertainty": {
+    "max_normalized_entropy": 0.506,
+    "min_confidence": 0.6629,
+    "normalized_entropy": 0.1657
+  },
+  "valid_frames": [
+    200,
+    200
+  ],
+  "window_scores": [
+    {
+      "asthma": 8.23,
+      "bronchial": 5.73,
+      "copd": 35.29,
+      "healthy": 47.57,
+      "pneumonia": 3.18
+    },
+    {
+      "asthma": 14.56,
+      "bronchial": 1.9,
+      "copd": 29.15,
+      "healthy": 51.77,
+      "pneumonia": 2.62
+    }
+  ],
+  "windows_analyzed": 2
+}

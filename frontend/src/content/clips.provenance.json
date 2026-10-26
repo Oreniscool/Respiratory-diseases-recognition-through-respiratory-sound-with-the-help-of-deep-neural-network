@@ -1,0 +1,146 @@
+{
+  "demo": [
+    {
+      "id": "demo-asthma",
+      "split": "test",
+      "patient_id": "900038",
+      "disease": "asthma",
+      "source": "kaggle_asthma_v2",
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/asthma/P25WheezingIE_121.wav",
+      "quality": {
+        "band_db": -0.05,
+        "peak": 0.241,
+        "rms": 0.03,
+        "seconds": 6.0
+      },
+      "candidates": 32,
+      "model_answer": "asthma"
+    },
+    {
+      "id": "demo-bronchial",
+      "split": "test",
+      "patient_id": "536823",
+      "disease": "bronchial",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/bronchial/149_1b1_Lr_sc_Meditron.wav",
+      "quality": {
+        "band_db": -0.346,
+        "peak": 0.152,
+        "rms": 0.024,
+        "seconds": 20.0
+      },
+      "candidates": 16,
+      "model_answer": "uncertain"
+    },
+    {
+      "id": "demo-copd",
+      "split": "test",
+      "patient_id": "883107",
+      "disease": "copd",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/copd/162_2b4_Tc_mc_AKGC417L.wav",
+      "quality": {
+        "band_db": 0.61,
+        "peak": 0.236,
+        "rms": 0.026,
+        "seconds": 20.0
+      },
+      "candidates": 72,
+      "model_answer": "copd"
+    },
+    {
+      "id": "demo-healthy",
+      "split": "test",
+      "patient_id": "663088",
+      "disease": "healthy",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/healthy/126_1b1_Al_sc_Meditron.wav",
+      "quality": {
+        "band_db": -11.825,
+        "peak": 0.258,
+        "rms": 0.039,
+        "seconds": 20.0
+      },
+      "candidates": 12,
+      "model_answer": "uncertain"
+    },
+    {
+      "id": "demo-pneumonia",
+      "split": "test",
+      "patient_id": "900036",
+      "disease": "pneumonia",
+      "source": "kaggle_asthma_v2",
+      "path": "dataset/Asthma_Detection_V2/Asthma Detection Dataset Version 2/Asthma Detection Dataset Version 2/pneumonia/P39Pneumonia85Q.wav",
+      "quality": {
+        "band_db": 2.71,
+        "peak": 0.837,
+        "rms": 0.084,
+        "seconds": 6.0
+      },
+      "candidates": 37,
+      "model_answer": "asthma"
+    }
+  ],
+  "scene": [
+    {
+      "id": "normal",
+      "split": "test",
+      "patient_id": "396960",
+      "disease": "copd",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/copd/139_1b1_Al_sc_Litt3200.wav",
+      "start_s": 1.5389,
+      "end_s": 9.6577,
+      "annotation": [
+        0,
+        0
+      ],
+      "quality": {
+        "band_db": 2.919,
+        "peak": 0.886,
+        "rms": 0.109,
+        "seconds": 8.119
+      }
+    },
+    {
+      "id": "crackles",
+      "split": "test",
+      "patient_id": "883107",
+      "disease": "copd",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/copd/162_2b4_Tc_mc_AKGC417L.wav",
+      "start_s": 3.598,
+      "end_s": 11.928,
+      "annotation": [
+        1,
+        0
+      ],
+      "quality": {
+        "band_db": 0.735,
+        "peak": 0.236,
+        "rms": 0.027,
+        "seconds": 8.33
+      }
+    },
+    {
+      "id": "wheezes",
+      "split": "test",
+      "patient_id": "564538",
+      "disease": "copd",
+      "source": "icbhi",
+      "path": "dataset/ICBHI_as_folders/copd/193_1b2_Ar_mc_AKGC417L.wav",
+      "start_s": 1.263,
+      "end_s": 9.507,
+      "annotation": [
+        0,
+        1
+      ],
+      "quality": {
+        "band_db": 4.154,
+        "peak": 0.99,
+        "rms": 0.194,
+        "seconds": 8.244
+      }
+    }
+  ]
+}
