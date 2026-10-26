@@ -1,0 +1,6 @@
+
+# e2e build and outputs
+dist-e2e/
+e2e/__screenshots__/
+playwright-report/
+test-results/

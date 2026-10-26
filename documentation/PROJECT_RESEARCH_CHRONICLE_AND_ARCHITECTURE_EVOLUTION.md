@@ -1531,6 +1531,35 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   56.7%, HeAR copd 87.1%). `test_server_reports_each_members_calibrated_scores` pins the fields; ruff clean
   and the full suite passes.
 
+- **Presentation frontend rebuilt (2026-10-26, branch `frontend-rebuild`).** The previous UI is archived in
+  `frontend-legacy/`; the new `frontend/` follows `docs/superpowers/specs/2026-10-26-respinet-frontend-rebuild-design.md`
+  and its plan (15 tasks, ledgered decisions in the plan workspace).
+  - **What it is:** a light-editorial, scroll-driven story of the served model in 14 pinned scenes (three in 3D:
+    stylized lungs, the network, the four-model vote) with a keyboard presenter mode, ending in an analyzer whose result
+    is a "story report" (verdict, member votes, RespiNet's per-window reading, all five scores, optional `/explain`).
+  - **Numbers:** every figure on screen lives in `frontend/src/content/facts.ts` with its source; a Vitest file re-checks
+    them against `backend/artifacts/latest` and the tracked evidence files (`npm run check:facts`). The 75.5% is always
+    stated with its scope (49 unseen patients from the same datasets). By the user's decision the UI has no
+    limitations scene; it makes no claim about other hospitals or children.
+  - **Browser DSP:** the analyzer replays the visitor's recording through band-pass, windows and MFCC features in a Web
+    Worker. The TypeScript MFCC mirrors the server's settings (FFT 2,048, hop 512, 128 Slaney mel bands, 40 DCT-II
+    coefficients, Savitzky-Golay deltas, CMVN); on 10 s of `218_1b1_Al_sc_Meditron.wav` it matches librosa 0.11.0 to a
+    mean |difference| of 3.35e-5 (max 2.03e-4) on coefficients 1–12. The window count reproduces the server's (30 for
+    the 71.05 s sample). Note found while doing this: the served MFCCs use librosa's default 128 mel bands; the
+    configured `n_mels = 64` applies only to the log-mel feature type.
+  - **Demo clips:** `frontend/scripts/prepare_clips.py` picks one locked-test-split recording per class (by audio quality
+    only) and three annotated ICBHI excerpts, and records the live model's answer to each processed clip. The answers are
+    shown as they are: asthma→asthma 94.1%, COPD→copd 99.0%, bronchial and healthy → "not sure" (53.6%, 56.6%),
+    pneumonia→asthma 94.2% (wrong). Provenance: `frontend/src/content/clips.provenance.json`.
+  - **Verification:** 80 Vitest tests; Playwright on a mock-mode production build (story with no console errors and no
+    external requests, presenter mode through all 14 scenes, analyzer demo and abstention paths, no horizontal scroll at
+    1280×800, 1920×1080 and 390×844); 58 fps in the 3D scenes on the integrated Intel GPU (ANGLE/OpenGL; software WebGL
+    gives ~20 fps); the real COPD upload returns the served model's 87% through the Vite dev server and through the
+    production images (nginx → backend container, run with host networking because the host kernel had been upgraded
+    on disk and Docker could not create bridge networks until a reboot).
+  - **Small client fixes made on the way:** a proxy's 502/504 (backend down) now counts as "offline" (it was shown as a
+    generic error), and the frontend Dockerfile builds on node:22 with `npm ci`.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

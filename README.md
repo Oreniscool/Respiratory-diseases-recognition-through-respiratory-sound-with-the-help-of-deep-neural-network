@@ -92,7 +92,8 @@ deterministic from the configured seed and is applied equally to all training cl
 .
 ├── backend/          # Python backend, Flask API, model definition, training & inference
 ├── documentation/    # System architecture, benchmarks, dataset specs & design docs
-├── frontend/         # React + Vite + TypeScript web interface (Respiratory Atlas spec)
+├── frontend/         # presentation UI: animated 14-scene story of the model + live analyzer
+├── frontend-legacy/  # the previous web interface, archived
 └── README.md         # Repository overview
 ```
 
@@ -230,20 +231,23 @@ minimum, not a complete privacy/compliance program. Do not use real patient
 data without organizational approval, a provider agreement, retention rules,
 and a reviewed consent process.
 
-## React frontend
+## Presentation frontend
 
 ```bash
 cd frontend
 npm ci
-npm run dev
+npm run dev        # http://localhost:5173 (API proxied to the backend on :5001)
 ```
 
-The frontend uses same-origin API requests by default, which work through the
-Vite proxy. Set `VITE_API_BASE_URL` when the API is hosted separately.
+A scroll-driven presentation of the served model: 14 scenes (three in 3D) from the stethoscope recording through
+filtering, windows, MFCC features, the network, the four-model fusion, calibration and abstention, the problems
+solved along the way and the test result, ending in an analyzer for your own recording. Press **P** for presenter
+mode (arrow keys step scene by scene). Every number on screen comes from `frontend/src/content/facts.ts`, which is
+checked against the model's result files.
 
-The UI fails closed when inference is unavailable. It does not fabricate
-results or rewrite model probabilities. Recorded WebM audio retains its real
-container type. Build deployable assets from source with `npm run build`.
+Without a running model the analyzer says so and offers **demo mode**: five test-split recordings answered with
+responses recorded from the real model. The UI never invents or rewrites scores; it is a research prototype, not a
+diagnostic device. Set `VITE_API_BASE_URL` when the API is hosted separately; `npm run build` produces `dist/`.
 
 ## Static checks
 
@@ -257,7 +261,7 @@ pytest
 
 cd ../frontend
 npm ci
-npm run typecheck
+npm run typecheck && npm run lint && npm test
 ```
 
 CI runs these checks without loading a trained model or requiring the audio

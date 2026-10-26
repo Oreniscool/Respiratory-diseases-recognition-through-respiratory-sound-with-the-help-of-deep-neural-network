@@ -472,14 +472,19 @@ decoded-duration window. See `backend/CLAUDE.md` §4 for the full environment va
 
 ## 11. Frontend
 
-React 19 + Vite SPA. Routes: `/` Landing, `/analyze`, `/evidence`, `/learn`, `/report`,
-`/explainability`, plus legacy redirects. Core flow on `/analyze`: choose upload, mic recording
-(MediaRecorder + live VU meter) or a dataset sample → `POST /predict` → calibrated
-probabilities, a radial confidence ring, an entropy bar and an uncertainty banner → optional
-consented LLM report (`/report`) or explainability (`/explainability`, uploads/recordings
-only). Zustand holds the current analysis, the report, and the last 5 results (in memory).
-The "Respiratory Atlas" design system (warm ivory, indigo, serif headings, restrained motion,
-WCAG AA) is specified in `design.md`. Details and stale-content list:
+**Rebuilt 2026-10-26** (branch `frontend-rebuild`; the previous "Respiratory Atlas" app is archived in
+`frontend-legacy/`, with its own CLAUDE.md). React 19 + Vite 8 SPA, TypeScript 5.9, Tailwind 4,
+react-three-fiber, GSAP ScrollTrigger, Motion. Routes: `/` a 14-scene scroll story of the served
+model (three 3D scenes, keyboard presenter mode) that ends in the analyzer, and `/analyze` the analyzer
+alone. Analyzer flow: upload, microphone recording or one of five test-split demo clips → `POST
+/predict` (uses the 2026-10-26 `members` and `window_scores` fields) → story report: verdict ring or
+"The model isn't sure", the four member votes, RespiNet's per-window reading, all five scores, optional
+`/explain` overlay (RespiNet only). While the model runs, the recording is replayed in a Web Worker
+through browser DSP that matches librosa's MFCCs to a mean |difference| of 3.35e-5. Without a model it
+offers demo mode with responses recorded from the real model. Every on-screen number comes from
+`frontend/src/content/facts.ts` and is re-checked against `backend/artifacts/latest`. The LLM report flow
+(`/summarize`) is not part of the new UI. Light-editorial design (user's green palette, paper
+`#f7faf0`) per the design spec in `docs/superpowers/specs/`. Details:
 [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md).
 
 ---

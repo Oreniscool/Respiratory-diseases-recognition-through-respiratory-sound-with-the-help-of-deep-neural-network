@@ -20,7 +20,7 @@ model over MFCC features. It has three parts:
 |---|---|---|
 | Training pipeline | Python 3.11, TensorFlow/Keras 3, librosa, scikit-learn | `backend/main.py` |
 | Inference API | Flask (+ gunicorn in Docker) | `backend/server.py` (`backend/wsgi.py` for WSGI) |
-| Web UI ("Respiratory Atlas") | React 19, Vite 6, TypeScript, Zustand, Recharts, framer-motion | `frontend/src/main.tsx` |
+| Presentation web UI (rebuilt 2026-10-26) | React 19, Vite 8, TypeScript 5.9, Tailwind 4, react-three-fiber, GSAP ScrollTrigger, Motion, Zustand | `frontend/src/main.tsx` (old UI archived in `frontend-legacy/`) |
 
 **It is not a medical device.** Never describe output as a diagnosis, screening, or
 clinical confidence. This is enforced in UI copy and docs; keep it that way.
@@ -86,7 +86,7 @@ current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 ├── README.md                    # user-facing overview (updated 2026-10-22)
 ├── Dockerfile                   # all-in-one image: nginx + `python server.py` (Flask dev server)
 ├── docker-compose.yml           # backend (gunicorn, :5000) + frontend (nginx, :80/:8080)
-├── .github/workflows/checks.yml # CI: ruff + pytest (backend), npm ci + build (frontend)
+├── .github/workflows/checks.yml # CI: ruff + pytest (backend); npm ci, typecheck, lint, test, build (frontend, Node 22)
 ├── backend/
 │   ├── main.py                  # training orchestrator CLI (split → features → train → calibrate → eval → metadata)
 │   ├── preprocessing.py         # PreprocessingConfig + bandpass/MFCC/Δ/Δ²/CMVN + windowing (shared train/serve)
@@ -114,11 +114,15 @@ current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
 │                                #   patient_diagnosis_authentic.csv  ← the REAL ICBHI labels
-├── frontend/
-│   ├── src/                     # React app (pages/, components/, store/, hooks/, utils/predict.ts, data/)
+├── frontend/                    # presentation UI (2026-10-26): 14-scene story + analyzer; see frontend/CLAUDE.md
+│   ├── src/                     # content/ (sourced facts), lib/ (api, audio DSP), features/ (story, three, analyzer)
+│   ├── public/audio, public/demo # test-split demo/scene clips + their recorded real /predict responses
+│   ├── e2e/, playwright.config.ts # browser tests (mock-mode build in dist-e2e/, real GPU, live backend)
+│   ├── scripts/                 # prepare_clips.py (clip picking + recording), dsp-parity.py (librosa check)
 │   ├── dist/                    # COMMITTED build output, rebuild + commit if you change src
-│   ├── vite.config.ts           # dev proxy → http://localhost:5001
+│   ├── vite.config.ts           # dev proxy → http://localhost:5001 (exact-match /explain)
 │   └── nginx.conf               # prod proxy → http://backend:5000
+├── frontend-legacy/             # the previous "Respiratory Atlas" UI, archived (not built, not in CI)
 └── documentation/               # chronicle, model/dataset cards, guides, design system, presentation dossiers
 ```
 
@@ -190,8 +194,10 @@ python server.py            # binds RESPINET_HOST:RESPINET_PORT (default 127.0.0
 cd ../frontend
 npm ci
 npm run dev                 # http://localhost:5173, proxies API paths to :5001
+npm test && npm run lint    # Vitest (incl. the fact check) and ESLint
 npm run typecheck           # tsc -b
 npm run build               # tsc -b && vite build → dist/ (dist is committed)
+CHROMIUM_PATH=… npm run e2e # Playwright on a mock-mode build (see frontend/CLAUDE.md for GPU and live-backend runs)
 ```
 
 `--dataset-format folder` with the default `--dataset-dir` auto-resolves to
@@ -376,6 +382,10 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
 - **The Gemini API key is sent in the `x-goog-api-key` header** (final-phase item 5), never in the
   URL, so URL-printing error diagnostics can't leak it. Keep it that way.
 - **`frontend/dist/` is committed.** Source changes leave it stale until you rebuild.
+- **The frontend shows numbers only from `frontend/src/content/facts.ts`**, each with its source; `npm run check:facts`
+  re-checks them against `backend/artifacts/latest`. When a metric changes, update `facts.ts` (and the chronicle).
+- **`/predict` also returns `members` and `window_scores`** (2026-10-26); the presentation frontend relies on them
+  for the votes and the per-window strip, and hides those sections for older responses.
 - `RESPINET_REQUIRE_METADATA` appears in `.env.example` and `SECURITY.md` but **is not
   implemented** anywhere.
 
@@ -390,7 +400,7 @@ results, use only the table above or `backend/artifacts/latest/*.json`. See
   `evalModel`, `validateModel`). Leave them in place.
 - Tests are dataset-free and model-free. Use `tmp_path` and synthetic arrays. CI must
   never need the audio dataset.
-- Frontend: function components, Zustand for cross-page state, all HTTP calls in
-  `src/utils/predict.ts`, Lucide icons imported by deep path
-  (`lucide-react/dist/esm/icons/<name>.js`), and design tokens from `documentation/design.md`.
+- Frontend: function components, Zustand for cross-page state, all HTTP calls in `src/lib/api/client.ts`,
+  inline SVG icons (`src/components/icons.tsx`), design tokens in `src/styles/tokens.css` (spec §3), and every
+  number from `src/content/facts.ts`. Details in `frontend/CLAUDE.md`.
 - Commit/PR attribution follows the session's system instructions.

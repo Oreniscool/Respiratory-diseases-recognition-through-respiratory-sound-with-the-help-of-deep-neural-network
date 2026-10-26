@@ -1,7 +1,7 @@
 # Frontend rebuild: brief and resume point
 
 Written 2026-10-26 so the work can continue on another machine (the assistant's memory is local to one
-machine; this file travels with git). Status: **spec approved, implementation plan written** (`docs/superpowers/plans/2026-10-26-respinet-frontend-rebuild.md`, 15 tasks); awaiting the user's review of the plan and choice of execution method. No frontend code yet.
+machine; this file travels with git). Status: **built (2026-10-26)** on branch `frontend-rebuild`, per the spec and plan in `docs/superpowers/`. See `frontend/CLAUDE.md` for how it works and how to run it.
 code change so far is the backend payload addition below.
 
 ## The request
