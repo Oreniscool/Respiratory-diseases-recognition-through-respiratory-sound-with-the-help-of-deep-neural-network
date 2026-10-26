@@ -43,11 +43,11 @@ export function FusionVote() {
 
   useFrame(() => {
     const p = useStage.getState().progress;
-    const rise = smooth(0, 0.4, p);
+    const rise = smooth(0, 0.3, p);
     pillars.current.forEach((g) => g?.scale.set(1, Math.max(0.001, rise), 1));
-    const flow = smooth(0.4, 0.75, p);
+    const flow = smooth(0.3, 0.55, p);
     streams.forEach((geo) => geo.setDrawRange(0, Math.floor((geo.index?.count ?? 0) * flow)));
-    fusedPillar.current?.scale.set(1, Math.max(0.001, smooth(0.65, 0.95, p)), 1);
+    fusedPillar.current?.scale.set(1, Math.max(0.001, smooth(0.5, 0.75, p)), 1);
   });
 
   return (

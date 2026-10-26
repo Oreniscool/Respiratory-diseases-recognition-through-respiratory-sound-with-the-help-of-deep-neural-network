@@ -48,6 +48,7 @@ export const FACTS = {
   featuresPerFrame: n(120, `${PRE} (40 MFCC + Δ + Δ²)`),
   parameters: n(458701, SUMMARY),
   seeds: { value: "42, 43, 44", display: "42, 43, 44", source: FUSION },
+  restoredEpochs: { value: "45/46/78", display: "45, 46 and 78", source: "backend/artifacts/latest/training_history.json; CLAUDE.md §6 (restored epochs per seed)" },
   fusedTemperature: n(0.5489, `${CAL}.temperature`, "0.5489"),
   memberTemperatures: {
     value: { respinet: 0.9099, yamnet: 1.057, opera_ce: 1.5085, hear: 1.0973 },

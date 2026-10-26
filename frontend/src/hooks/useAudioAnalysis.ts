@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AudioAnalysis } from "../lib/audio/analyze";
+import { analyzeInWorker } from "../lib/audio/analyzeAsync";
 import { ANALYSIS_RATE, decodeTo22050 } from "../lib/audio/decode";
 
 export type AnalysisState = {
@@ -21,25 +22,20 @@ export function useAudioAnalysis(file: Blob | null): AnalysisState {
   useEffect(() => {
     if (!file) return;
     let cancelled = false;
-    let worker: Worker | undefined;
     decodeTo22050(file)
       .then((samples) => {
-        if (cancelled) return;
+        if (cancelled) return undefined;
         setState({ status: "analysing" });
-        worker = new Worker(new URL("../lib/audio/worker.ts", import.meta.url), { type: "module" });
-        worker.onmessage = (event: MessageEvent<{ ok: boolean; result?: AudioAnalysis; error?: string }>) => {
-          if (cancelled) return;
-          setState(event.data.ok ? { status: "done", result: event.data.result } : { status: "error", error: event.data.error });
-          worker?.terminate();
-        };
-        worker.postMessage({ samples, sr: ANALYSIS_RATE }, [samples.buffer]);
+        return analyzeInWorker(samples, ANALYSIS_RATE);
+      })
+      .then((result) => {
+        if (!cancelled && result) setState({ status: "done", result });
       })
       .catch(() => {
-        if (!cancelled) setState({ status: "error", error: "This file could not be decoded as audio." });
+        if (!cancelled) setState({ status: "error", error: "This file could not be decoded or analysed as audio." });
       });
     return () => {
       cancelled = true;
-      worker?.terminate();
     };
   }, [file]);
 

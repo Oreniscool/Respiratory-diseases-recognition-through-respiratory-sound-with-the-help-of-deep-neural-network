@@ -12,10 +12,24 @@ import { SCENES, sceneIndex, type SceneId } from "./scenes";
 
 export { SCENES, sceneIndex, type SceneId };
 
+let refreshQueued = false;
+/** Recompute every trigger once per frame after scenes (re)build, in page order. */
+function queueRefresh(): void {
+  if (refreshQueued || typeof window === "undefined") return;
+  refreshQueued = true;
+  requestAnimationFrame(() => {
+    refreshQueued = false;
+    ScrollTrigger.sort();
+    ScrollTrigger.refresh();
+  });
+}
+
 type Options = {
   /** scroll distance the scene stays pinned, in % of the viewport height */
   length?: number;
   onProgress?: (progress: number) => void;
+  /** rebuild the timeline when these change (e.g. a chart whose data arrives from the worker) */
+  deps?: unknown[];
 };
 
 /**
@@ -25,7 +39,7 @@ type Options = {
 export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
   id: SceneId,
   build: (tl: gsap.core.Timeline, root: T) => void,
-  { length = 150, onProgress }: Options = {},
+  { length = 150, onProgress, deps = [] }: Options = {},
 ) {
   const ref = useRef<T>(null);
   useGSAP(() => {
@@ -46,6 +60,8 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
       scrollTrigger: {
         id,
         trigger: root,
+        // scenes can (re)build out of page order (data arrives from a worker): refresh in page order
+        refreshPriority: SCENES.length - sceneIndex(id),
         start: "top top",
         end: `+=${length}%`,
         pin: true,
@@ -69,6 +85,7 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
     // hold the finished state for the last stretch of the pin: the animation completes before the presenter's
     // landing point (90%) and readers get a still moment before the next scene
     if (tl.duration() > 0) tl.to({}, { duration: Math.max(0.5, tl.duration() * 0.35) });
-  }, { scope: ref });
+    queueRefresh();
+  }, { scope: ref, dependencies: deps, revertOnUpdate: true });
   return ref;
 }

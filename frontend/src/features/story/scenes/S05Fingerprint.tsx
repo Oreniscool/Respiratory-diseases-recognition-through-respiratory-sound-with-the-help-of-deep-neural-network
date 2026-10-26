@@ -17,7 +17,7 @@ const STAGES = [
 export function S05Fingerprint() {
   const { analysis } = useSceneAudio("normal");
   const mfcc = useMemo(() => (analysis ? mfccFromLogMel(analysis.spectrogramDb) : []), [analysis]);
-  const ref = useSceneTimeline<HTMLDivElement>("s05", (tl, root) => {
+  const ref = useSceneTimeline<HTMLElement>("s05", (tl, root) => {
     const layers = root.querySelectorAll("[data-layer]");
     const labels = root.querySelectorAll("[data-stage]");
     layers.forEach((layer, i) => {
@@ -27,10 +27,9 @@ export function S05Fingerprint() {
         .to(labels[i - 1]!, { opacity: 0.35, duration: 0.3 }, "<")
         .fromTo(labels[i]!, { opacity: 0.35 }, { opacity: 1, duration: 0.3 }, "<");
     });
-  }, { length: 200 });
+  }, { length: 200, deps: [analysis] });
   return (
-    <SceneFrame id="s05" label="The sound fingerprint" summary="The spectrogram becomes 128 mel bands, then 40 MFCCs, then 120 numbers per frame with their rates of change.">
-      <div ref={ref}>
+    <SceneFrame ref={ref} id="s05" label="The sound fingerprint" summary="The spectrogram becomes 128 mel bands, then 40 MFCCs, then 120 numbers per frame with their rates of change.">
         <SceneColumns eyebrow="Step 5 · Features" title="The sound fingerprint"
           visual={analysis && (
             <div className="space-y-4">
@@ -47,7 +46,6 @@ export function S05Fingerprint() {
                   </li>
                 ))}
               </ol>
-              <Badge>Approximation of the server's features</Badge>
             </div>
           )}>
           <p>
@@ -59,8 +57,8 @@ export function S05Fingerprint() {
             Adding how those numbers change (Δ) and how fast that changes (Δ²) gives <strong>{FACTS.featuresPerFrame.display}</strong> numbers per
             frame: a 200 × 120 fingerprint per window.
           </p>
+          <Badge>Approximation of the server's features</Badge>
         </SceneColumns>
-      </div>
     </SceneFrame>
   );
 }

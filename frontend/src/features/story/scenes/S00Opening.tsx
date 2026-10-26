@@ -2,13 +2,13 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { useSceneTimeline } from "../timeline";
 
 export function S00Opening() {
-  const ref = useSceneTimeline<HTMLDivElement>("s00", (tl, root) => {
+  const ref = useSceneTimeline<HTMLElement>("s00", (tl, root) => {
     tl.to(root.querySelector("[data-hint]"), { opacity: 0, duration: 0.3 }, 0.4);
   }, { length: 120 });
   const words = "How a machine listens to your lungs".split(" ");
   return (
-    <SceneFrame id="s00" label="Opening" summary="RespiNet, a research prototype, explained step by step: from a stethoscope recording to the model's scores.">
-      <div ref={ref} className="mx-auto flex min-h-screen max-w-7xl items-center px-6 lg:px-12">
+    <SceneFrame ref={ref} id="s00" label="Opening" summary="RespiNet, a research prototype, explained step by step: from a stethoscope recording to the model's scores.">
+      <div className="mx-auto flex min-h-screen max-w-7xl items-center px-6 lg:px-12">
         <div className="relative z-10 max-w-2xl">
           <p data-reveal className="eyebrow m-0">RespiNet · Lung-sound classification</p>
           <h1 className="mt-5 mb-8" aria-label="How a machine listens to your lungs">

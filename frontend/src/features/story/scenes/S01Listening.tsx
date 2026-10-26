@@ -23,12 +23,11 @@ function ClipCard({ id, label, description, file }: (typeof SCENE_CLIPS)[number]
 }
 
 export function S01Listening() {
-  const ref = useSceneTimeline<HTMLDivElement>("s01", (tl, root) => {
+  const ref = useSceneTimeline<HTMLElement>("s01", (tl, root) => {
     tl.from(root.querySelectorAll("[data-card]"), { y: 40, opacity: 0, stagger: 0.18 });
   });
   return (
-    <SceneFrame id="s01" label="Listening to lungs" summary="What a stethoscope hears: a normal breath, crackles and wheezes, shown as waveforms.">
-      <div ref={ref}>
+    <SceneFrame ref={ref} id="s01" label="Listening to lungs" summary="What a stethoscope hears: a normal breath, crackles and wheezes, shown as waveforms.">
         <SceneColumns eyebrow="Step 1 · The input" title="Listening to lungs"
           visual={<div className="grid gap-4">{SCENE_CLIPS.map((c) => <ClipCard key={c.id} {...c} />)}</div>}>
           <p>
@@ -38,7 +37,6 @@ export function S01Listening() {
           </p>
           <p>RespiNet only ever sees this sound. Everything that follows turns it into numbers it can learn from.</p>
         </SceneColumns>
-      </div>
     </SceneFrame>
   );
 }

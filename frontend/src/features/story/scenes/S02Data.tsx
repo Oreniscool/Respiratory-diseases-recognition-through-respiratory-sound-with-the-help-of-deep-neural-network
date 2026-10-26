@@ -6,7 +6,7 @@ import { useSceneTimeline } from "../timeline";
 import { DotField, SOURCES, dotLayout } from "./charts/DotField";
 
 export function S02Data() {
-  const ref = useSceneTimeline<HTMLDivElement>("s02", (tl, root) => {
+  const ref = useSceneTimeline<HTMLElement>("s02", (tl, root) => {
     const { split } = dotLayout();
     const dots = root.querySelectorAll("[data-dot]");
     tl.from(dots, { attr: { r: 0 }, stagger: 0.004, duration: 0.4 })
@@ -15,8 +15,7 @@ export function S02Data() {
       .to(root.querySelector("[data-split-labels]"), { opacity: 1, duration: 0.3 }, "-=0.3");
   }, { length: 180 });
   return (
-    <SceneFrame id="s02" label="The data" summary="1,551 recordings from 244 patients in three sources, split by patient into training, validation and test.">
-      <div ref={ref}>
+    <SceneFrame ref={ref} id="s02" label="The data" summary="1,551 recordings from 244 patients in three sources, split by patient into training, validation and test.">
         <SceneColumns eyebrow="Step 2 · The data" title={<><span className="tabular">{FACTS.recordings.display}</span> recordings from <span className="tabular">{FACTS.patients.display}</span> patients</>}
           visual={<div className="space-y-4"><DotField /><Legend items={SOURCES.map((s) => ({ label: s.label, color: s.color, count: s.patients }))} /><p className="text-sm text-ink-muted">One dot per patient. Colours show the source, then fade as patients are dealt into the splits.</p></div>}>
           <p>
@@ -30,7 +29,6 @@ export function S02Data() {
           <Why>{WHY.patientSplit.text}</Why>
           <Why>{WHY.removeCopies.text}</Why>
         </SceneColumns>
-      </div>
     </SceneFrame>
   );
 }

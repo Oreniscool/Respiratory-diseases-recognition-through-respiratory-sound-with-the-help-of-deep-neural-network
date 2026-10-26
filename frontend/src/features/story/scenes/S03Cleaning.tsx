@@ -8,14 +8,13 @@ import { SpectrumBand } from "./charts/SpectrumBand";
 
 export function S03Cleaning() {
   const { analysis } = useSceneAudio("normal");
-  const ref = useSceneTimeline<HTMLDivElement>("s03", (tl, root) => {
+  const ref = useSceneTimeline<HTMLElement>("s03", (tl, root) => {
     tl.from(root.querySelector("[data-band]"), { scaleX: 0, transformOrigin: "left center", duration: 0.6 })
       .from(root.querySelector("[data-filtered]"), { opacity: 0, duration: 0.6 }, "+=0.2")
       .to(root.querySelector("[data-raw]"), { opacity: 0.35, duration: 0.6 }, "<");
-  });
+  }, { deps: [analysis] });
   return (
-    <SceneFrame id="s03" label="Cleaning the signal" summary="A band-pass filter keeps 100 to 2,000 Hz, removing heartbeat rumble and high-frequency noise.">
-      <div ref={ref}>
+    <SceneFrame ref={ref} id="s03" label="Cleaning the signal" summary="A band-pass filter keeps 100 to 2,000 Hz, removing heartbeat rumble and high-frequency noise.">
         <SceneColumns eyebrow="Step 3 · Cleaning" title="Cleaning the signal"
           visual={analysis && (
             <div className="space-y-3">
@@ -29,7 +28,6 @@ export function S03Cleaning() {
           </p>
           <Why>{WHY.bandpass.text}</Why>
         </SceneColumns>
-      </div>
     </SceneFrame>
   );
 }

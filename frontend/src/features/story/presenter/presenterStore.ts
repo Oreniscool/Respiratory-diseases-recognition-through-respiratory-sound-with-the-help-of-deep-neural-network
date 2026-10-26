@@ -81,3 +81,8 @@ export function handlePresenterKey(event: KeyboardEvent, store: PresenterState):
       return false;
   }
 }
+
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  // dev-only handle for browser debugging and the visual-check scripts
+  (window as unknown as { __presenter: typeof usePresenter }).__presenter = usePresenter;
+}

@@ -45,7 +45,7 @@ export function NetworkFlow() {
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     const progress = useStage.getState().progress;
-    const front = -6.6 + progress * 14;
+    const front = -6.6 + Math.min(1, progress / 0.75) * 14;
     const mesh = particles.current;
     if (mesh) {
       seeds.forEach((s, i) => {
@@ -58,7 +58,7 @@ export function NetworkFlow() {
       });
       mesh.instanceMatrix.needsUpdate = true;
     }
-    const active = Math.min(LAYERS.length - 1, Math.floor(progress * LAYERS.length));
+    const active = Math.min(LAYERS.length - 1, Math.floor(Math.min(1, progress / 0.75) * LAYERS.length));
     materials.current.forEach((m, i) => { if (m) m.emissiveIntensity = i === active ? 0.55 : 0.04; });
   });
 

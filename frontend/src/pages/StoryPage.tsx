@@ -7,6 +7,11 @@ import { S02Data } from "../features/story/scenes/S02Data";
 import { S03Cleaning } from "../features/story/scenes/S03Cleaning";
 import { S04Slicing } from "../features/story/scenes/S04Slicing";
 import { S05Fingerprint } from "../features/story/scenes/S05Fingerprint";
+import { S06Network } from "../features/story/scenes/S06Network";
+import { S07Seeds } from "../features/story/scenes/S07Seeds";
+import { S08Vote } from "../features/story/scenes/S08Vote";
+import { S09Confidence } from "../features/story/scenes/S09Confidence";
+import { S10Abstain } from "../features/story/scenes/S10Abstain";
 
 export function StoryPage() {
   return (
@@ -23,6 +28,11 @@ export function StoryPage() {
         <S03Cleaning />
         <S04Slicing />
         <S05Fingerprint />
+        <S06Network />
+        <S07Seeds />
+        <S08Vote />
+        <S09Confidence />
+        <S10Abstain />
       </main>
     </StoryShell>
   );
