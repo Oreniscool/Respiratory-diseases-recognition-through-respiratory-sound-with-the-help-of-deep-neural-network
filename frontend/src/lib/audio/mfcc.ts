@@ -24,7 +24,12 @@ export function melPower(power: Float32Array[], sr: number, nMels = 128): Float3
 
 /** librosa.feature.mfcc defaults (128 mel bands, DCT-II "ortho"): frames × nMfcc. */
 export function mfcc(power: Float32Array[], sr: number, nMfcc = 40, nMels = 128): Float32Array[] {
-  const logMel = powerToDb(melPower(power, sr, nMels));
+  return mfccFromLogMel(powerToDb(melPower(power, sr, nMels)), nMfcc);
+}
+
+/** DCT-II ("ortho") of a log-mel spectrogram (frames × nMels) → frames × nMfcc. */
+export function mfccFromLogMel(logMel: Float32Array[], nMfcc = 40): Float32Array[] {
+  const nMels = logMel[0]?.length ?? 0;
   const basis = Array.from({ length: nMfcc }, (_, k) => {
     const scale = k === 0 ? Math.sqrt(1 / nMels) : Math.sqrt(2 / nMels);
     return Float64Array.from({ length: nMels }, (_, n) => scale * Math.cos((Math.PI * k * (2 * n + 1)) / (2 * nMels)));
