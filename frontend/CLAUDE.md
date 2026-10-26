@@ -5,9 +5,9 @@ Loaded when working inside `frontend/`. Read the root [`../CLAUDE.md`](../CLAUDE
 and its plan. The previous app is archived, unbuilt, in [`../frontend-legacy/`](../frontend-legacy/).
 
 ## 1. What it is
-A light-editorial, scroll-driven presentation of the served model (14 pinned scenes, 3 of them 3D) with a keyboard
+A light-editorial presentation of the served model (14 full-screen scenes, 2 of them 3D: lungs and the vote, each animating in real time when it opens) with a keyboard
 presenter mode, ending in an analyzer that turns an uploaded/recorded/demo recording into a "story report".
-Routes: `/` story (the analyzer closes it), `/analyze` the analyzer alone. Dev only: `/__stage?group=lungs|network|fusion&progress=0.6`.
+Routes: `/` story (the analyzer closes it), `/analyze` the analyzer alone. Dev only: `/__stage?group=lungs|fusion&progress=0.6`.
 
 ## 2. Stack and commands
 React 19.3, Vite 8, TypeScript **5.9** (typescript-eslint supports < 6.1, not TS 7), Tailwind 4 (tokens via `@theme`),
@@ -23,7 +23,8 @@ npm run lint && npm run typecheck && npm run build   # dist/ is COMMITTED: rebui
 CHROMIUM_PATH=~/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome npm run e2e      # mock-mode build in dist-e2e/
 E2E_GPU=1 CHROMIUM_PATH=… npm run e2e -- -g fps        # real GPU, asserts ≥ 50 fps (run on the presentation laptop)
 E2E_REAL_BACKEND=1 E2E_BASE_URL=http://127.0.0.1:5173 npm run e2e -- analyzer.real   # dev server + live backend
-backend/venv/bin/python -I frontend/scripts/prepare_clips.py   # from the repo root, backend up: re-pick clips
+backend/venv/bin/python -I frontend/scripts/prepare_clips.py   # from the repo root, backend up: re-pick clips (--scene-only: scene excerpts only)
+backend/venv/bin/python -I frontend/scripts/seed_windows.py    # from the repo root: per-seed window scores for scene 7
 ```
 
 ## 3. Layout (one job per folder)
@@ -32,8 +33,8 @@ backend/venv/bin/python -I frontend/scripts/prepare_clips.py   # from the repo r
 | `src/content/` | `facts.ts` (every on-screen number with its source), `why.ts` (sourced reasons), `challenges.ts`, `members.ts`, `clips.json` + `clips.provenance.json` (generated), `sample-predict.json` (copy of `documentation/frontend_sample_predict.json`) |
 | `src/lib/api/` | the only backend client: `getHealth`, `predict(file, name, demoClipId?)`, `explain`; `OfflineError` for network failures, 502/503/504 and any failed `/health`; mock mode (`VITE_MOCK_API=1` or `setMockMode`) |
 | `src/lib/audio/` | DSP mirroring the server (band-pass, STFT, 128 Slaney mel, DCT-II MFCC, Savitzky-Golay deltas, CMVN, windows) and `analyzeInWorker` |
-| `src/features/story/` | `scenes.ts` (ids s00–s13), `timeline.ts` (`useSceneTimeline`: pin + scrub + entrance reveal + end hold), presenter store/keys/strip, `scenes/S00…S13` |
-| `src/features/three/` | one shared canvas (`Stage`), `Lungs`, `NetworkFlow`, `FusionVote`, projected DOM labels (`labels.tsx`), `Fallback2D` |
+| `src/features/story/` | `scenes.ts` (ids s00–s13), `timeline.ts` (`useSceneTimeline`: plays the scene's timeline and text reveal in real time each time the scene opens), presenter store/keys/strip, `scenes/S00…S13` |
+| `src/features/three/` | one shared canvas (`Stage`), `Lungs` (+ `lungAnatomy.ts`, shared with the 2D fallback), `FusionVote`, `glyphTexture`, `layerColors`, projected DOM labels (`labels.tsx`), `Fallback2D` |
 | `src/features/analyzer/` | `analyzerStore`, `Analyzer`, `Recorder`, `PipelineReplay`, `ResultView` (Verdict, MemberVotes, WindowStrip, AllScores), `ExplainPanel` |
 | `public/audio`, `public/demo` | test-split clips and their recorded real `/predict` responses; `CREDITS.md` |
 
@@ -44,9 +45,18 @@ backend/venv/bin/python -I frontend/scripts/prepare_clips.py   # from the repo r
   other hospitals or children.
 - **Colour**: bright fills (`#93d52a`, `#2ad585`, `#2ad5c4`) never carry text; class colours come from
   `components/classColors.ts` with a legend; text stays ink.
-- **Scenes**: pass the `useSceneTimeline` ref to `SceneFrame` (the whole section is pinned); text that should reveal
-  gets `data-reveal`; charts whose data arrives later pass `deps`; keep each timeline finished by ~75% of its pin
-  (presenter steps land at 90%).
+- **Scenes**: pass the `useSceneTimeline` ref to `SceneFrame`; a scene "opens" while the line at 40% of the viewport
+  is inside it, and its timeline then plays from the start in seconds (scaled by `PACE`). Never tie animation to scroll
+  position again (presenter steps squeezed it into the scroll tween). Text that should reveal gets `data-reveal`;
+  charts whose data arrives later pass `deps`; 3D scenes pass `minDuration` because their `progress` is the timeline's.
+- **Icons**: layer and model icons live in `components/glyphs.tsx` and mean one thing everywhere (DOM and 3D textures).
+- **Audio** plays through `components/AudioPlayer.tsx` (one clip at a time, waveform = seek bar, live visualiser); never
+  a bare `<audio controls>`. Don't put a CSS `transition` on an element a GSAP timeline animates (it left scene 7's
+  cards stuck invisible): animate a wrapper.
+- **Scene 7** reads `content/sample-seeds.json` (`scripts/seed_windows.py`; its mean must reproduce `SAMPLE.window_scores`,
+  `seeds.test.ts`). Re-run the script if the served model or the sample response changes.
+- **Scene 6** (`charts/NetworkJourney.tsx` + `NetworkGraph.tsx`) shows the demo-copd clip's window 2: its recorded
+  `window_scores` are real; the graph (a few neurons per layer) and the conv/GRU/pooling rows are labelled illustrations. Keep that distinction in the copy.
 - **Heavy work off the main thread**: audio analysis goes through `analyzeInWorker`; blocking the first render made
   the page ignore keys for 3 s once.
 - **No drei `<Html>`** (one React root per label lost labels under StrictMode) and no drei `<Text>`/`<Environment

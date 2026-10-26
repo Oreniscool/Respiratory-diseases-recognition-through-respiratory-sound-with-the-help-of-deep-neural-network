@@ -27,7 +27,7 @@ export function S05Fingerprint() {
         .to(labels[i - 1]!, { opacity: 0.35, duration: 0.3 }, "<")
         .fromTo(labels[i]!, { opacity: 0.35 }, { opacity: 1, duration: 0.3 }, "<");
     });
-  }, { length: 200, deps: [analysis] });
+  }, { deps: [analysis] });
   return (
     <SceneFrame ref={ref} id="s05" label="The sound fingerprint" summary="The spectrogram becomes 128 mel bands, then 40 MFCCs, then 120 numbers per frame with their rates of change.">
         <SceneColumns eyebrow="Step 5 · Features" title="The sound fingerprint"

@@ -8,13 +8,15 @@ listening on 127.0.0.1:5001:
 - Demo clips: one per class from the locked test split (backend/artifacts/latest/split_manifest.csv), the
   best by audio quality only (never by the model's answer): unclipped, 4-90 s, highest breath-band share.
 - Scene-1 excerpts: 8-12 s runs of ICBHI breath cycles annotated (crackles, wheezes) = (0,0), (1,0), (0,1),
-  from test-split ICBHI recordings, cut on cycle boundaries.
+  from test-split ICBHI recordings, cut on cycle boundaries. The "normal" excerpt comes from a healthy patient only
+  (NORMAL_PICK; see there). `--scene-only` re-picks the scene excerpts and keeps the demo clips and their answers.
 - Every clip: loudness-normalised (EBU R128, -20 LUFS, -2 dBTP), 50 ms fades, mono 22,050 Hz MP3 96 kbit/s.
 - Each processed demo clip is sent to the live /predict; the response is saved next to it.
 Writes frontend/public/audio/*.mp3, frontend/public/demo/*.json, frontend/src/content/clips.json and
 frontend/src/content/clips.provenance.json.
 """
 
+import argparse
 import csv
 import json
 import subprocess
@@ -31,6 +33,11 @@ PUBLIC = ROOT / "frontend/public"
 CONTENT = ROOT / "frontend/src/content"
 ANNOTATIONS = BACKEND / "dataset/ICBHI_final_dataset"
 CLASSES = ["asthma", "bronchial", "copd", "healthy", "pneumonia"]
+# The first pick for "normal" (the highest breath-band share over all diagnoses) was a COPD patient's annotated-normal
+# cycles, dominated by heartbeat-like thumps. "Normal" now comes from healthy patients only; of the 7 healthy
+# test-split candidates this one was chosen by eye for clearly visible breath cycles after the 100-2,000 Hz band-pass
+# (2026-10-27; audio only, never the model's answer).
+NORMAL_PICK = "153_1b1_Al_sc_Meditron.wav"
 SOURCE_NAMES = {"icbhi": "ICBHI 2017", "kauh": "KAUH (Mendeley Data, CC BY 4.0)", "kaggle_asthma_v2": "Kaggle Asthma Detection V2"}
 
 
@@ -94,10 +101,16 @@ def find_run(rows, pattern: tuple[int, int], lo: float = 8.0, hi: float = 12.0) 
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scene-only", action="store_true", help="re-pick the scene excerpts; keep the demo clips")
+    args = parser.parse_args()
     manifest = [r for r in csv.DictReader((BACKEND / "artifacts/latest/split_manifest.csv").open()) if r["split"] == "test"]
     demo, scene, provenance = [], {}, {"demo": [], "scene": []}
+    if args.scene_only:
+        demo = json.loads((CONTENT / "clips.json").read_text())["demo"]
+        provenance["demo"] = json.loads((CONTENT / "clips.provenance.json").read_text())["demo"]
 
-    for disease in CLASSES:
+    for disease in ([] if args.scene_only else CLASSES):
         scored = []
         for r in (r for r in manifest if r["disease"] == disease):
             x, sr = load_mono(BACKEND / r["path"])
@@ -125,7 +138,8 @@ def main() -> None:
     icbhi = [r for r in manifest if r["source"] == "icbhi"]
     for kind, pattern in patterns.items():
         best = None
-        for r in icbhi:
+        candidates = [r for r in icbhi if Path(r["path"]).name == NORMAL_PICK] if kind == "normal" else icbhi
+        for r in candidates:
             stem = Path(r["path"]).stem
             span = find_run(cycles(stem), pattern)
             if not span:

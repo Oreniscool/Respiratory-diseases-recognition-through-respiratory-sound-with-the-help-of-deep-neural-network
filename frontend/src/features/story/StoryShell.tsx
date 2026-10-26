@@ -22,15 +22,11 @@ export function StoryShell({ children }: { children: ReactNode }) {
 
     setScroller((index) => {
       const id = SCENES[index]!.id;
-      const trigger = ScrollTrigger.getById(id);
       const element = document.querySelector<HTMLElement>(`[data-scene="${id}"]`);
-      // land at 90% of the scene's pinned range: its scrubbed animation plays during the tween and the
-      // audience arrives at the finished state, not at an empty first frame
-      const y = trigger
-        ? trigger.start + (trigger.end - trigger.start) * 0.9
-        : element ? element.getBoundingClientRect().top + window.scrollY : 0;
+      // land on the scene's top edge; its animation starts once the scene opens, at its own pace
+      const y = element ? element.getBoundingClientRect().top + window.scrollY : 0;
       // a new call retargets the running tween instead of queueing behind it
-      lenis.scrollTo(y, { duration: reduced ? 0 : 1.4, force: true });
+      lenis.scrollTo(y, { duration: reduced ? 0 : 1.1, force: true });
     });
 
     return () => {

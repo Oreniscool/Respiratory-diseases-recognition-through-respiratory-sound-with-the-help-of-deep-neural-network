@@ -1,6 +1,8 @@
 import { SceneFrame } from "../../../components/SceneFrame";
 import { Badge } from "../../../components/Badge";
 import { Card } from "../../../components/Card";
+import { AudioPlayer } from "../../../components/AudioPlayer";
+import { FACTS } from "../../../content/facts";
 import { SCENE_CLIPS } from "../../../content/sceneClips";
 import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
@@ -16,8 +18,9 @@ function ClipCard({ id, label, description, file }: (typeof SCENE_CLIPS)[number]
         {synthetic && <Badge>Synthesised illustration</Badge>}
       </div>
       <p className="m-0 text-sm text-ink-muted">{description}</p>
-      {analysis && <Waveform peaks={analysis.waveform} height={52} />}
-      {file && <audio controls preload="none" src={file} className="h-9 w-full" aria-label={`Play: ${label}`} />}
+      {file
+        ? <AudioPlayer src={file} peaks={analysis?.filtered ?? null} label={label} />
+        : analysis && <Waveform peaks={analysis.filtered} height={52} fit />}
     </Card>
   );
 }
@@ -29,7 +32,15 @@ export function S01Listening() {
   return (
     <SceneFrame ref={ref} id="s01" label="Listening to lungs" summary="What a stethoscope hears: a normal breath, crackles and wheezes, shown as waveforms.">
         <SceneColumns eyebrow="Step 1 · The input" title="Listening to lungs"
-          visual={<div className="grid gap-4">{SCENE_CLIPS.map((c) => <ClipCard key={c.id} {...c} />)}</div>}>
+          visual={
+            <div className="grid gap-4">
+              {SCENE_CLIPS.map((c) => <ClipCard key={c.id} {...c} />)}
+              <p className="m-0 text-xs text-ink-muted">
+                Waveforms show the breath band ({FACTS.bandLowHz.display}–{FACTS.bandHighHz.display} Hz), the part of the
+                sound RespiNet uses, each scaled to fit. Recordings from test-split patients of the ICBHI 2017 database.
+              </p>
+            </div>
+          }>
           <p>
             A stethoscope records air moving through the airways. Most of the sound is the breath itself; some
             recordings carry extra sounds, such as short <strong>crackles</strong> or musical <strong>wheezes</strong>,

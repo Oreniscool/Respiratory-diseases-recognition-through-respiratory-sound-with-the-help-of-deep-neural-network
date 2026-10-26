@@ -13,7 +13,7 @@ export function S02Data() {
       .to(root.querySelector("[data-source-labels]"), { opacity: 0, duration: 0.3 }, "+=0.4")
       .to(dots, { attr: { cx: (i: number) => split[i]!.x, cy: (i: number) => split[i]!.y }, fill: "#55623f", stagger: 0.003, duration: 0.9 }, "<")
       .to(root.querySelector("[data-split-labels]"), { opacity: 1, duration: 0.3 }, "-=0.3");
-  }, { length: 180 });
+  });
   return (
     <SceneFrame ref={ref} id="s02" label="The data" summary="1,551 recordings from 244 patients in three sources, split by patient into training, validation and test.">
         <SceneColumns eyebrow="Step 2 · The data" title={<><span className="tabular">{FACTS.recordings.display}</span> recordings from <span className="tabular">{FACTS.patients.display}</span> patients</>}

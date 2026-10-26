@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { SAMPLE } from "../../content/facts";
 import { memberLabel, memberTop } from "../../content/members";
 import { classColor } from "../../components/classColors";
+import { GLYPHS, type GlyphName } from "../../components/glyphs";
+import { LUNGS, bronchialTree } from "./lungAnatomy";
 import type { StageGroup } from "./stage";
 
 /** 2D versions of the three 3D scenes, for browsers without WebGL and for reduced motion. */
@@ -9,72 +12,76 @@ export function Fallback2D({ group }: { group: StageGroup | null }) {
   return (
     <div data-testid="stage-fallback" className="flex h-full w-full items-center justify-center p-8">
       {group === "lungs" && <LungsSvg />}
-      {group === "network" && <NetworkSvg />}
       {group === "fusion" && <FusionSvg />}
     </div>
   );
 }
 
+const pathOf = (points: [number, number][], close = false) =>
+  `M${points.map(([x, y]) => `${x.toFixed(3)},${(-y).toFixed(3)}`).join("L")}${close ? "Z" : ""}`;
+
+/** The same anatomical outline, fissures and airway tree as the 3D lungs, seen from the front. */
 function LungsSvg() {
+  const tree = useMemo(() => bronchialTree(), []);
   return (
-    <svg viewBox="0 0 400 420" className="h-[70vh] max-h-[560px] w-auto" aria-hidden="true">
-      <path d="M182 150 C120 120 70 190 62 280 C56 350 92 392 150 388 C178 386 186 360 186 330 Z" fill="#e7eed9" stroke="#76aa22" strokeWidth="2" />
-      <path d="M218 150 C282 118 336 192 340 286 C344 352 306 394 252 388 C226 385 214 362 214 332 L214 250 C230 246 236 232 226 220 Z" fill="#e7eed9" stroke="#76aa22" strokeWidth="2" />
-      <g stroke="#198076" strokeWidth="5" strokeLinecap="round" fill="none">
-        <path d="M200 40 V150" />
-        <path d="M200 150 C190 175 165 190 140 215 M200 150 C210 175 235 190 262 215" />
-        <path d="M140 215 L112 260 M140 215 L150 270 M262 215 L290 260 M262 215 L250 272" strokeWidth="3" />
-      </g>
-      {[0, 1, 2].map((i) => (
-        <circle key={i} cx="200" cy="250" r={70 + i * 55} fill="none" stroke="#93d52a" strokeOpacity={0.5 - i * 0.14} strokeWidth="2" />
+    <svg viewBox="-2.3 -2.6 4.6 4.75" className="h-[70vh] max-h-[560px] w-auto" aria-hidden="true">
+      {Object.entries(LUNGS).map(([side, lung]) => (
+        <g key={side}>
+          <path d={pathOf(lung.outline, true)} fill="#e7eed9" stroke="#76aa22" strokeWidth={0.02} />
+          {lung.fissures.map((f, i) => <path key={i} d={pathOf(f)} fill="none" stroke="#76aa22" strokeWidth={0.018} />)}
+        </g>
       ))}
+      <g stroke="#198076" strokeLinecap="round">
+        {tree.map((b, i) => (
+          <line key={i} x1={b.start[0]} y1={-b.start[1]} x2={b.end[0]} y2={-b.end[1]} strokeWidth={Math.max(0.008, b.r0 * 1.8)} />
+        ))}
+      </g>
     </svg>
   );
 }
 
-const LAYERS = ["Multi-scale conv", "BiGRU-128", "BiGRU-64", "Dual pooling", "Dense"];
-
-function NetworkSvg() {
+/** A glyph inside a round badge, centred at (x, y) with radius r, in the SVG's own units. */
+function Badge({ name, x, y, r, color }: { name: GlyphName; x: number; y: number; r: number; color: string }) {
+  const s = (r * 1.2) / 24;
   return (
-    <svg viewBox="0 0 760 260" className="w-full max-w-4xl" aria-hidden="true">
-      {LAYERS.map((name, i) => (
-        <g key={name} transform={`translate(${20 + i * 150} 70)`}>
-          <rect width="118" height="120" rx="14" fill="#ffffff" stroke="#198076" strokeWidth="2" />
-          <text x="59" y="66" textAnchor="middle" style={{ font: "600 13px var(--font-sans)", fill: "#1e2b08" }}>{name}</text>
-          {i < LAYERS.length - 1 && <path d={`M122 60 h24`} stroke="#76aa22" strokeWidth="3" markerEnd="url(#arrow)" />}
-        </g>
-      ))}
-      <path d="M80 66 C 160 0, 300 0, 380 66" fill="none" stroke="#93d52a" strokeWidth="3" strokeDasharray="6 6" />
-      <text x="230" y="22" textAnchor="middle" style={{ font: "12px var(--font-sans)", fill: "#3c5610" }}>residual skip</text>
-      <defs>
-        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M0 0 L10 5 L0 10 z" fill="#76aa22" />
-        </marker>
-      </defs>
-    </svg>
+    <g>
+      <circle cx={x} cy={y} r={r} fill="#ffffff" stroke={color} strokeWidth={2} />
+      <path d={GLYPHS[name]} transform={`translate(${x - 12 * s} ${y - 12 * s}) scale(${s})`} fill="none" stroke={color}
+            strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" />
+    </g>
   );
+}
+
+/** The score gauge: a clockwise arc from 12 o'clock. */
+function arcPath(cx: number, cy: number, r: number, fraction: number) {
+  const f = Math.min(0.9999, fraction);
+  const a = -Math.PI / 2 + f * 2 * Math.PI;
+  return `M${cx},${cy - r} A${r},${r} 0 ${f > 0.5 ? 1 : 0} 1 ${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
 }
 
 function FusionSvg() {
   const members = SAMPLE.members ?? [];
   const fused = SAMPLE.probabilities[SAMPLE.model_prediction] ?? SAMPLE.confidence;
+  const medallion = (key: string, glyph: GlyphName, cx: number, r: number, label: string, score: number, title: string, accent = false) => (
+    <g key={key}>
+      <circle cx={cx} cy={110} r={r * 1.3} fill="none" stroke="#e7eed9" strokeWidth={r * 0.12} />
+      <path d={arcPath(cx, 110, r * 1.3, score / 100)} fill="none" stroke={classColor(label)} strokeWidth={r * 0.18} strokeLinecap="round" />
+      <Badge name={glyph} x={cx} y={110} r={r} color="#1e2b08" />
+      <text x={cx} y={110 + r * 1.3 + 24} textAnchor="middle" style={{ font: "600 13px var(--font-sans)", fill: accent ? "#198076" : "#1e2b08" }}>{title}</text>
+      <text x={cx} y={110 + r * 1.3 + 42} textAnchor="middle" style={{ font: "12px var(--font-sans)", fill: "#3c5610" }}>{label} {score.toFixed(1)}%</text>
+    </g>
+  );
   return (
-    <div className="flex w-full max-w-3xl items-end justify-center gap-6">
-      {members.map((m) => {
+    <svg viewBox="0 0 760 240" className="w-full max-w-3xl" aria-hidden="true">
+      {members.map((m, i) => {
         const top = memberTop(m);
-        return (
-          <div key={m.name} className="flex w-24 flex-col items-center gap-2 text-center">
-            <span className="tabular text-sm text-ink">{top.label} {top.score.toFixed(1)}%</span>
-            <span className="block w-12 rounded-t-md" style={{ height: `${top.score * 2.4}px`, background: classColor(top.label) }} />
-            <span className="text-sm font-semibold text-ink">{memberLabel(m.name)}</span>
-          </div>
-        );
+        return medallion(m.name, (["respinet", "yamnet", "opera_ce", "hear"].includes(m.name) ? m.name : "respinet") as GlyphName,
+          70 + i * 130, 34, top.label, top.score, memberLabel(m.name));
       })}
-      <div className="ml-6 flex w-28 flex-col items-center gap-2 text-center">
-        <span className="tabular text-sm font-semibold text-ink">{SAMPLE.model_prediction} {fused.toFixed(1)}%</span>
-        <span className="block w-16 rounded-t-md bg-accent" style={{ height: `${fused * 2.4}px` }} />
-        <span className="text-sm font-semibold text-accent">Fused</span>
-      </div>
-    </div>
+      {members.map((m, i) => (
+        <path key={m.name} d={`M${70 + i * 130},${66} C${70 + i * 130},${20 - i * 4} 560,${10 + i * 6} 610,${52}`} fill="none" stroke="#2ad5c4" strokeWidth={2} />
+      ))}
+      {medallion("fused", "fused", 660, 50, SAMPLE.model_prediction, fused, "Fused", true)}
+    </svg>
   );
 }

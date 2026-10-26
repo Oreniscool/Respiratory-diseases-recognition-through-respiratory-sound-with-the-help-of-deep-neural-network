@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
-export type StageGroup = "lungs" | "network" | "fusion";
+export type StageGroup = "lungs" | "fusion";
 
-const GROUPS: Record<string, StageGroup> = { s00: "lungs", s06: "network", s08: "fusion" };
+const GROUPS: Record<string, StageGroup> = { s00: "lungs", s08: "fusion" };
 
 /** Which 3D group a scene shows, or null for 2D scenes. */
 export const stageFor = (sceneId: string): StageGroup | null => GROUPS[sceneId] ?? null;

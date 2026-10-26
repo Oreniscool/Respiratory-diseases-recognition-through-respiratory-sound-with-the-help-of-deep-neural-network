@@ -85,21 +85,21 @@
     {
       "id": "normal",
       "split": "test",
-      "patient_id": "396960",
-      "disease": "copd",
+      "patient_id": "727390",
+      "disease": "healthy",
       "source": "icbhi",
-      "path": "dataset/ICBHI_as_folders/copd/139_1b1_Al_sc_Litt3200.wav",
-      "start_s": 1.5389,
-      "end_s": 9.6577,
+      "path": "dataset/ICBHI_as_folders/healthy/153_1b1_Al_sc_Meditron.wav",
+      "start_s": 0.064,
+      "end_s": 8.507,
       "annotation": [
         0,
         0
       ],
       "quality": {
-        "band_db": 2.919,
-        "peak": 0.886,
-        "rms": 0.109,
-        "seconds": 8.119
+        "band_db": -17.493,
+        "peak": 0.266,
+        "rms": 0.067,
+        "seconds": 8.443
       }
     },
     {

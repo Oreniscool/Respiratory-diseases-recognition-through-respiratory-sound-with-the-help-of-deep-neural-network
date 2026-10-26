@@ -8,7 +8,7 @@ export function S10Abstain() {
   const u = SAMPLE.uncertainty;
   const ref = useSceneTimeline<HTMLElement>("s10", (tl, root) => {
     tl.from(root.querySelectorAll("[data-marker]"), { left: "0%", stagger: 0.3, duration: 0.8 });
-  }, { length: 150 });
+  });
   return (
     <SceneFrame ref={ref} id="s10" label="Knowing when to abstain" summary="The model answers only when its top score is at least 66.3% and its uncertainty is at most 0.51; otherwise it says it is unsure.">
         <SceneColumns eyebrow="Step 10 · Abstention" title="Knowing when to abstain"

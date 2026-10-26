@@ -34,3 +34,15 @@ export function useSceneAudio(kind: BreathKind = "normal"): { analysis: AudioAna
   }, [kind, file]);
   return { analysis, synthetic: !file };
 }
+
+/** The analysis of any bundled clip (e.g. a demo recording), sharing the same per-page cache. */
+export function useClipAudio(file: string | null): AudioAnalysis | null {
+  const [analysis, setAnalysis] = useState<AudioAnalysis | null>(null);
+  useEffect(() => {
+    if (!file) return;
+    let cancelled = false;
+    loadSceneAudio("normal", file).then((a) => { if (!cancelled) setAnalysis(a); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [file]);
+  return analysis;
+}

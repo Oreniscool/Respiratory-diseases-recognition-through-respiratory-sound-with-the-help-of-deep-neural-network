@@ -9,7 +9,7 @@ export function S11Challenges() {
     tl.from(cards, { y: 30, opacity: 0, stagger: 0.12, duration: 0.5 })
       .from(root.querySelectorAll("[data-fix]"), { opacity: 0, y: 8, stagger: 0.15, duration: 0.4 }, "+=0.2")
       .to(root.querySelectorAll("[data-problem]"), { opacity: 0.55, stagger: 0.15, duration: 0.4 }, "<");
-  }, { length: 200 });
+  });
   return (
     <SceneFrame ref={ref} id="s11" label="Problems we hit, and how we fixed them"
       summary="Six problems found while building RespiNet, each with the fix: wrong labels, copied audio, made-up patient IDs, duplicates, early stopping, and serving parity.">

@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router";
 import { Stage } from "../features/three/Stage";
 import { useStage, type StageGroup } from "../features/three/stage";
 
-/** Dev-only: /__stage?group=lungs|network|fusion&progress=0.6 renders one 3D scene for visual checks. */
+/** Dev-only: /__stage?group=lungs|fusion&progress=0.6 renders one 3D scene for visual checks. */
 export function StagePreview() {
   const [params] = useSearchParams();
   const group = (params.get("group") ?? "lungs") as StageGroup;

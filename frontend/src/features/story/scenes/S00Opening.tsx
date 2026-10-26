@@ -2,9 +2,8 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { useSceneTimeline } from "../timeline";
 
 export function S00Opening() {
-  const ref = useSceneTimeline<HTMLElement>("s00", (tl, root) => {
-    tl.to(root.querySelector("[data-hint]"), { opacity: 0, duration: 0.3 }, 0.4);
-  }, { length: 120 });
+  // no visuals of its own: the 3D lungs turn slowly while the timeline runs
+  const ref = useSceneTimeline<HTMLElement>("s00", () => {}, { minDuration: 6 });
   const words = "How a machine listens to your lungs".split(" ");
   return (
     <SceneFrame ref={ref} id="s00" label="Opening" summary="RespiNet, a research prototype, explained step by step: from a stethoscope recording to the model's scores.">
@@ -28,7 +27,7 @@ export function S00Opening() {
           <p data-reveal className="mt-5 inline-block rounded-full border border-line bg-paper-raised px-3 py-1 text-sm text-ink">
             A research prototype, not a diagnostic device
           </p>
-          <p data-hint className="mt-14 text-sm text-ink-muted">Scroll to begin · press <kbd className="font-semibold text-ink">P</kbd> for presenter mode</p>
+          <p className="mt-14 text-sm text-ink-muted">Scroll to begin · press <kbd className="font-semibold text-ink">P</kbd> for presenter mode</p>
         </div>
       </div>
     </SceneFrame>

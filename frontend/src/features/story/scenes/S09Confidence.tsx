@@ -11,7 +11,7 @@ export function S09Confidence() {
     tl.from(root.querySelector("[data-diagonal]"), { opacity: 0, duration: 0.3 })
       .fromTo(curve, { strokeDasharray: length, strokeDashoffset: length }, { strokeDashoffset: 0, duration: 1 })
       .from(root.querySelectorAll("[data-bin]"), { attr: { r: 0 }, stagger: 0.1, duration: 0.3 }, "-=0.6");
-  }, { length: 170 });
+  });
   return (
     <SceneFrame ref={ref} id="s09" label="Honest confidence" summary="Temperature scaling makes the scores honest: on test recordings, the score tracks how often the model is right.">
         <SceneColumns eyebrow="Step 9 · Calibration" title="Honest confidence"

@@ -26,7 +26,7 @@ export function S12Performance() {
     tl.from(root.querySelector("[data-headline]"), { scale: 0.92, opacity: 0, duration: 0.6 })
       .from(root.querySelector("[data-ci]"), { scaleX: 0, transformOrigin: "center", duration: 0.5 })
       .from(root.querySelectorAll("[data-recall] > *"), { opacity: 0, x: -12, stagger: 0.1, duration: 0.3 });
-  }, { length: 170 });
+  });
   return (
     <SceneFrame ref={ref} id="s12" label="How well it does" summary={`On 49 unseen patients from the same datasets, ${FACTS.patientAccuracy.display} of patients get the right class.`}>
       <SceneColumns eyebrow="Step 12 · The result" title="How well it does"

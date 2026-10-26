@@ -1,6 +1,7 @@
 import { SceneFrame } from "../../../components/SceneFrame";
 import { SAMPLE, WHY } from "../../../content/facts";
 import { MEMBER_INFO, memberTop } from "../../../content/members";
+import { Glyph, type GlyphName } from "../../../components/glyphs";
 import { SceneColumns, Why } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
 
@@ -12,7 +13,7 @@ export function S08Vote() {
   const ref = useSceneTimeline<HTMLElement>("s08", (tl, root) => {
     tl.from(root.querySelectorAll("[data-member]"), { x: -16, opacity: 0.2, stagger: 0.25, duration: 0.4 })
       .from(root.querySelector("[data-fused]"), { opacity: 0, y: 10, duration: 0.4 }, "+=0.3");
-  }, { length: 200 });
+  });
   return (
     <SceneFrame ref={ref} id="s08" label="Four models vote" illustration
       summary={`Four models score the sample recording; ${agree} of 4 agree, and the fusion gives ${SAMPLE.model_prediction} ${fused.toFixed(1)}%.`}>
@@ -21,7 +22,12 @@ export function S08Vote() {
           <ul className="m-0 list-none space-y-2 p-0">
             {tops.map(({ m, top }) => (
               <li key={m.name} data-member className="flex items-baseline justify-between gap-4 border-b border-line pb-2">
-                <span><strong>{MEMBER_INFO[m.name]?.label ?? m.name}</strong> <span className="text-sm">{MEMBER_INFO[m.name]?.description}</span></span>
+                <span className="flex items-baseline gap-2.5">
+                  <span className="flex size-7 shrink-0 translate-y-1.5 items-center justify-center self-start rounded-full border border-line bg-paper-raised text-ink">
+                    <Glyph name={(m.name in MEMBER_INFO ? m.name : "respinet") as GlyphName} size={16} />
+                  </span>
+                  <span><strong>{MEMBER_INFO[m.name]?.label ?? m.name}</strong> <span className="text-sm">{MEMBER_INFO[m.name]?.description}</span></span>
+                </span>
                 <span className={`tabular whitespace-nowrap ${top.label === SAMPLE.model_prediction ? "text-ink" : "font-semibold text-ink"}`}>
                   {top.label} {top.score.toFixed(1)}%
                 </span>

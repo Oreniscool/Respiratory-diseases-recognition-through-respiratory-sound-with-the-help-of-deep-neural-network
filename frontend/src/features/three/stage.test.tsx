@@ -11,10 +11,10 @@ vi.mock("../../hooks/useWebGL", () => ({ useWebGL: () => false }));
 const { Stage } = await import("./Stage");
 const { Fallback2D } = await import("./Fallback2D");
 
-it("maps only scenes 0, 6 and 8 to a 3D group", () => {
+it("maps only scenes 0 and 8 to a 3D group", () => {
   const groups = Object.fromEntries(SCENES.map((s) => [s.id, stageFor(s.id)]));
   expect(groups).toEqual({
-    s00: "lungs", s01: null, s02: null, s03: null, s04: null, s05: null, s06: "network",
+    s00: "lungs", s01: null, s02: null, s03: null, s04: null, s05: null, s06: null,
     s07: null, s08: "fusion", s09: null, s10: null, s11: null, s12: null, s13: null,
   });
 });
@@ -40,10 +40,10 @@ it("the fusion fallback shows the four members and the fused score", () => {
 
 it("entering and leaving scenes switches the group", () => {
   act(() => useStage.setState({ group: null, progress: 0 }));
-  act(() => useStage.getState().enter("s06"));
-  expect(useStage.getState().group).toBe("network");
-  act(() => useStage.getState().leave("s08")); // leaving a scene that is not shown changes nothing
-  expect(useStage.getState().group).toBe("network");
-  act(() => useStage.getState().leave("s06"));
+  act(() => useStage.getState().enter("s08"));
+  expect(useStage.getState().group).toBe("fusion");
+  act(() => useStage.getState().leave("s00")); // leaving a scene that is not shown changes nothing
+  expect(useStage.getState().group).toBe("fusion");
+  act(() => useStage.getState().leave("s08"));
   expect(useStage.getState().group).toBeNull();
 });

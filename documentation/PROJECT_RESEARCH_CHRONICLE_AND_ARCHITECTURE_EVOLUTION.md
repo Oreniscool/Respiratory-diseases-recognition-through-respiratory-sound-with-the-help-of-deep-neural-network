@@ -1560,6 +1560,52 @@ Governance and evidence now live in `research/` (see `research/README.md`).
   - **Small client fixes made on the way:** a proxy's 502/504 (backend down) now counts as "offline" (it was shown as a
     generic error), and the frontend Dockerfile builds on node:22 with `npm ci`.
 
+- **Presentation revisions after the first review (2026-10-27, branch `frontend-rebuild`).** Visual and pacing
+  changes only; no number, model or endpoint changed.
+  - **Pacing:** scenes are no longer pinned and scrubbed by scroll position. Each scene's timeline plays in real time
+    (slowed by `PACE = 0.7`) when the scene opens, whether scrolled to or stepped to with the arrow keys, and replays
+    when reopened; the 3D scenes read their progress from that timeline. Before, presenter steps compressed each
+    animation into the 1.4 s scroll tween. With reduced motion, a scene shows its finished state.
+  - **Lungs (scene 0):** replaced the sphere-based lobes with an anatomical front-view model
+    (`frontend/src/features/three/lungAnatomy.ts`): right lung with three lobes (oblique and horizontal fissures), left
+    lung with two lobes, cardiac notch and lingula, a trachea with cartilage rings and a procedurally branched airway tree
+    clipped to each lung. The 2D fallback draws the same model. Illustration only, not to anatomical scale.
+  - **Network (scene 6):** no longer 3D. It follows one real window (window 2 of 8) of the bundled COPD demo clip
+    (a test-split patient) through RespiNet as a "data journey", under an animated graph of the network (a few neurons
+    per layer, fully connected, signals flowing to five output neurons sized by the window's real scores; each column
+    lights up while its row is explained). Rows: the 3-, 5- and 11-frame kernels sliding across it at their true widths; two BiGRUs filling forwards then
+    backwards; dual pooling folding the 200 frames into one summary; and RespiNet's real scores for that window, read
+    from the clip's recorded `/predict` response (`window_scores[1]`: copd 84.0%, healthy 14.0%, bronchial 1.1%,
+    asthma 0.6%, pneumonia 0.3%). The middle rows are illustrations derived from how fast the fingerprint changes, not
+    the network's activations; the scene says so. Each layer keeps a distinct icon and colour
+    (`frontend/src/components/glyphs.tsx`, `features/three/layerColors.ts`).
+  - **Fusion (scene 8):** the bars became one medallion per model, each with its own icon (RespiNet layer stack,
+    YAMNet speaker, OPERA-CE lungs, HeAR heart with a pulse line), ringed by a gauge of its top score on the sample, then
+    streams into a fused medallion. The scores shown are unchanged.
+  - **Listening (scene 1):** the browser's audio controls were replaced by a custom player (`AudioPlayer`): play button,
+    a live frequency visualiser (Web Audio `AnalyserNode`), and the clip's waveform as the seek bar (fills while playing;
+    click, drag or arrow keys). The cards draw the breath band (100–2,000 Hz), each scaled to fit, and say so. The
+    "normal breath" excerpt was re-picked: the first pick (`frontend/scripts/prepare_clips.py`, highest breath-band
+    share over all diagnoses) was a COPD patient's annotated-normal cycles (139_1b1_Al_sc_Litt3200), dominated by
+    heartbeat-like thumps. "Normal" now comes from healthy test-split patients only; of the 7 candidates,
+    153_1b1_Al_sc_Meditron.wav 0.06–8.51 s (patient 727390) was chosen by eye for clearly visible breath cycles after the
+    band-pass (audio only, never the model's answer; `NORMAL_PICK`, `--scene-only`). The crackle and wheeze excerpts and
+    the demo clips and their recorded answers are unchanged (byte-identical).
+  - **Seeds (scene 7):** now interactive, on real per-seed data. `frontend/scripts/seed_windows.py` runs the three served
+    RespiNet seeds through the server's own feature extraction on the sample recording (ICBHI 218_1b1_Al_sc_Meditron.wav)
+    and records each seed's window scores (`frontend/src/content/sample-seeds.json`); their mean reproduces the served
+    `window_scores` to 0.039 points (CPU vs the GPU recording), and a Vitest test re-checks this. Per seed, the leading
+    class per window: seed 42 copd 26 / healthy 4; seed 43 copd 27 / pneumonia 2 / healthy 1; seed 44 copd 18 /
+    healthy 6 / asthma 5 / bronchial 1. The copies disagree on 13 of 30 windows; the average leads with copd in 25. The
+    scene shows the three seed strips over the averaged strip with disagreement markers; seed cards select and dim, and
+    pointing at (or arrowing to) a window shows each copy's vote.
+  - **Cleaning (scene 3):** the averaged spectrum plot became an infographic: the pitch range in three zones (heartbeat
+    thuds below 100 Hz removed, breath sounds 100–2,000 Hz kept, sensor noise above 2 kHz removed), then the sample
+    recording before and after the band-pass.
+  - **Verification:** 98 Vitest tests (after the scene 1/7 changes), lint and typecheck clean; all 9 Playwright tests pass on the mock-mode build.
+    The e2e fps check now covers the two remaining 3D scenes; in software WebGL the lungs run ~5 fps (the original
+    lungs ~4) and the vote ~33 fps. A hardware-GPU fps run (≥ 50 fps) is still to do on the presentation laptop.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

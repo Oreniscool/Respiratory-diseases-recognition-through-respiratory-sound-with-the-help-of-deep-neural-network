@@ -26,7 +26,7 @@ export function S13EndToEnd() {
     tl.fromTo(root.querySelector("[data-flow-line]"), { scaleY: 0 }, { scaleY: 1, transformOrigin: "top", duration: items.length * 0.25, ease: "none" })
       .from(items, { opacity: 0.2, x: -10, stagger: 0.25, duration: 0.25 }, "<")
       .from(root.querySelector("[data-verdict]"), { opacity: 0, scale: 0.9, duration: 0.5 });
-  }, { length: 220 });
+  });
   return (
     <SceneFrame ref={ref} id="s13" label="From your recording to an answer" summary={`The sample recording passes every step and ends as strongest match ${top}, ${fused.toFixed(1)}%.`}>
       <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-6 py-24 lg:grid-cols-[1fr_minmax(0,40%)] lg:px-12">

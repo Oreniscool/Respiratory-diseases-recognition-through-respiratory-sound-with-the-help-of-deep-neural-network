@@ -16,7 +16,7 @@ export function buildSlicing(tl: gsap.core.Timeline, root: HTMLElement): void {
 
 export function S04Slicing() {
   const { analysis } = useSceneAudio("normal");
-  const ref = useSceneTimeline<HTMLElement>("s04", buildSlicing, { length: 180, deps: [analysis] });
+  const ref = useSceneTimeline<HTMLElement>("s04", buildSlicing, { deps: [analysis] });
   const minutes = Math.round(SAMPLE.duration_s);
   return (
     <SceneFrame ref={ref} id="s04" label="Slicing time" summary="The recording is resampled to 22,050 Hz and cut into overlapping 200-frame windows.">

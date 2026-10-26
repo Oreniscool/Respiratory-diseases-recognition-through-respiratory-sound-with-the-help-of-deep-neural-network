@@ -1,0 +1,660 @@
+{
+ "source": "frontend/scripts/seed_windows.py on backend/dataset/ICBHI_final_dataset/218_1b1_Al_sc_Meditron.wav with backend/artifacts/latest (code revision 724c52cc77501e2c87a88ecc32203c5ee8656dfa); the mean of the seeds reproduces documentation/frontend_sample_predict.json window_scores to 0.039 points",
+ "classes": [
+  "asthma",
+  "bronchial",
+  "copd",
+  "healthy",
+  "pneumonia"
+ ],
+ "seeds": [
+  {
+   "seed": 42,
+   "file": "best_model.keras",
+   "window_scores": [
+    {
+     "asthma": 0.1,
+     "bronchial": 0.12,
+     "copd": 90.49,
+     "healthy": 1.69,
+     "pneumonia": 7.61
+    },
+    {
+     "asthma": 0.04,
+     "bronchial": 0.09,
+     "copd": 64.33,
+     "healthy": 0.44,
+     "pneumonia": 35.1
+    },
+    {
+     "asthma": 0.05,
+     "bronchial": 0.3,
+     "copd": 88.28,
+     "healthy": 1.4,
+     "pneumonia": 9.97
+    },
+    {
+     "asthma": 0.04,
+     "bronchial": 2.62,
+     "copd": 89.4,
+     "healthy": 2.6,
+     "pneumonia": 5.35
+    },
+    {
+     "asthma": 0.16,
+     "bronchial": 0.86,
+     "copd": 85.56,
+     "healthy": 5.39,
+     "pneumonia": 8.03
+    },
+    {
+     "asthma": 0.1,
+     "bronchial": 0.08,
+     "copd": 62.94,
+     "healthy": 1.34,
+     "pneumonia": 35.54
+    },
+    {
+     "asthma": 0.43,
+     "bronchial": 0.25,
+     "copd": 84.23,
+     "healthy": 4.04,
+     "pneumonia": 11.05
+    },
+    {
+     "asthma": 1.75,
+     "bronchial": 0.41,
+     "copd": 83.67,
+     "healthy": 10.94,
+     "pneumonia": 3.24
+    },
+    {
+     "asthma": 0.16,
+     "bronchial": 0.39,
+     "copd": 86.33,
+     "healthy": 8.25,
+     "pneumonia": 4.88
+    },
+    {
+     "asthma": 0.04,
+     "bronchial": 1.33,
+     "copd": 90.76,
+     "healthy": 4.13,
+     "pneumonia": 3.74
+    },
+    {
+     "asthma": 0.03,
+     "bronchial": 0.35,
+     "copd": 90.25,
+     "healthy": 2.51,
+     "pneumonia": 6.86
+    },
+    {
+     "asthma": 0.05,
+     "bronchial": 0.23,
+     "copd": 90.81,
+     "healthy": 2.63,
+     "pneumonia": 6.29
+    },
+    {
+     "asthma": 0.02,
+     "bronchial": 2.87,
+     "copd": 87.7,
+     "healthy": 8.6,
+     "pneumonia": 0.81
+    },
+    {
+     "asthma": 0.03,
+     "bronchial": 1.11,
+     "copd": 93.17,
+     "healthy": 5.12,
+     "pneumonia": 0.57
+    },
+    {
+     "asthma": 0.28,
+     "bronchial": 0.97,
+     "copd": 77.51,
+     "healthy": 20.94,
+     "pneumonia": 0.3
+    },
+    {
+     "asthma": 1.16,
+     "bronchial": 2.34,
+     "copd": 35.5,
+     "healthy": 60.73,
+     "pneumonia": 0.27
+    },
+    {
+     "asthma": 0.91,
+     "bronchial": 3.83,
+     "copd": 61.42,
+     "healthy": 32.71,
+     "pneumonia": 1.13
+    },
+    {
+     "asthma": 4.13,
+     "bronchial": 1.62,
+     "copd": 52.93,
+     "healthy": 39.62,
+     "pneumonia": 1.7
+    },
+    {
+     "asthma": 2.83,
+     "bronchial": 1.0,
+     "copd": 67.11,
+     "healthy": 12.16,
+     "pneumonia": 16.9
+    },
+    {
+     "asthma": 2.06,
+     "bronchial": 1.18,
+     "copd": 67.22,
+     "healthy": 16.14,
+     "pneumonia": 13.4
+    },
+    {
+     "asthma": 18.8,
+     "bronchial": 3.76,
+     "copd": 16.27,
+     "healthy": 56.33,
+     "pneumonia": 4.85
+    },
+    {
+     "asthma": 9.11,
+     "bronchial": 1.85,
+     "copd": 24.57,
+     "healthy": 50.69,
+     "pneumonia": 13.79
+    },
+    {
+     "asthma": 1.75,
+     "bronchial": 1.4,
+     "copd": 57.65,
+     "healthy": 31.44,
+     "pneumonia": 7.76
+    },
+    {
+     "asthma": 0.91,
+     "bronchial": 10.52,
+     "copd": 71.17,
+     "healthy": 10.14,
+     "pneumonia": 7.25
+    },
+    {
+     "asthma": 0.29,
+     "bronchial": 0.6,
+     "copd": 84.91,
+     "healthy": 13.04,
+     "pneumonia": 1.14
+    },
+    {
+     "asthma": 1.36,
+     "bronchial": 2.27,
+     "copd": 55.52,
+     "healthy": 38.29,
+     "pneumonia": 2.55
+    },
+    {
+     "asthma": 3.18,
+     "bronchial": 5.48,
+     "copd": 48.51,
+     "healthy": 35.17,
+     "pneumonia": 7.66
+    },
+    {
+     "asthma": 14.68,
+     "bronchial": 0.35,
+     "copd": 35.17,
+     "healthy": 46.94,
+     "pneumonia": 2.87
+    },
+    {
+     "asthma": 1.88,
+     "bronchial": 0.88,
+     "copd": 70.88,
+     "healthy": 24.34,
+     "pneumonia": 2.01
+    },
+    {
+     "asthma": 1.78,
+     "bronchial": 0.82,
+     "copd": 63.37,
+     "healthy": 33.33,
+     "pneumonia": 0.71
+    }
+   ]
+  },
+  {
+   "seed": 43,
+   "file": "respinet_seed43.keras",
+   "window_scores": [
+    {
+     "asthma": 0.48,
+     "bronchial": 0.44,
+     "copd": 90.52,
+     "healthy": 1.03,
+     "pneumonia": 7.52
+    },
+    {
+     "asthma": 0.23,
+     "bronchial": 1.2,
+     "copd": 85.64,
+     "healthy": 1.14,
+     "pneumonia": 11.79
+    },
+    {
+     "asthma": 0.87,
+     "bronchial": 5.63,
+     "copd": 83.55,
+     "healthy": 6.63,
+     "pneumonia": 3.32
+    },
+    {
+     "asthma": 0.25,
+     "bronchial": 7.73,
+     "copd": 86.21,
+     "healthy": 3.53,
+     "pneumonia": 2.27
+    },
+    {
+     "asthma": 1.07,
+     "bronchial": 0.7,
+     "copd": 80.26,
+     "healthy": 3.57,
+     "pneumonia": 14.4
+    },
+    {
+     "asthma": 1.67,
+     "bronchial": 0.27,
+     "copd": 59.76,
+     "healthy": 2.05,
+     "pneumonia": 36.25
+    },
+    {
+     "asthma": 7.21,
+     "bronchial": 1.21,
+     "copd": 59.31,
+     "healthy": 5.17,
+     "pneumonia": 27.1
+    },
+    {
+     "asthma": 13.55,
+     "bronchial": 3.54,
+     "copd": 38.06,
+     "healthy": 42.15,
+     "pneumonia": 2.7
+    },
+    {
+     "asthma": 4.95,
+     "bronchial": 2.84,
+     "copd": 51.42,
+     "healthy": 37.43,
+     "pneumonia": 3.36
+    },
+    {
+     "asthma": 2.68,
+     "bronchial": 2.85,
+     "copd": 75.01,
+     "healthy": 16.35,
+     "pneumonia": 3.12
+    },
+    {
+     "asthma": 1.07,
+     "bronchial": 2.13,
+     "copd": 87.03,
+     "healthy": 6.75,
+     "pneumonia": 3.02
+    },
+    {
+     "asthma": 5.23,
+     "bronchial": 2.32,
+     "copd": 58.52,
+     "healthy": 18.01,
+     "pneumonia": 15.91
+    },
+    {
+     "asthma": 2.9,
+     "bronchial": 2.56,
+     "copd": 61.6,
+     "healthy": 14.59,
+     "pneumonia": 18.35
+    },
+    {
+     "asthma": 1.46,
+     "bronchial": 0.8,
+     "copd": 89.28,
+     "healthy": 5.2,
+     "pneumonia": 3.26
+    },
+    {
+     "asthma": 1.77,
+     "bronchial": 2.01,
+     "copd": 79.44,
+     "healthy": 12.83,
+     "pneumonia": 3.95
+    },
+    {
+     "asthma": 2.76,
+     "bronchial": 9.54,
+     "copd": 52.84,
+     "healthy": 29.27,
+     "pneumonia": 5.58
+    },
+    {
+     "asthma": 7.46,
+     "bronchial": 1.92,
+     "copd": 51.71,
+     "healthy": 37.5,
+     "pneumonia": 1.41
+    },
+    {
+     "asthma": 12.54,
+     "bronchial": 1.39,
+     "copd": 47.57,
+     "healthy": 36.26,
+     "pneumonia": 2.23
+    },
+    {
+     "asthma": 3.68,
+     "bronchial": 3.08,
+     "copd": 51.92,
+     "healthy": 21.36,
+     "pneumonia": 19.96
+    },
+    {
+     "asthma": 4.6,
+     "bronchial": 0.67,
+     "copd": 77.85,
+     "healthy": 11.16,
+     "pneumonia": 5.72
+    },
+    {
+     "asthma": 24.63,
+     "bronchial": 0.24,
+     "copd": 39.14,
+     "healthy": 33.68,
+     "pneumonia": 2.31
+    },
+    {
+     "asthma": 9.29,
+     "bronchial": 1.25,
+     "copd": 57.62,
+     "healthy": 23.54,
+     "pneumonia": 8.31
+    },
+    {
+     "asthma": 4.39,
+     "bronchial": 1.11,
+     "copd": 60.56,
+     "healthy": 12.11,
+     "pneumonia": 21.83
+    },
+    {
+     "asthma": 5.03,
+     "bronchial": 0.58,
+     "copd": 55.05,
+     "healthy": 7.43,
+     "pneumonia": 31.91
+    },
+    {
+     "asthma": 6.85,
+     "bronchial": 2.06,
+     "copd": 44.92,
+     "healthy": 30.19,
+     "pneumonia": 15.99
+    },
+    {
+     "asthma": 15.99,
+     "bronchial": 2.21,
+     "copd": 23.9,
+     "healthy": 17.07,
+     "pneumonia": 40.83
+    },
+    {
+     "asthma": 22.81,
+     "bronchial": 1.95,
+     "copd": 20.62,
+     "healthy": 24.92,
+     "pneumonia": 29.7
+    },
+    {
+     "asthma": 2.64,
+     "bronchial": 0.78,
+     "copd": 78.69,
+     "healthy": 5.09,
+     "pneumonia": 12.8
+    },
+    {
+     "asthma": 2.39,
+     "bronchial": 2.34,
+     "copd": 83.66,
+     "healthy": 7.87,
+     "pneumonia": 3.74
+    },
+    {
+     "asthma": 1.24,
+     "bronchial": 11.53,
+     "copd": 65.43,
+     "healthy": 21.14,
+     "pneumonia": 0.66
+    }
+   ]
+  },
+  {
+   "seed": 44,
+   "file": "respinet_seed44.keras",
+   "window_scores": [
+    {
+     "asthma": 3.46,
+     "bronchial": 2.72,
+     "copd": 70.23,
+     "healthy": 11.31,
+     "pneumonia": 12.29
+    },
+    {
+     "asthma": 2.37,
+     "bronchial": 2.49,
+     "copd": 71.21,
+     "healthy": 9.22,
+     "pneumonia": 14.71
+    },
+    {
+     "asthma": 2.74,
+     "bronchial": 14.94,
+     "copd": 72.32,
+     "healthy": 9.17,
+     "pneumonia": 0.83
+    },
+    {
+     "asthma": 2.01,
+     "bronchial": 26.84,
+     "copd": 60.18,
+     "healthy": 10.63,
+     "pneumonia": 0.34
+    },
+    {
+     "asthma": 19.8,
+     "bronchial": 2.75,
+     "copd": 47.7,
+     "healthy": 28.76,
+     "pneumonia": 0.99
+    },
+    {
+     "asthma": 14.98,
+     "bronchial": 1.06,
+     "copd": 64.55,
+     "healthy": 16.92,
+     "pneumonia": 2.49
+    },
+    {
+     "asthma": 5.36,
+     "bronchial": 3.06,
+     "copd": 80.99,
+     "healthy": 9.6,
+     "pneumonia": 1.0
+    },
+    {
+     "asthma": 4.01,
+     "bronchial": 1.26,
+     "copd": 80.59,
+     "healthy": 13.83,
+     "pneumonia": 0.3
+    },
+    {
+     "asthma": 3.38,
+     "bronchial": 1.08,
+     "copd": 74.22,
+     "healthy": 20.94,
+     "pneumonia": 0.39
+    },
+    {
+     "asthma": 2.65,
+     "bronchial": 13.55,
+     "copd": 53.76,
+     "healthy": 29.93,
+     "pneumonia": 0.11
+    },
+    {
+     "asthma": 5.29,
+     "bronchial": 0.51,
+     "copd": 65.16,
+     "healthy": 28.39,
+     "pneumonia": 0.65
+    },
+    {
+     "asthma": 1.56,
+     "bronchial": 2.01,
+     "copd": 84.87,
+     "healthy": 10.78,
+     "pneumonia": 0.79
+    },
+    {
+     "asthma": 0.94,
+     "bronchial": 2.99,
+     "copd": 88.18,
+     "healthy": 7.58,
+     "pneumonia": 0.32
+    },
+    {
+     "asthma": 6.65,
+     "bronchial": 3.38,
+     "copd": 65.85,
+     "healthy": 23.76,
+     "pneumonia": 0.36
+    },
+    {
+     "asthma": 26.8,
+     "bronchial": 15.06,
+     "copd": 14.91,
+     "healthy": 39.2,
+     "pneumonia": 4.03
+    },
+    {
+     "asthma": 39.04,
+     "bronchial": 5.16,
+     "copd": 10.35,
+     "healthy": 36.09,
+     "pneumonia": 9.37
+    },
+    {
+     "asthma": 53.17,
+     "bronchial": 0.25,
+     "copd": 1.76,
+     "healthy": 44.7,
+     "pneumonia": 0.12
+    },
+    {
+     "asthma": 66.14,
+     "bronchial": 0.27,
+     "copd": 3.9,
+     "healthy": 29.39,
+     "pneumonia": 0.3
+    },
+    {
+     "asthma": 31.87,
+     "bronchial": 1.88,
+     "copd": 31.61,
+     "healthy": 29.49,
+     "pneumonia": 5.15
+    },
+    {
+     "asthma": 25.22,
+     "bronchial": 0.59,
+     "copd": 25.09,
+     "healthy": 45.81,
+     "pneumonia": 3.29
+    },
+    {
+     "asthma": 6.0,
+     "bronchial": 2.3,
+     "copd": 11.11,
+     "healthy": 78.74,
+     "pneumonia": 1.85
+    },
+    {
+     "asthma": 5.79,
+     "bronchial": 3.79,
+     "copd": 12.75,
+     "healthy": 75.43,
+     "pneumonia": 2.24
+    },
+    {
+     "asthma": 5.61,
+     "bronchial": 14.98,
+     "copd": 57.53,
+     "healthy": 18.18,
+     "pneumonia": 3.71
+    },
+    {
+     "asthma": 1.64,
+     "bronchial": 24.92,
+     "copd": 62.21,
+     "healthy": 6.93,
+     "pneumonia": 4.3
+    },
+    {
+     "asthma": 1.64,
+     "bronchial": 6.02,
+     "copd": 72.22,
+     "healthy": 15.26,
+     "pneumonia": 4.86
+    },
+    {
+     "asthma": 63.4,
+     "bronchial": 1.47,
+     "copd": 10.88,
+     "healthy": 23.39,
+     "pneumonia": 0.87
+    },
+    {
+     "asthma": 31.71,
+     "bronchial": 12.2,
+     "copd": 20.4,
+     "healthy": 34.2,
+     "pneumonia": 1.49
+    },
+    {
+     "asthma": 18.15,
+     "bronchial": 14.34,
+     "copd": 25.67,
+     "healthy": 41.19,
+     "pneumonia": 0.65
+    },
+    {
+     "asthma": 5.46,
+     "bronchial": 29.57,
+     "copd": 36.86,
+     "healthy": 27.44,
+     "pneumonia": 0.66
+    },
+    {
+     "asthma": 1.51,
+     "bronchial": 45.31,
+     "copd": 41.21,
+     "healthy": 11.49,
+     "pneumonia": 0.47
+    }
+   ]
+  }
+ ]
+}
