@@ -1,7 +1,7 @@
 # Frontend rebuild: brief and resume point
 
 Written 2026-10-26 so the work can continue on another machine (the assistant's memory is local to one
-machine; this file travels with git). Status: **brainstorming, no frontend code written yet.** The only
+machine; this file travels with git). Status: **design written** (`docs/superpowers/specs/2026-10-26-respinet-frontend-rebuild-design.md`); awaiting the user's review, then the implementation plan. No frontend code yet. The only
 code change so far is the backend payload addition below.
 
 ## The request
