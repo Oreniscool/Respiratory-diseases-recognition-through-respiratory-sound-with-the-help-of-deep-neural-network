@@ -32,6 +32,15 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
     const root = ref.current;
     if (!root) return;
     const reduced = prefersReducedMotion();
+    // entrance: text reveals once as the section comes into view (at load for the first scene); the pinned,
+    // scrubbed timeline below animates only the scene's visuals
+    const reveal = root.querySelectorAll("[data-reveal]");
+    const words = root.querySelectorAll("[data-word]");
+    if (!reduced && (reveal.length || words.length)) {
+      const intro = gsap.timeline({ scrollTrigger: { trigger: root, start: "top 75%", toggleActions: "play none none none" } });
+      if (words.length) intro.from(words, { yPercent: 110, opacity: 0, stagger: 0.07, duration: 0.7, ease: "power3.out" });
+      if (reveal.length) intro.from(reveal, { y: 24, opacity: 0, stagger: 0.1, duration: 0.7, ease: "power2.out" }, words.length ? "-=0.35" : 0);
+    }
     const tl = gsap.timeline({
       defaults: { ease: "power2.out" },
       scrollTrigger: {
@@ -57,6 +66,9 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
       },
     });
     build(tl, root);
+    // hold the finished state for the last stretch of the pin: the animation completes before the presenter's
+    // landing point (90%) and readers get a still moment before the next scene
+    if (tl.duration() > 0) tl.to({}, { duration: Math.max(0.5, tl.duration() * 0.35) });
   }, { scope: ref });
   return ref;
 }

@@ -14,6 +14,8 @@ export type AudioAnalysis = {
   filtered: Float32Array;
   /** mel dB (128 bands), averaged down to at most 400 frames for drawing */
   spectrogramDb: Float32Array[];
+  /** average mel spectrum (128 bands, dB) of the raw and the band-passed signal */
+  spectrumDb: { raw: Float32Array; filtered: Float32Array };
   /** frames × 120: 40 MFCC, Δ, Δ², then CMVN (what the network receives) */
   features: Float32Array[];
   windowStarts: number[];
@@ -50,10 +52,17 @@ function shrink(rows: Float32Array[], max = MAX_DRAW_FRAMES): Float32Array[] {
   });
 }
 
+function meanOverTime(rows: Float32Array[]): Float32Array {
+  const out = new Float32Array(rows[0]?.length ?? 0);
+  for (const row of rows) for (let k = 0; k < out.length; k++) out[k]! += row[k]! / rows.length;
+  return out;
+}
+
 /** The server's feature pipeline (band-pass → MFCC + Δ + Δ² → CMVN → windows), plus drawing summaries. */
 export function analyze(samples: Float32Array, sr: number): AudioAnalysis {
   const filtered = bandpass(samples, sr);
   const logMel = powerToDb(melPower(stftPower(filtered), sr));
+  const rawLogMel = powerToDb(melPower(stftPower(samples), sr));
   const base = mfccFromLogMel(logMel);
   const d1 = deltas(base, 1);
   const d2 = deltas(base, 2);
@@ -70,6 +79,7 @@ export function analyze(samples: Float32Array, sr: number): AudioAnalysis {
     waveform: peaks(samples),
     filtered: peaks(filtered),
     spectrogramDb: shrink(logMel),
+    spectrumDb: { raw: meanOverTime(rawLogMel), filtered: meanOverTime(logMel) },
     features: cmvn(stacked),
     windowStarts: windowStarts(stacked.length),
   };

@@ -15,3 +15,10 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     }),
   });
 }
+
+// jsdom has no ResizeObserver (Lenis and the 3D stage observe element sizes)
+if (typeof window !== "undefined" && !("ResizeObserver" in window)) {
+  class ResizeObserverShim { observe() {} unobserve() {} disconnect() {} }
+  Object.defineProperty(window, "ResizeObserver", { writable: true, value: ResizeObserverShim });
+  Object.defineProperty(globalThis, "ResizeObserver", { writable: true, value: ResizeObserverShim });
+}

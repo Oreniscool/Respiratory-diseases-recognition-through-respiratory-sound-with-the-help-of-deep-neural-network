@@ -36,3 +36,16 @@ it("summarises the waveform as 1,200 min/max pairs and caps the spectrogram at 4
   expect(result.spectrogramDb[0]).toHaveLength(128);
   expect(result.durationS).toBeCloseTo(30, 5);
 });
+
+it("reports the average spectrum before and after the band-pass (scene 3)", () => {
+  const hum = Float32Array.from({ length: SR * 3 }, (_, i) =>
+    Math.sin((2 * Math.PI * 50 * i) / SR) + Math.sin((2 * Math.PI * 500 * i) / SR));
+  const { spectrumDb } = analyze(hum, SR);
+  expect(spectrumDb.raw).toHaveLength(128);
+  expect(spectrumDb.filtered).toHaveLength(128);
+  const bandOf = (hz: number) => Math.round((hz / (SR / 2)) * 127); // coarse lookup for the test
+  const low = Math.max(...Array.from(spectrumDb.raw.slice(0, 6)));
+  const lowAfter = Math.max(...Array.from(spectrumDb.filtered.slice(0, 6)));
+  expect(low - lowAfter).toBeGreaterThan(20); // 50 Hz hum removed by > 20 dB
+  expect(bandOf(500)).toBeGreaterThan(0);
+});

@@ -15,9 +15,18 @@ export function powerToDb(m: Float32Array[], amin = 1e-10, topDb = 80): Float32A
 /** mel power spectrogram (frames × nMels) from a power spectrogram (frames × bins). */
 export function melPower(power: Float32Array[], sr: number, nMels = 128): Float32Array[] {
   const bank = melFilterbank(sr, (power[0]!.length - 1) * 2, nMels);
-  return power.map((frame) => Float32Array.from(bank, (row) => {
+  // each triangle is non-zero over a few bins only: multiply just that span (~30x fewer operations)
+  const spans = bank.map((row) => {
+    let a = 0;
+    while (a < row.length && row[a] === 0) a++;
+    let b = row.length;
+    while (b > a && row[b - 1] === 0) b--;
+    return [a, b] as const;
+  });
+  return power.map((frame) => Float32Array.from(bank, (row, m) => {
+    const [a, b] = spans[m]!;
     let s = 0;
-    for (let k = 0; k < row.length; k++) s += row[k]! * frame[k]!;
+    for (let k = a; k < b; k++) s += row[k]! * frame[k]!;
     return s;
   }));
 }
