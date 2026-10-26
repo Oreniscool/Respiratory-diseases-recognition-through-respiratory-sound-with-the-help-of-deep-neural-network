@@ -5,16 +5,18 @@ import { useSceneTimeline } from "../timeline";
 import { useSceneAudio } from "../useSceneAudio";
 import { WindowSlider } from "./charts/WindowSlider";
 
+/** Slide the window across the waveform; its travel is re-measured on every refresh (e.g. a projector plugged in). */
+export function buildSlicing(tl: gsap.core.Timeline, root: HTMLElement): void {
+  const win = root.querySelector<HTMLElement>("[data-window]");
+  if (!win?.parentElement) return;
+  const track = win.parentElement;
+  tl.to(root.querySelector("[data-window-ghost]"), { opacity: 1, duration: 0.3 })
+    .to(win, { x: () => track.clientWidth - win.clientWidth, ease: "steps(6)", duration: 2 });
+}
+
 export function S04Slicing() {
   const { analysis } = useSceneAudio("normal");
-  const ref = useSceneTimeline<HTMLElement>("s04", (tl, root) => {
-    const win = root.querySelector<HTMLElement>("[data-window]");
-    if (win?.parentElement) {
-      const travel = win.parentElement.clientWidth - win.clientWidth;
-      tl.to(root.querySelector("[data-window-ghost]"), { opacity: 1, duration: 0.3 })
-        .to(win, { x: travel, ease: "steps(6)", duration: 2 });
-    }
-  }, { length: 180, deps: [analysis] });
+  const ref = useSceneTimeline<HTMLElement>("s04", buildSlicing, { length: 180, deps: [analysis] });
   const minutes = Math.round(SAMPLE.duration_s);
   return (
     <SceneFrame ref={ref} id="s04" label="Slicing time" summary="The recording is resampled to 22,050 Hz and cut into overlapping 200-frame windows.">

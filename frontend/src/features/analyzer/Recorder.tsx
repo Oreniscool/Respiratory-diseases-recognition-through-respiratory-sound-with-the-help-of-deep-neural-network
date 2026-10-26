@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "../../components/Button";
 import { Mic } from "../../components/icons";
 import { useAnalyzer } from "./analyzerStore";
+import { recordingFileName } from "./recording";
 
 const MIC_BLOCKED = "Microphone access was blocked. You can still upload a file or use a demo recording.";
 
@@ -11,6 +12,13 @@ export function Recorder() {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const recorder = useRef<MediaRecorder | null>(null);
+  const discard = useRef(false);
+
+  // leaving mid-recording: release the microphone and submit nothing
+  useEffect(() => () => {
+    discard.current = true;
+    recorder.current?.stop();
+  }, []);
 
   useEffect(() => {
     if (!recording) return;
@@ -41,9 +49,12 @@ export function Recorder() {
       rec.ondataavailable = (e) => chunks.push(e.data);
       rec.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        recorder.current = null;
+        if (discard.current) return;
         setRecording(false);
         const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
-        void start(new File([blob], "recording.webm", { type: blob.type }), "recording.webm");
+        const name = recordingFileName(blob.type);
+        void start(new File([blob], name, { type: blob.type }), name);
       };
       recorder.current = rec;
       rec.start();

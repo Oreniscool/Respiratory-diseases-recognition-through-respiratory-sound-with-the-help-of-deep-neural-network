@@ -30,7 +30,7 @@ export function Analyzer() {
         </p>
       </div>
 
-      {offline && (
+      {(offline || isMockMode()) && (
         <div role="status" className="flex flex-wrap items-center gap-4 rounded-xl border border-line bg-paper-raised p-4">
           <Alert className="text-warn" />
           <div className="flex-1">
@@ -42,12 +42,12 @@ export function Analyzer() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <label htmlFor="analyzer-upload" className={`inline-flex cursor-pointer items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-paper hover:bg-accent-deep ${busy ? "pointer-events-none opacity-50" : ""}`}>
-          <Upload /> Upload a recording
-        </label>
-        <input id="analyzer-upload" type="file" className="sr-only" disabled={busy} aria-label="Upload a recording"
+        <input id="analyzer-upload" type="file" className="peer sr-only" disabled={busy} aria-label="Upload a recording"
                accept={`${ACCEPTED.join(",")},audio/*`}
                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void start(f, f.name); }} />
+        <label htmlFor="analyzer-upload" className={`inline-flex cursor-pointer items-center gap-2 rounded-lg bg-ink px-5 py-2.5 text-sm font-semibold text-paper hover:bg-accent-deep peer-focus-visible:outline-3 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-accent ${busy ? "pointer-events-none opacity-50" : ""}`}>
+          <Upload /> Upload a recording
+        </label>
         <Recorder />
         <span className="text-sm text-ink-muted">or a demo:</span>
         {DEMO_CLIPS.map((clip) => (
@@ -66,6 +66,7 @@ export function Analyzer() {
         </div>
       )}
 
+      {busy && !file && <p className="m-0 text-ink-muted" aria-live="polite">Loading the demo recording…</p>}
       {busy && file && <PipelineReplay file={file} />}
 
       {phase === "done" && result && (

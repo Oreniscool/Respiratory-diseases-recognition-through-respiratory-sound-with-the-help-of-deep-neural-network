@@ -3,10 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, vi } from "vitest";
 import { SAMPLE } from "../../content/facts";
 
-const client = vi.hoisted(() => ({ predict: vi.fn(), getHealth: vi.fn(), explain: vi.fn(), setMockMode: vi.fn() }));
+const client = vi.hoisted(() => ({ predict: vi.fn(), getHealth: vi.fn(), explain: vi.fn(), setMockMode: vi.fn(), isMockMode: vi.fn(() => false) }));
 vi.mock("../../lib/api/client", async (original) => {
   const actual = await original<typeof import("../../lib/api/client")>();
-  return { ...actual, ...client, isMockMode: () => false };
+  return { ...actual, ...client };
 });
 vi.mock("../../lib/api/mock", () => ({ mockPredict: vi.fn(async () => SAMPLE) }));
 
@@ -18,8 +18,9 @@ const wav = () => new File([new Uint8Array([82, 73, 70, 70])], "breath.wav", { t
 
 beforeEach(() => {
   vi.clearAllMocks();
+  client.isMockMode.mockReturnValue(false);
   client.getHealth.mockResolvedValue({ ready: true, model_contract: "verified-metadata", classes: [] });
-  act(() => useAnalyzer.getState().reset());
+  act(() => { useAnalyzer.getState().reset(); useAnalyzer.setState({ offline: false }); });
 });
 
 it("rejects an unsupported file before calling the model", async () => {
@@ -71,4 +72,54 @@ it("keeps upload and demo available when the microphone is blocked", async () =>
   await userEvent.click(screen.getByRole("button", { name: /record/i }));
   expect(await screen.findByText(/microphone access was blocked/i)).toBeInTheDocument();
   expect(screen.getByLabelText(/upload a recording/i)).toBeEnabled();
+});
+
+it("in demo mode, an upload is refused rather than answered with a recording (review #1)", async () => {
+  client.isMockMode.mockReturnValue(true);
+  render(<Analyzer />);
+  expect(screen.getByText(/Demo mode/)).toBeInTheDocument();
+  await userEvent.upload(screen.getByLabelText(/upload a recording/i), wav());
+  expect(await screen.findByRole("alert")).toHaveTextContent(/need the live model/i);
+  expect(client.predict).not.toHaveBeenCalled();
+  expect(screen.queryByText("Strongest match")).toBeNull();
+});
+
+it("the last demo clicked wins, even if an earlier clip loads more slowly (review #5)", async () => {
+  const releases: Record<string, () => void> = {};
+  vi.stubGlobal("fetch", vi.fn((url: string) => new Promise<Response>((resolve) => {
+    releases[url] = () => resolve(new Response(new Uint8Array([1])));
+  })));
+  client.predict.mockImplementation(async (_f: Blob, _n: string, id?: string) => ({ ...SAMPLE, model_prediction: id ?? "none" }));
+  const { DEMO_CLIPS } = await import("../../content/demoClips");
+  const [a, b] = [DEMO_CLIPS[0]!, DEMO_CLIPS[1]!];
+  const first = useAnalyzer.getState().startDemo(a.id);
+  const second = useAnalyzer.getState().startDemo(b.id);
+  releases[b.file]!();
+  await second;
+  releases[a.file]!();
+  await first;
+  expect(useAnalyzer.getState().demoId).toBe(b.id);
+  expect(useAnalyzer.getState().result?.model_prediction).toBe(b.id);
+  vi.unstubAllGlobals();
+});
+
+it("reset during a demo download cancels it (review #5)", async () => {
+  let release = () => {};
+  vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>((resolve) => { release = () => resolve(new Response(new Uint8Array([1]))); })));
+  client.predict.mockResolvedValue(SAMPLE);
+  const pending = useAnalyzer.getState().startDemo("demo-copd");
+  expect(useAnalyzer.getState().phase).toBe("running");
+  act(() => useAnalyzer.getState().reset());
+  release();
+  await pending;
+  expect(useAnalyzer.getState().phase).toBe("pick");
+  expect(client.predict).not.toHaveBeenCalled();
+  vi.unstubAllGlobals();
+});
+
+it("the upload control shows keyboard focus (review #11)", () => {
+  render(<Analyzer />);
+  const input = screen.getByLabelText(/upload a recording/i);
+  expect(input.className).toContain("peer");
+  expect(input.nextElementSibling?.className).toMatch(/peer-focus-visible:/);
 });

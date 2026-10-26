@@ -37,12 +37,15 @@ it("an unverified model contract counts as offline", async () => {
   await expect(getHealth()).rejects.toBeInstanceOf(OfflineError);
 });
 
-it("mock mode answers with the recorded sample without calling fetch", async () => {
+it("mock mode refuses a visitor's own recording instead of answering with the sample (review #1)", async () => {
   const fetchSpy = vi.fn();
   vi.stubGlobal("fetch", fetchSpy);
   setMockMode(true);
-  await expect(predict(file, "x.wav")).resolves.toEqual(SAMPLE);
+  const err = await predict(file, "x.wav").catch((e) => e);
+  expect(err).toBeInstanceOf(OfflineError);
+  expect(err.message).toMatch(/need the live model/i);
   expect(fetchSpy).not.toHaveBeenCalled();
+  expect(SAMPLE.prediction).toBe("copd"); // the sample still exists for demo clips
 });
 
 it("predict posts the file and denoise=0 as multipart form data", async () => {

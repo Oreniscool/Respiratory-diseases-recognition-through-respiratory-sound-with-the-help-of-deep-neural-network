@@ -8,6 +8,11 @@ import { useStage } from "../three/stage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  // dev-only handle for debugging scroll geometry in the browser
+  (window as unknown as { __ScrollTrigger: typeof ScrollTrigger }).__ScrollTrigger = ScrollTrigger;
+}
+
 import { SCENES, sceneIndex, type SceneId } from "./scenes";
 
 export { SCENES, sceneIndex, type SceneId };
@@ -65,6 +70,7 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
         start: "top top",
         end: `+=${length}%`,
         pin: true,
+        invalidateOnRefresh: true, // function-based values (measured sizes) are recomputed on resize/refresh
         scrub: reduced ? false : 0.6,
         toggleActions: reduced ? "play none none none" : undefined,
         onToggle: (self) => {

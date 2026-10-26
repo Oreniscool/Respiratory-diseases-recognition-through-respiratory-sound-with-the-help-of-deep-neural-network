@@ -19,6 +19,5 @@
   .tabular { font-variant-numeric: tabular-nums; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
+/* Reduced motion is handled in code (useSceneTimeline, Stage, Lenis). A global `transition-duration: 0.01ms
+   !important` rule here broke ScrollTrigger's pin spacing: every scene's range collapsed to its natural height. */

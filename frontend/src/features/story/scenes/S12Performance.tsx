@@ -47,7 +47,7 @@ export function S12Performance() {
         </p>
         <p>
           Balanced across the five classes: <strong className="tabular">{FACTS.patientBalancedAccuracy.display}</strong>. These
-          patients were set aside before training and used once, after every choice had been made.
+          patients were set aside before training, and no choice was made using them.
         </p>
       </SceneColumns>
     </SceneFrame>

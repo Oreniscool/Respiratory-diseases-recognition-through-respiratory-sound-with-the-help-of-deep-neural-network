@@ -45,7 +45,9 @@ let lastStep = -Infinity;
 export function handlePresenterKey(event: KeyboardEvent, store: PresenterState): boolean {
   const target = event.target as HTMLElement | null;
   const tag = target?.tagName;
+  if (event.ctrlKey || event.metaKey || event.altKey) return false; // browser shortcuts (print, back, …)
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target?.isContentEditable) return false;
+  if (tag === "AUDIO" || tag === "VIDEO" || tag === "SUMMARY") return false; // native media and disclosure keys
   if (event.key === " " && tag === "BUTTON") return false;
 
   if (event.key === "p" || event.key === "P") {

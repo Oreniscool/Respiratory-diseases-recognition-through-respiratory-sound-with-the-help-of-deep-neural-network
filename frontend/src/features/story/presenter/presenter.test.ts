@@ -2,8 +2,8 @@ import { afterEach, beforeEach, vi } from "vitest";
 import { SCENES } from "../scenes";
 import { handlePresenterKey, setScroller, usePresenter } from "./presenterStore";
 
-const key = (k: string, target: Partial<HTMLElement> = document.body, repeat = false) =>
-  ({ key: k, target, repeat, preventDefault: vi.fn() }) as unknown as KeyboardEvent;
+const key = (k: string, target: Partial<HTMLElement> = document.body, repeat = false, mods: Partial<KeyboardEvent> = {}) =>
+  ({ key: k, target, repeat, preventDefault: vi.fn(), ctrlKey: false, metaKey: false, altKey: false, ...mods }) as unknown as KeyboardEvent;
 const state = () => usePresenter.getState();
 
 beforeEach(() => {
@@ -65,4 +65,21 @@ it("goTo asks the scroller to move to that scene", () => {
   setScroller(scroller);
   state().goTo(5);
   expect(scroller).toHaveBeenCalledWith(5);
+});
+
+it("leaves focused media and disclosure controls to the browser (review #8)", () => {
+  usePresenter.setState({ active: true, index: 1 });
+  for (const tagName of ["AUDIO", "VIDEO", "SUMMARY"]) {
+    expect(handlePresenterKey(key(" ", { tagName } as HTMLElement), state())).toBe(false);
+    expect(handlePresenterKey(key("ArrowRight", { tagName } as HTMLElement), state())).toBe(false);
+  }
+  expect(state().index).toBe(1);
+});
+
+it("ignores browser shortcuts with modifier keys (review #8)", () => {
+  usePresenter.setState({ active: true, index: 1 });
+  expect(handlePresenterKey(key("p", document.body, false, { ctrlKey: true }), state())).toBe(false);
+  expect(handlePresenterKey(key("ArrowLeft", document.body, false, { altKey: true }), state())).toBe(false);
+  expect(handlePresenterKey(key("p", document.body, false, { metaKey: true }), state())).toBe(false);
+  expect(state()).toMatchObject({ active: true, index: 1 });
 });

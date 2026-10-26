@@ -32,3 +32,10 @@ it("scene 13 runs the sample end to end and invites the visitor to try it", () =
   expect(text).toContain("Strongest match: COPD");
   expect(screen.getByRole("link", { name: /Try it with your own recording/ })).toHaveAttribute("href", "/analyze");
 });
+
+it("scene 12 does not claim the test split was used only once (review #4)", () => {
+  render(<MemoryRouter><StoryPage /></MemoryRouter>);
+  const text = scene("s12").textContent!;
+  expect(text).not.toMatch(/used once/);
+  expect(text).toContain("no choice was made using them");
+});

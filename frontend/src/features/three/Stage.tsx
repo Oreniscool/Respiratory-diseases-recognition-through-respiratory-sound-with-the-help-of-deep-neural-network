@@ -20,7 +20,7 @@ export function Stage() {
           <StageCanvas group={group} />
         </Suspense>
       ) : (
-        <Fallback2D group={group} />
+        <div className="absolute inset-y-0 right-0 left-0 lg:left-[40%]"><Fallback2D group={group} /></div>
       )}
     </div>
   );

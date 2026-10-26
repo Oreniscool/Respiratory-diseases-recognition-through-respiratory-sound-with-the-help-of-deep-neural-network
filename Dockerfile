@@ -50,9 +50,9 @@ RUN echo 'server { \
         try_files $uri $uri/ /index.html; \
     } \
     location /health { proxy_pass http://127.0.0.1:5000/health; } \
-    location /predict { proxy_pass http://127.0.0.1:5000/predict; client_max_body_size 25M; } \
+    location /predict { proxy_pass http://127.0.0.1:5000/predict; proxy_read_timeout 130s; client_max_body_size 25M; } \
     location /predict-sample/ { proxy_pass http://127.0.0.1:5000/predict-sample/; } \
-    location = /explain { proxy_pass http://127.0.0.1:5000/explain; client_max_body_size 25M; } \
+    location = /explain { proxy_pass http://127.0.0.1:5000/explain; proxy_read_timeout 130s; client_max_body_size 25M; } \
     location /summarize { proxy_pass http://127.0.0.1:5000/summarize; } \
 }' > /etc/nginx/conf.d/default.conf && \
 ln -sf /etc/nginx/conf.d/default.conf /etc/nginx/sites-enabled/default 2>/dev/null || true

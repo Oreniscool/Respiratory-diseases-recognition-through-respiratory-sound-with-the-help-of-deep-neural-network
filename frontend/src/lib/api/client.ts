@@ -66,7 +66,11 @@ export async function getHealth(): Promise<Health> {
 }
 
 export async function predict(file: Blob, filename: string, demoClipId?: string): Promise<PredictResult> {
-  if (mockMode) return mockPredict(demoClipId);
+  if (mockMode) {
+    // only demo clips have recorded answers; a visitor's own recording must never get one
+    if (!demoClipId) throw new OfflineError("Uploads and recordings need the live model. The demo recordings still work.");
+    return mockPredict(demoClipId);
+  }
   return request<PredictResult>("/predict", { method: "POST", body: form(file, filename) });
 }
 
