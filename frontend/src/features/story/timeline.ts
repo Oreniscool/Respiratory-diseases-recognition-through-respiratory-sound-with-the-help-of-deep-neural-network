@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { prefersReducedMotion } from "../../hooks/useReducedMotion";
 import { usePresenter } from "./presenter/presenterStore";
+import { useStage } from "../three/stage";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -42,9 +43,17 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
         scrub: reduced ? false : 0.6,
         toggleActions: reduced ? "play none none none" : undefined,
         onToggle: (self) => {
-          if (self.isActive) usePresenter.getState().syncFromScroll(sceneIndex(id));
+          if (self.isActive) {
+            usePresenter.getState().syncFromScroll(sceneIndex(id));
+            useStage.getState().enter(id);
+          } else {
+            useStage.getState().leave(id);
+          }
         },
-        onUpdate: onProgress ? (self) => onProgress(self.progress) : undefined,
+        onUpdate: (self) => {
+          useStage.getState().setProgress(id, self.progress);
+          onProgress?.(self.progress);
+        },
       },
     });
     build(tl, root);
