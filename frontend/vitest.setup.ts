@@ -22,3 +22,15 @@ if (typeof window !== "undefined" && !("ResizeObserver" in window)) {
   Object.defineProperty(window, "ResizeObserver", { writable: true, value: ResizeObserverShim });
   Object.defineProperty(globalThis, "ResizeObserver", { writable: true, value: ResizeObserverShim });
 }
+
+// jsdom has no IntersectionObserver (Motion's whileInView uses it)
+if (typeof window !== "undefined" && !("IntersectionObserver" in window)) {
+  class IntersectionObserverShim {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() { return []; }
+  }
+  Object.defineProperty(window, "IntersectionObserver", { writable: true, value: IntersectionObserverShim });
+  Object.defineProperty(globalThis, "IntersectionObserver", { writable: true, value: IntersectionObserverShim });
+}
