@@ -1,0 +1,23 @@
+/* Design tokens (spec §3). Light theme only. The bright 500 steps (--color-fill, #2ad585, #2ad5c4)
+   are below 2:1 on the paper: fills, strokes and 3D light only, never text. */
+@theme {
+  --color-paper: #f7faf0;
+  --color-paper-raised: #ffffff;
+  --color-ink: #1e2b08;
+  --color-ink-muted: #3c5610;
+  --color-ink-soft: #55623f;
+  --color-accent: #198076;
+  --color-accent-deep: #11554e;
+  --color-fill: #93d52a;
+  --color-fill-strong: #76aa22;
+  --color-glow-green: #2ad585;
+  --color-glow-teal: #2ad5c4;
+  --color-line: #dfe9cc;
+  --color-track: #e7eed9;
+  --color-warn: #9a4a1d;
+
+  --font-serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
