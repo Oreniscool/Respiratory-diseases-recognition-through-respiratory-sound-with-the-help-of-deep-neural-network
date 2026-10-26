@@ -12,6 +12,9 @@ import { S07Seeds } from "../features/story/scenes/S07Seeds";
 import { S08Vote } from "../features/story/scenes/S08Vote";
 import { S09Confidence } from "../features/story/scenes/S09Confidence";
 import { S10Abstain } from "../features/story/scenes/S10Abstain";
+import { S11Challenges } from "../features/story/scenes/S11Challenges";
+import { S12Performance } from "../features/story/scenes/S12Performance";
+import { S13EndToEnd } from "../features/story/scenes/S13EndToEnd";
 
 export function StoryPage() {
   return (
@@ -33,6 +36,9 @@ export function StoryPage() {
         <S08Vote />
         <S09Confidence />
         <S10Abstain />
+        <S11Challenges />
+        <S12Performance />
+        <S13EndToEnd />
       </main>
     </StoryShell>
   );

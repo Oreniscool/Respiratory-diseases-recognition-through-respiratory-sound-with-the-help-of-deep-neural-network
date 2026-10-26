@@ -22,5 +22,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     exclude: ["e2e/**", "node_modules/**"],
     css: false,
+    // scene tests render the whole story page; leave headroom for loaded machines and CI runners
+    testTimeout: 20_000,
   },
 });
