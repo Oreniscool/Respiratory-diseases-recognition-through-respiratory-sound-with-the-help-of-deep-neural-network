@@ -1,0 +1,143 @@
+"""Generate the hand-written thebibliography block of main.tex from references.bib.
+
+The institution's sample paper uses \\begin{thebibliography} with \\bibitem entries, so no BibTeX run is needed.
+Entries are numbered in order of first citation. Re-run after editing references.bib or the citations:
+
+    python build_bibliography.py
+"""
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+BS = chr(92)
+START, END = "%%BIB-START", "%%BIB-END"
+
+
+def parse_bib(text: str) -> dict[str, dict[str, str]]:
+    entries: dict[str, dict[str, str]] = {}
+    for m in re.finditer(r"@(\w+)\{([^,]+),", text):
+        kind, key = m.group(1).lower(), m.group(2).strip()
+        depth, i = 1, m.end()
+        while depth and i < len(text):
+            depth += {"{": 1, "}": -1}.get(text[i], 0)
+            i += 1
+        body = text[m.end() : i - 1]
+        fields: dict[str, str] = {"_type": kind}
+        pos = 0
+        while True:
+            fm = re.compile(r"\s*(\w+)\s*=\s*").search(body, pos)
+            if not fm:
+                break
+            j = fm.end()
+            if body[j] == "{":
+                d, k = 1, j + 1
+                while d:
+                    d += {"{": 1, "}": -1}.get(body[k], 0)
+                    k += 1
+                fields[fm.group(1).lower()] = body[j + 1 : k - 1].strip()
+                pos = k
+            else:
+                k = re.compile(r"[,}\n]").search(body, j).start()
+                fields[fm.group(1).lower()] = body[j:k].strip()
+                pos = k
+        entries[key] = fields
+    return entries
+
+
+def initials(given: str) -> str:
+    parts = []
+    for tok in re.split(r"\s+", given.strip()):
+        sub = []
+        for piece in tok.split("-"):
+            clean = re.sub(r"^\{" + re.escape(BS) + r".\}", "", piece)  # leading accented group, rare
+            c = re.sub(r"[{}" + re.escape(BS) + r"'`^~\"]", "", piece)[:1]
+            sub.append(c.upper() + ".") if c else None
+        parts.append("-".join(sub))
+    return " ".join(parts)
+
+
+def fmt_name(name: str) -> str:
+    if "," in name:
+        family, given = [p.strip() for p in name.split(",", 1)]
+        return f"{initials(given)} {family}"
+    return name.strip()
+
+
+def authors(raw: str) -> str:
+    names = [n.strip() for n in re.split(r"\s+and\s+", raw)]
+    et_al = False
+    if names and names[-1] == "others":
+        names, et_al = names[:-1], True
+    names = [fmt_name(n) for n in names]
+    if et_al or len(names) > 6:
+        return f"{names[0]} {BS}textit{{et al.}}"
+    if len(names) == 1:
+        return names[0]
+    if len(names) == 2:
+        return f"{names[0]} and {names[1]}"
+    return ", ".join(names[:-1]) + f", and {names[-1]}"
+
+
+def esc(s: str) -> str:
+    return s.replace("_", BS + "_").replace("&", BS + "&")
+
+
+def pages(p: str) -> str:
+    if "--" in p:
+        return f"pp. {p}"
+    return f"Art. no. {p}"
+
+
+def fmt(e: dict[str, str]) -> str:
+    t, a = e["_type"], authors(e["author"])
+    title = f"``{e['title']},''"
+    doi = f", doi: {esc(e['doi'])}" if "doi" in e else ""
+    year = e.get("year", "")
+    if t == "article":
+        vol = f", vol. {e['volume']}" if "volume" in e else ""
+        num = f", no. {e['number']}" if "number" in e else ""
+        pg = f", {pages(e['pages'])}" if "pages" in e else ""
+        return f"{a}, {title} {BS}textit{{{e['journal']}}}{vol}{num}{pg}, {year}{doi}."
+    if t == "inproceedings":
+        vol = f", vol. {e['volume']}" if "volume" in e else ""
+        pg = f", {pages(e['pages'])}" if "pages" in e else ""
+        return f"{a}, {title} in {BS}textit{{{e['booktitle']}}}{vol}, {year}{pg}{doi}."
+    if t == "incollection":
+        pg = f", {pages(e['pages'])}" if "pages" in e else ""
+        return (f"{a}, {title} in {BS}textit{{{e['booktitle']}}}. {e['publisher']}, {e['address']}, "
+                f"{year}{pg}{doi}.")
+    if t == "misc":
+        note = f" {e['note']}." if "note" in e else ""
+        yr = f", {year}" if year else ""
+        return f"{a}, {title} {e['howpublished']}{yr}.{note} [Online]. Available: {BS}url{{{e['url']}}}"
+    raise ValueError(t)
+
+
+def main() -> None:
+    tex_path = HERE / "main.tex"
+    tex = tex_path.read_text(encoding="utf-8")
+    bib = parse_bib((HERE / "references.bib").read_text(encoding="utf-8"))
+    body = re.sub(r"(?m)(?<!" + re.escape(BS) + r")%.*", "", tex)
+    cite = re.compile(re.escape(BS) + r"cite\{([^}]*)\}")
+    order: list[str] = []
+    for m in cite.finditer(body):
+        for k in (x.strip() for x in m.group(1).split(",")):
+            if k not in bib:
+                raise SystemExit(f"cited key not in references.bib: {k}")
+            if k not in order:
+                order.append(k)
+    unused = [k for k in bib if k not in order]
+    if unused:
+        print("warning: in references.bib but never cited (omitted):", unused)
+    items = "\n".join(f"{BS}bibitem{{{k}}} {fmt(bib[k])}" for k in order)
+    block = (f"{START} (generated by build_bibliography.py; do not edit by hand)\n"
+             f"{BS}begin{{thebibliography}}{{00}}\n{items}\n{BS}end{{thebibliography}}\n{END}")
+    new = re.sub(re.escape(START) + r".*?" + re.escape(END), lambda _m: block, tex, flags=re.S)
+    tex_path.write_text(new, encoding="utf-8")
+    print(f"{len(order)} references written, in order of first citation")
+
+
+if __name__ == "__main__":
+    main()
