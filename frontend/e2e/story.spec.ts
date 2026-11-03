@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { SCENES as STORY } from "../src/features/story/scenes";
 
-const SCENES = Array.from({ length: 14 }, (_, i) => `s${String(i).padStart(2, "0")}`);
+const SCENES = STORY.map((s) => s.id);
+const FIRST = SCENES[0]!, LAST = SCENES[SCENES.length - 1]!;
 
 function watch(page: Page) {
   const errors: string[] = [];
@@ -32,21 +34,22 @@ test("the story loads with no console errors and no external requests", async ({
   expect(seen.external, "fonts and assets are self-hosted").toEqual([]);
 });
 
-test("presenter mode steps through all 14 scenes, then Home and End", async ({ page }) => {
+test("presenter mode steps through every scene, then Home and End", async ({ page }) => {
+  test.setTimeout(60_000 + SCENES.length * 4_000);
   await startPresenter(page);
   for (let i = 1; i < SCENES.length; i++) {
     await page.keyboard.press("ArrowRight");
     await page.waitForTimeout(1700);
     await page.screenshot({ path: `e2e/__screenshots__/scene-${SCENES[i]}.png` });
   }
-  expect(await inView(page, "s13")).toBe(true);
-  await expect(page.getByText("14 / 14")).toBeVisible();
+  expect(await inView(page, LAST)).toBe(true);
+  await expect(page.getByText(`${SCENES.length} / ${SCENES.length}`)).toBeVisible();
   await page.keyboard.press("Home");
   await page.waitForTimeout(1800);
-  expect(await inView(page, "s00")).toBe(true);
+  expect(await inView(page, FIRST)).toBe(true);
   await page.keyboard.press("End");
   await page.waitForTimeout(1800);
-  expect(await inView(page, "s13")).toBe(true);
+  expect(await inView(page, LAST)).toBe(true);
 });
 
 test("fps while the 3D scenes play", async ({ page }) => {
@@ -60,8 +63,11 @@ test("fps while the 3D scenes play", async ({ page }) => {
     console.log(`renderer: ${renderer}`);
     expect(renderer, "E2E_GPU needs hardware WebGL").not.toMatch(/swiftshader|none/i);
   }
-  for (const target of [0, 8]) {
+  // the four 3D scenes, found by id (their positions moved when the story grew)
+  for (const id of ["s00", "leaks", "s05", "s08"]) {
+    const target = SCENES.indexOf(id);
     await page.getByRole("button", { name: /^Go to / }).nth(target).click();
+    await page.waitForTimeout(1500);
     const fps = await page.evaluate(() => new Promise<number>((resolve) => {
       let frames = 0;
       const start = performance.now();
@@ -69,10 +75,10 @@ test("fps while the 3D scenes play", async ({ page }) => {
       requestAnimationFrame(tick);
     }));
     const gpu = Boolean(process.env.E2E_GPU);
-    console.log(`scene ${target}: ${fps.toFixed(1)} fps (${gpu ? "hardware GPU" : "software WebGL"})`);
+    console.log(`scene ${id}: ${fps.toFixed(1)} fps (${gpu ? "hardware GPU" : "software WebGL"})`);
     // the spec's 60 fps target holds on a GPU (E2E_GPU=1, run it on the presentation laptop); software WebGL is a smoke
     // test, and the lungs' glass (a second transmission render pass) is slow there: the original lungs ran ~4 fps on it
-    const softwareFloor = target === 0 ? 3 : 10;
+    const softwareFloor = id === "s00" || id === "s05" ? 3 : 10;
     expect(fps).toBeGreaterThan(Number(process.env.MIN_FPS ?? (gpu ? 50 : softwareFloor)));
   }
 });

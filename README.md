@@ -92,7 +92,7 @@ deterministic from the configured seed and is applied equally to all training cl
 .
 ├── backend/          # Python backend, Flask API, model definition, training & inference
 ├── documentation/    # System architecture, benchmarks, dataset specs & design docs
-├── frontend/         # presentation UI: animated 14-scene story of the model + live analyzer
+├── frontend/         # presentation UI: animated 30-scene story of the project + live analyzer
 ├── frontend-legacy/  # the previous web interface, archived
 └── README.md         # Repository overview
 ```
@@ -239,9 +239,11 @@ npm ci
 npm run dev        # http://localhost:5173 (API proxied to the backend on :5001)
 ```
 
-A scroll-driven presentation of the served model: 14 scenes (three in 3D) from the stethoscope recording through
-filtering, windows, MFCC features, the network, the four-model fusion, calibration and abstention, the problems
-solved along the way and the test result, ending in an analyzer for your own recording. Press **P** for presenter
+A scroll-driven presentation of the whole project, about 20 minutes: 30 scenes in five chapters. It starts with the
+original model and the leaks in how it was tested, follows the audit that found more than half of the Kaggle set cut
+from ICBHI (the paper), then the pipeline (filtering, windows, MFCC features), the network, training and fair model
+selection, the four-model fusion, calibration and abstention, the test result and the server, ending in an analyzer for
+your own recording. Press **P** for presenter
 mode (arrow keys step scene by scene). Every number on screen comes from `frontend/src/content/facts.ts`, which is
 checked against the model's result files.
 

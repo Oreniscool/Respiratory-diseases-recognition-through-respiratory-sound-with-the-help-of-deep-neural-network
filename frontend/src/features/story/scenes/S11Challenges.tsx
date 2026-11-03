@@ -2,6 +2,7 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { Check } from "../../../components/icons";
 import { CHALLENGES } from "../../../content/challenges";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 
 export function S11Challenges() {
   const ref = useSceneTimeline<HTMLElement>("s11", (tl, root) => {
@@ -11,12 +12,13 @@ export function S11Challenges() {
       .to(root.querySelectorAll("[data-problem]"), { opacity: 0.55, stagger: 0.15, duration: 0.4 }, "<");
   });
   return (
-    <SceneFrame ref={ref} id="s11" label="Problems we hit, and how we fixed them"
-      summary="Six problems found while building RespiNet, each with the fix: wrong labels, copied audio, made-up patient IDs, duplicates, early stopping, and serving parity.">
+    <SceneFrame ref={ref} id="s11" label="Other problems we fixed"
+      summary="Four more problems found while building RespiNet, each with the fix: wrong labels, exact duplicates, early stopping, and a served model that differed from the evaluated one.">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col justify-center px-6 py-20 lg:px-12">
-        <p data-reveal className="eyebrow m-0">Step 11 · The road here</p>
-        <h2 data-reveal className="mt-3 mb-6 max-w-3xl">Problems we hit, and how we fixed them</h2>
-        <ol className="m-0 grid list-none gap-3 p-0 md:grid-cols-2 lg:grid-cols-3">
+        <p data-reveal className="eyebrow m-0">{sceneEyebrow("s11", "The road here")}</p>
+        <h2 data-reveal className="mt-3 mb-2 max-w-3xl">Other problems we fixed</h2>
+        <p data-reveal className="mt-0 mb-6 max-w-3xl text-ink-muted">Besides the copies, four problems could each have made our numbers wrong. Each is now caught automatically.</p>
+        <ol className="m-0 grid list-none gap-3 p-0 md:grid-cols-2">
           {CHALLENGES.map((c, i) => (
             <li key={c.id} data-challenge className="flex flex-col gap-2.5 rounded-xl border border-line bg-paper-raised p-4">
               <div className="flex items-baseline gap-3">

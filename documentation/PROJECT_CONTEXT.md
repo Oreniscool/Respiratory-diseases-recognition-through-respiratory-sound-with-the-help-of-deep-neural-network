@@ -474,8 +474,8 @@ decoded-duration window. See `backend/CLAUDE.md` §4 for the full environment va
 
 **Rebuilt 2026-10-26** (branch `frontend-rebuild`; the previous "Respiratory Atlas" app is archived in
 `frontend-legacy/`, with its own CLAUDE.md). React 19 + Vite 8 SPA, TypeScript 5.9, Tailwind 4,
-react-three-fiber, GSAP ScrollTrigger, Motion. Routes: `/` a 14-scene scroll story of the served
-model (three 3D scenes, keyboard presenter mode) that ends in the analyzer, and `/analyze` the analyzer
+react-three-fiber, GSAP ScrollTrigger, Motion. Routes: `/` a scroll story of the whole project
+(30 scenes in five chapters since 2026-11-03, two 3D scenes, keyboard presenter mode) that ends in the analyzer, and `/analyze` the analyzer
 alone. Analyzer flow: upload, microphone recording or one of five test-split demo clips → `POST
 /predict` (uses the 2026-10-26 `members` and `window_scores` fields) → story report: verdict ring or
 "The model isn't sure", the four member votes, RespiNet's per-window reading, all five scores, optional

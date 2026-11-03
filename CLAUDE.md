@@ -114,7 +114,7 @@ current model and `v3-2026-08-14/` is the archived, leakage-contaminated one.
 │   ├── artifacts/latest/        # (gitignored) the current verified model + contract files
 │   └── dataset/                 # (gitignored) Asthma_Detection_V2/, ICBHI_final_dataset/, ICBHI_as_folders/,
 │                                #   patient_diagnosis_authentic.csv  ← the REAL ICBHI labels
-├── frontend/                    # presentation UI (2026-10-26): 14-scene story + analyzer; see frontend/CLAUDE.md
+├── frontend/                    # presentation UI (2026-10-26; expanded 2026-11-03): 30-scene, 5-chapter story + analyzer; see frontend/CLAUDE.md
 │   ├── src/                     # content/ (sourced facts), lib/ (api, audio DSP), features/ (story, three, analyzer)
 │   ├── public/audio, public/demo # test-split demo/scene clips + their recorded real /predict responses
 │   ├── e2e/, playwright.config.ts # browser tests (mock-mode build in dist-e2e/, real GPU, live backend)

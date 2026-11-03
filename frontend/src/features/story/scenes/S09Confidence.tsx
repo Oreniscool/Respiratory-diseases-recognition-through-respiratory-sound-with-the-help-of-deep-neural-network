@@ -2,6 +2,7 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { FACTS, WHY } from "../../../content/facts";
 import { SceneColumns, Why } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { ReliabilityChart } from "./charts/ReliabilityChart";
 
 export function S09Confidence() {
@@ -14,7 +15,7 @@ export function S09Confidence() {
   });
   return (
     <SceneFrame ref={ref} id="s09" label="Honest confidence" summary="Temperature scaling makes the scores honest: on test recordings, the score tracks how often the model is right.">
-        <SceneColumns eyebrow="Step 9 · Calibration" title="Honest confidence"
+        <SceneColumns eyebrow={sceneEyebrow("s09", "Calibration")} title="Honest confidence"
           visual={<ReliabilityChart bins={FACTS.reliabilityBins.value} />}>
           <p>
             The fused scores pass through <strong>temperature scaling</strong> (T = <span className="tabular">{FACTS.fusedTemperature.display}</span>),

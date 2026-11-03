@@ -2,6 +2,8 @@ import { act, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { SCENES } from "../story/scenes";
 import { stageFor, useStage } from "./stage";
+import { leakLabels } from "./leakLayout";
+import { useLeakSelection } from "../story/scenes/charts/leakStore";
 
 vi.mock("three", () => {
   throw new Error("three must not be imported without WebGL");
@@ -11,12 +13,24 @@ vi.mock("../../hooks/useWebGL", () => ({ useWebGL: () => false }));
 const { Stage } = await import("./Stage");
 const { Fallback2D } = await import("./Fallback2D");
 
-it("maps only scenes 0 and 8 to a 3D group", () => {
+it("maps the opening, the leak ladder, the fingerprint and the vote to 3D groups, every other scene to none", () => {
   const groups = Object.fromEntries(SCENES.map((s) => [s.id, stageFor(s.id)]));
-  expect(groups).toEqual({
-    s00: "lungs", s01: null, s02: null, s03: null, s04: null, s05: null, s06: null,
-    s07: null, s08: "fusion", s09: null, s10: null, s11: null, s12: null, s13: null,
-  });
+  const three: Record<string, string> = { s00: "lungs", leaks: "leaks", s05: "fingerprint", s08: "fusion" };
+  expect(groups).toEqual(Object.fromEntries(SCENES.map((s) => [s.id, three[s.id] ?? null])));
+});
+
+it("the leak fallback highlights the selected bar", () => {
+  act(() => useLeakSelection.setState({ unit: "patient", testPick: false }));
+  render(<Fallback2D group="leaks" />);
+  const on = screen.getByTestId("leak-bars-2d").querySelectorAll('[data-leak-bar2d="on"]');
+  expect(on).toHaveLength(1);
+  expect(screen.getByTestId("leak-bars-2d").textContent).toContain("38.5%");
+});
+
+it("the 3D leak labels follow the selection", () => {
+  const value = (unit: "sample" | "patient", test: boolean) => leakLabels(unit, test).find((l) => l.id === "leak-value")!.title;
+  expect(value("sample", true)).toBe("87.2%");
+  expect(value("patient", false)).toBe("38.5%");
 });
 
 it("hides the stage between 3D scenes", () => {

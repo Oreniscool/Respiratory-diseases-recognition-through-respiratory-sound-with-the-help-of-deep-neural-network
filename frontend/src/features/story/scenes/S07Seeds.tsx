@@ -8,6 +8,7 @@ import { memberTop } from "../../../content/members";
 import { SEED_READINGS, topOf } from "../../../content/seeds";
 import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 
 const EPOCHS = String(FACTS.restoredEpochs.value).split("/");
 
@@ -73,7 +74,7 @@ export function S07Seeds() {
 
   return (
     <SceneFrame ref={ref} id="s07" label="Three of them" summary={`Three copies of RespiNet trained with seeds 42, 43 and 44 score every window of the sample recording; they disagree on ${disagreements} of ${windows} windows, and their average leads with ${lead[0]} in ${lead[1]}.`}>
-        <SceneColumns eyebrow="Step 7 · An ensemble" title="Three of them"
+        <SceneColumns eyebrow={sceneEyebrow("s07", "An ensemble")} title="Three of them"
           visual={
             <div className="space-y-5">
               <div className="grid grid-cols-3 gap-3" role="group" aria-label="Pick a seed to highlight its reading">

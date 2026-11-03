@@ -2,6 +2,7 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { FACTS, SAMPLE, WHY } from "../../../content/facts";
 import { SceneColumns, Why } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { AbstainGauge } from "./charts/AbstainGauge";
 
 export function S10Abstain() {
@@ -11,7 +12,7 @@ export function S10Abstain() {
   });
   return (
     <SceneFrame ref={ref} id="s10" label="Knowing when to abstain" summary="The model answers only when its top score is at least 66.3% and its uncertainty is at most 0.51; otherwise it says it is unsure.">
-        <SceneColumns eyebrow="Step 10 · Abstention" title="Knowing when to abstain"
+        <SceneColumns eyebrow={sceneEyebrow("s10", "Abstention")} title="Knowing when to abstain"
           visual={
             <div className="space-y-8 rounded-xl border border-line bg-paper-raised p-6">
               <AbstainGauge label="Top score" value={SAMPLE.confidence} limit={FACTS.minConfidence.value * 100} max={100}

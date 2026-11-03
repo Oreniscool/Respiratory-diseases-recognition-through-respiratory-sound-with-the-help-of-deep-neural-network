@@ -5,16 +5,28 @@ import { classColor } from "../../components/classColors";
 import { GLYPHS, type GlyphName } from "../../components/glyphs";
 import { LUNGS, bronchialTree } from "./lungAnatomy";
 import type { StageGroup } from "./stage";
+import { LeakBars2D } from "../story/scenes/charts/LeakLadder";
+import { FeatureHeatmap } from "../story/scenes/charts/FeatureHeatmap";
+import { useSceneAudio } from "../story/useSceneAudio";
 
-/** 2D versions of the three 3D scenes, for browsers without WebGL and for reduced motion. */
+/** 2D versions of the 3D scenes, for browsers without WebGL and for reduced motion. */
 export function Fallback2D({ group }: { group: StageGroup | null }) {
   if (!group) return null;
   return (
     <div data-testid="stage-fallback" className="flex h-full w-full items-center justify-center p-8">
       {group === "lungs" && <LungsSvg />}
       {group === "fusion" && <FusionSvg />}
+      {group === "leaks" && <LeakBars2D />}
+      {group === "fingerprint" && <FingerprintFlat />}
     </div>
   );
+}
+
+/** The fingerprint scene without 3D: the full 120-number frames as a heatmap. */
+function FingerprintFlat() {
+  const { analysis } = useSceneAudio("normal");
+  if (!analysis) return null;
+  return <div data-testid="fingerprint-flat" className="h-72 w-full max-w-2xl overflow-hidden rounded-xl border border-line"><FeatureHeatmap rows={analysis.features} /></div>;
 }
 
 const pathOf = (points: [number, number][], close = false) =>

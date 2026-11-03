@@ -23,9 +23,18 @@ const SUMMARY = "backend/artifacts/latest/model_summary.txt";
 const OVERLAP = "backend/data/kaggle_icbhi_overlap.summary.json";
 const KAUH_OVERLAP = "backend/data/kaggle_kauh_overlap.summary.json";
 const CHRON = "documentation/PROJECT_RESEARCH_CHRONICLE_AND_ARCHITECTURE_EVOLUTION.md";
+const LEDGER = "research/EXPERIMENT_LEDGER.csv";
+const CLAIMS = "research/CLAIM_EVIDENCE_MATRIX.csv";
+const OVERLAP_CSV = "backend/data/kaggle_icbhi_overlap.csv";
+const HYPER = "backend/artifacts/latest/model_metadata.json → training.hyperparameters";
 
 export type ReliabilityBin = { lower: number; upper: number; count: number; meanConfidence: number; accuracy: number };
 export type ClassRecall = { recall: number; patients: number };
+/** Balanced accuracy (mean of 20 seeds) for one split unit, with the checkpoint chosen on the test or validation split. */
+export type LeakRung = { test: number; validation: number };
+export type ClipOrigin = { clips: number; icbhi: number; kauh: number };
+export type Contrast = { a: number; b: number; ci: [number, number]; patients: string };
+export type Variant = { id: string; label: string; value: number; adopted?: boolean; reference?: boolean };
 
 export const FACTS = {
   recordings: n(1551, AUDIT),
@@ -102,6 +111,121 @@ export const FACTS = {
     display: "per-class recall, 49 test patients",
     source: `${TEST} → patient_level.classification_report`,
   },
+
+  // ---- Chapter 1: where it began (the 2020/21 project and its leaks) ----
+  reportedAccuracy: ratio(0.9567, `${LEDGER} → EXP-000`, 2),
+  reportedSd: n(0.0077, `${LEDGER} → EXP-000 secondary_metrics.reported_sd`, "0.77"),
+  originalClasses: n(6, "backend/experiments/leakage_ladder.py (docstring: six ICBHI classes, as in the original code)"),
+  originalParameters: n(328726, "backend/experiments/leakage_ladder.py (docstring: the original GRU network)"),
+  leakLadder: {
+    value: {
+      sample: { test: 0.8716, validation: 0.7985 },
+      recording: { test: 0.5866, validation: 0.5112 },
+      patient: { test: 0.4916, validation: 0.3845 },
+    } as Record<"sample" | "recording" | "patient", LeakRung>,
+    display: "balanced accuracy, mean of 20 seeds per rung",
+    source: `${LEDGER} → X1 secondary_metrics (L0, L1, L2T, L2, L3T, L3)`,
+  },
+  leakChance: ratio(0.1667, `${LEDGER} → X1 secondary_metrics.constant_baselines.L0.constant_balanced_accuracy`),
+  leakRepeats: n(20, `${LEDGER} → X1 secondary_metrics.L0.repeats`),
+  originalCopies: n(4, "backend/experiments/leakage_ladder.py (docstring: four augmented copies per non-COPD recording)"),
+  originalSplit: { value: "75/25", display: "75 / 25", source: "backend/experiments/leakage_ladder.py (docstring: random sample-level 75/25 split)" },
+
+  // ---- Chapter 2: the discovery (the Kaggle–ICBHI audit) ----
+  icbhiDiagnoses: {
+    value: { COPD: 64, Healthy: 26, URTI: 14, Bronchiectasis: 7, Bronchiolitis: 6, Pneumonia: 6, LRTI: 2, Asthma: 1 } as Record<string, number>,
+    display: "126 ICBHI patients by diagnosis",
+    source: "backend/dataset_provenance.py → ICBHI_2017_PATIENT_COUNTS",
+  },
+  icbhiRecordingsByClass: {
+    value: { asthma: 1, bronchial: 54, copd: 793, healthy: 35, pneumonia: 37 } as Record<string, number>,
+    display: "920 ICBHI recordings by class",
+    source: `${AUDIT} → per_source.icbhi.recording_label_counts`,
+  },
+  clipOrigins: {
+    value: {
+      asthma: { clips: 288, icbhi: 0, kauh: 262 },
+      bronchial: { clips: 104, icbhi: 51, kauh: 15 },
+      copd: { clips: 401, icbhi: 401, kauh: 0 },
+      healthy: { clips: 133, icbhi: 74, kauh: 0 },
+      pneumonia: { clips: 285, icbhi: 105, kauh: 39 },
+    } as Record<string, ClipOrigin>,
+    display: "1,211 Kaggle clips by class and origin",
+    source: `${OVERLAP} and ${KAUH_OVERLAP} → by_class`,
+  },
+  untracedClips: n(264, `${OVERLAP} and ${KAUH_OVERLAP}: clips − ICBHI copies − KAUH copies`),
+  copiedRecordings: n(187, `${OVERLAP_CSV}: distinct references of the copies`),
+  copiedPatients: n(60, `${OVERLAP_CSV}: distinct ICBHI patients behind the copies`),
+  cleanIcbhiPatients: n(66, `126 ICBHI patients − the 60 in ${OVERLAP_CSV}`),
+  kauhSourceRecordings: n(115, "backend/data/kaggle_kauh_overlap.csv: distinct references of the copies"),
+  nccThreshold: n(0.75, `${OVERLAP}.threshold`, "0.75"),
+  matchRate: { value: "4000", display: "4 kHz", source: "backend/cross_dataset_overlap.py → MATCH_SAMPLE_RATE" },
+  matchBand: { value: "100-1000", display: "100–1,000 Hz", source: "backend/cross_dataset_overlap.py → MATCH_BAND_HZ" },
+  syntheticCuts: n(100, `${CLAIMS} → C-16 (100 synthetic degraded cuts)`),
+  listeningCases: n(20, `${CLAIMS} → C-16 notes (20 hardest real cases)`),
+  minCopyNcc: n(0.7951, `${OVERLAP}.min_overlap_ncc`, "0.795"),
+  maxNonCopyNcc: n(0.6973, `${OVERLAP}.max_non_overlap_ncc`, "0.697"),
+  syntheticRecall: { value: "99/100", display: "99 of 100", source: `${CLAIMS} → C-16` },
+  kauhIcbhiMatches: { value: "0/336", display: "0 of 336", source: "backend/data/kauh_icbhi_overlap.summary.json" },
+  listeningAgreement: { value: "19/19", display: "19 of 19", source: `${CLAIMS} → C-16 notes (20 hardest cases, 19 decided)` },
+  fingerprintIcbhi: { value: "631/631", display: "631 of 631", source: `${CLAIMS} → C-31; ${LEDGER} → FP` },
+  fingerprintKauh: { value: "313/316", display: "313 of 316", source: `${CLAIMS} → C-31` },
+  contaminationWithin: {
+    value: {
+      copd: { a: 0.8108, b: 0.4153, ci: [0.2688, 0.5087], patients: "26 vs 38" },
+      bronchial: { a: 0.625, b: 0.1316, ci: [0.2338, 0.8205], patients: "7 vs 22" },
+    } as Record<string, Contrast>,
+    display: "one Kaggle-trained model: copied vs clean ICBHI recordings (a = copied, b = clean)",
+    source: `${LEDGER} → C4 secondary_metrics.within_model`,
+  },
+  contaminationBetween: {
+    value: {
+      healthy: { a: 0.9615, b: 0.1538, ci: [0.6538, 0.9359], patients: "21" },
+      pneumonia: { a: 0.8529, b: 0.3235, ci: [0.2727, 0.7143], patients: "6" },
+      bronchial: { a: 0.625, b: 0.4375, ci: [-0.25, 0.6154], patients: "7" },
+    } as Record<string, Contrast>,
+    display: "the same copied recordings: model trained with (a) vs without (b) the copies",
+    source: `${LEDGER} → C4 secondary_metrics.between_models`,
+  },
+  c4TrainingRecordings: { value: "715/338", display: "715 vs 338", source: "backend/artifacts/experiments/contamination/model_kaggle_*/split_summary.json; paper §III-E" },
+
+  // ---- Chapter 4: training and model selection ----
+  focalGamma: n(2, `${HYPER}.focal_gamma`),
+  focalAlpha: n(0.25, `${HYPER}.focal_alpha`, "0.25"),
+  labelSmoothing: n(0.1, `${HYPER}.label_smoothing`, "0.1"),
+  learningRate: n(0.0003, `${HYPER}.learning_rate`, "3 × 10⁻⁴"),
+  batchSize: n(64, `${HYPER}.batch_size`),
+  maxEpochs: n(80, `${HYPER}.max_epochs`),
+  patience: n(18, `${HYPER}.early_stopping.patience`),
+  noiseSnrDb: n(20, "backend/featureExtraction.py → add_noise(snr_db=20.0)"),
+  shiftSamples: n(1600, "backend/featureExtraction.py → shift(data, 1_600)"),
+  stretchRates: { value: "0.8/1.2", display: "×0.8 and ×1.2", source: "backend/featureExtraction.py → stretch(data, 0.8), stretch(data, 1.2)" },
+  specFreqMasks: { value: "2×15", display: "2 frequency masks of up to 15 bins", source: `${HYPER}.spec_augment` },
+  specTimeMasks: { value: "2×25", display: "2 time masks of up to 25 frames", source: `${HYPER}.spec_augment` },
+  specFreqMaxBins: n(15, `${HYPER}.spec_augment.max_freq_mask`),
+  specTimeMaxFrames: n(25, `${HYPER}.spec_augment.max_time_mask`),
+  devPatients: n(195, `${SPLIT}: training + validation patients (146 + 49)`),
+  cvFolds: n(3, "backend/experiments/cv.py (3-fold patient-grouped CV); research/DECISION_LOG.md D-04"),
+  variants: {
+    value: [
+      { id: "E_yamnet", label: "YAMNet head", value: 0.6581 },
+      { id: "E_opera_ce", label: "OPERA-CE head", value: 0.6769 },
+      { id: "D3_x3", label: "RespiNet ×3", value: 0.6847 },
+      { id: "D3_x3+E_yamnet", label: "RespiNet ×3 + YAMNet", value: 0.6994 },
+      { id: "D0+E_yamnet", label: "RespiNet + YAMNet (reference)", value: 0.7013, reference: true },
+      { id: "E_hear", label: "HeAR head", value: 0.7159 },
+      { id: "D3_x3+E_yamnet+E_hear", label: "RespiNet ×3 + YAMNet + HeAR", value: 0.7312 },
+      { id: "D3_x3+E_yamnet+E_opera_ce+E_hear", label: "All four (adopted)", value: 0.7492, adopted: true },
+    ] as Variant[],
+    display: "cross-validated patient balanced accuracy, development patients only",
+    source: `${LEDGER} → EXP-R2B-* primary_value`,
+  },
+
+  // ---- Chapter 5: the server ----
+  maxUploadMb: n(25, "backend/server.py → RESPINET_MAX_UPLOAD_MB default"),
+  maxAudioSeconds: n(120, "backend/server.py → RESPINET_MAX_AUDIO_SECONDS default"),
+  rateLimit: n(30, "backend/server.py → RESPINET_RATE_LIMIT_PER_MINUTE default"),
+  embeddingRate: n(16000, "backend/pretrained.py → YAMNET_SAMPLE_RATE, OPERA_SAMPLE_RATE (16_000)"),
 } as const;
 
 export type FactKey = keyof typeof FACTS;

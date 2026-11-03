@@ -1606,6 +1606,61 @@ Governance and evidence now live in `research/` (see `research/README.md`).
     The e2e fps check now covers the two remaining 3D scenes; in software WebGL the lungs run ~5 fps (the original
     lungs ~4) and the vote ~33 fps. A hardware-GPU fps run (≥ 50 fps) is still to do on the presentation laptop.
 
+- **Story expansion to a full-length presentation (2026-11-03, branch `story-expansion`).** Content only: no model,
+  endpoint, threshold or served number changed. The story grows from 14 to **30 scenes in five chapters** (where it
+  began · the discovery · from sound to features · the model · results and the system) for a ~20-minute talk; the
+  original scenes s00–s13 keep their ids and relative order. Kept the earlier presentation decisions: only solved
+  problems, no limitations scene, nothing about other hospitals, children or SPRSound (a test now checks every scene).
+  - **New scenes:**
+    - **Chapter 1:** the starting point (the 2020 paper's reported 95.67% ± 0.77, its protocol with the three leaky
+      steps clickable); an interactive leak ladder (split unit × checkpoint chosen on test, from ledger `X1`: 87.2% /
+      79.9% sample, 58.7% / 51.1% recording, 49.2% / 38.5% patient balanced accuracy, chance 16.7%); a patient-split
+      illustration.
+    - **Chapter 2 (the paper):** the ICBHI 8 → 5 class Sankey with a "add the Kaggle set" toggle; a draggable NCC
+      matcher illustration (|NCC|, as in the audit); the histogram of best match scores of all 1,211 clips (bins of
+      0.02, the empty band shaded on whole bins); copies by class and origin (631 ICBHI / 316 KAUH / 264 untraced);
+      one recording, ICBHI 218_1b1_Lr_sc_Meditron.wav, cut into 13 back-to-back 6-s clips under Kaggle names P47, P48
+      and P49; the four validation checks; the C4 contrasts in two tabs (within one model: COPD 81.1% vs 41.5%,
+      bronchial 62.5% vs 13.2%; with vs without copies: healthy 96.2% → 15.4%, pneumonia 85.3% → 32.4%, bronchial
+      inconclusive), worded as an association; the paper card with its three recommendations (at most 66 of 126 ICBHI
+      patients clean).
+    - **Chapter 4:** training curves of the served seed-42 RespiNet (63 epochs, restored epoch 45, the 18-epoch patience
+      window; per-window accuracy); a focal-loss γ slider with the augmentations and a SpecAugment mask illustration;
+      model selection (3-fold patient-grouped CV over 195 development patients, round-2b variants from the ledger,
+      the adopted fusion highlighted, no superiority claim).
+    - **Chapter 5:** a clickable request path through the fail-closed server; a closing recap.
+  - **Sources:** every new number is a `FACTS` entry with its source. `frontend/scripts/story_data.py` generates
+    `frontend/src/content/story-data.json` (histogram and the most-copied recording from the tracked overlap CSV; the
+    training curve from `backend/artifacts/latest/training_history.json`). The new
+    `frontend/src/content/story.sources.test.ts` (part of `npm run check:facts`) re-derives all of them from the ledger,
+    claim matrix, overlap files, backend source and, when present, the served artifacts.
+  - **Presenter:** eyebrows read "Chapter n · …" from `sceneEyebrow()` in `scenes.ts`; the progress strip groups the
+    30 steps by chapter.
+  - **Verification:** 127 Vitest tests, lint and typecheck clean, production build; all 9 Playwright tests pass on the
+    mock-mode build (presenter mode steps through all 30 scenes, no console errors, no horizontal scroll at 390, 1280
+    and 1920 px).
+- **Transitions, two more 3D scenes and a repetition review (2026-11-03, same branch).** Still content and
+  presentation only; no number changed.
+  - **3D:** the leak ladder is now a 3D bar grid (split unit across, checkpoint on test in front and on validation
+    behind, a chance plane at 16.7%), driven by the same controls through a shared store; the sound fingerprint is a 3D
+    landscape of one real window of the scene clip (time × 120 features, height and colour = value) that morphs from the
+    128 mel bands to the 40 MFCCs (each coefficient standardised over time for display) to the full 120 numbers, with
+    dividers marking the MFCC, Δ and Δ² blocks. Display smoothing (3 × 3) is applied and the scene keeps its
+    "approximation" badge. Both have 2D fallbacks for browsers without WebGL and for reduced motion. The story now has
+    four 3D scenes (lungs, leaks, fingerprint, vote).
+  - **Transitions:** a full-screen chapter card wipes across at the first scene of chapters 2–5; headline numbers count
+    up when their scene opens; each scene's visual slides in. All are skipped with reduced motion.
+  - **Repetition review:** "The data" no longer repeats the patient-split and copies notes; "Choosing fairly" and
+    "Four models vote" no longer share the same note; "Problems we fixed" keeps only the four problems not told
+    elsewhere (labels, duplicates, early stopping, served ≠ evaluated), and the inflated 82% moved to the paper scene;
+    the training scene no longer repeats those two problems; the server scene covers only its safety checks (format,
+    limits, lung-sound check, verified files) since the next scene walks the pipeline; the opening line describes the
+    whole project. A test now fails if any paragraph of 60+ characters appears twice in the story.
+  - **Fix found on the way:** the e2e fps check measured scene positions 0 and 8, and position 8 had become a 2D scene
+    when the story grew; it now finds the four 3D scenes by id (software WebGL: lungs ~6, leaks ~54, fingerprint ~15,
+    vote ~28 fps).
+  - **Verification:** 132 Vitest tests, lint and typecheck clean, build; all 9 Playwright tests pass.
+
 ## 9. Comprehensive Synthesis for University Major Project Reports
 
 When converting this chronicle into a formal University Major Project Report (for B.Tech, M.Tech, or Capstone Thesis), structure the chapters as follows:

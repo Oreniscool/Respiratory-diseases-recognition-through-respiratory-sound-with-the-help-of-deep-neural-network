@@ -3,6 +3,7 @@ import { ScoreBar } from "../../../components/ScoreBar";
 import { FACTS } from "../../../content/facts";
 import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 
 function Interval() {
   const [lo, mid, hi] = [FACTS.ciLow.value, FACTS.patientAccuracy.value, FACTS.ciHigh.value].map((v) => v * 100);
@@ -29,7 +30,7 @@ export function S12Performance() {
   });
   return (
     <SceneFrame ref={ref} id="s12" label="How well it does" summary={`On 49 unseen patients from the same datasets, ${FACTS.patientAccuracy.display} of patients get the right class.`}>
-      <SceneColumns eyebrow="Step 12 · The result" title="How well it does"
+      <SceneColumns eyebrow={sceneEyebrow("s12", "The result")} title="How well it does"
         visual={
           <div className="space-y-8">
             <div data-recall className="space-y-1">
@@ -42,7 +43,7 @@ export function S12Performance() {
           </div>
         }>
         <p data-headline className="m-0">
-          <span className="block font-serif text-7xl leading-none text-ink">{FACTS.patientAccuracy.display}</span>
+          <span data-countup className="block font-serif text-7xl leading-none text-ink">{FACTS.patientAccuracy.display}</span>
           <span className="mt-3 block text-lg text-ink">of patients get the right class, on 49 unseen patients from the same datasets</span>
         </p>
         <p>

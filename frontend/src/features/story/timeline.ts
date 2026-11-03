@@ -41,6 +41,43 @@ type Options = {
   minDuration?: number;
 };
 
+const NUMBER = /\d[\d,]*(?:\.\d+)?/g;
+
+/** Count every number in an element's text up from zero, keeping its decimals and thousands separators.
+ *  `data-countup="first"` counts only the first number (e.g. "99 of 100"). */
+function countUp(tl: gsap.core.Timeline, el: HTMLElement, at: number): void {
+  const final = (el.dataset.countupFinal ??= el.textContent ?? "");
+  const firstOnly = el.dataset.countup === "first";
+  const state = { p: 0 };
+  const render = () => {
+    let n = 0;
+    el.textContent = final.replace(NUMBER, (token) => {
+      if (firstOnly && n++ > 0) return token;
+      const decimals = token.split(".")[1]?.length ?? 0;
+      const value = Number(token.replace(/,/g, "")) * state.p;
+      return token.includes(",")
+        ? value.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+        : value.toFixed(decimals);
+    });
+  };
+  tl.fromTo(state, { p: 0 }, { p: 1, duration: 1.3, ease: "power2.out", onUpdate: render, onStart: render,
+    onComplete: () => { el.textContent = final; } }, at);
+}
+
+/** The chapter card: wipes in from the left, holds, wipes out to the right. Returns its length in seconds. */
+function chapterCard(tl: gsap.core.Timeline, card: HTMLElement): number {
+  const title = card.querySelector("[data-chapter-title]");
+  const number = card.querySelector("[data-chapter-number]");
+  tl.set(card, { autoAlpha: 1, clipPath: "inset(0 100% 0 0)" }, 0)
+    .to(card, { clipPath: "inset(0 0% 0 0)", duration: 0.45, ease: "power3.inOut" }, 0)
+    .from(number, { y: 16, opacity: 0, duration: 0.4 }, 0.2)
+    .from(title, { y: 28, opacity: 0, duration: 0.5, ease: "power3.out" }, 0.3)
+    .to(card, { clipPath: "inset(0 0 0 100%)", duration: 0.45, ease: "power3.inOut" }, 1.2)
+    .set(card, { autoAlpha: 0 }, 1.65);
+  // the scene's text starts rising while the card wipes away
+  return 1.35;
+}
+
 /**
  * Play a scene's animation in real time each time the scene opens (scrolled to, or stepped to in presenter
  * mode), instead of tying it to the scroll position. With reduced motion the scene shows its finished state.
@@ -60,9 +97,16 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
     const intro = gsap.timeline({ paused: true });
     const words = root.querySelectorAll("[data-word]");
     const reveal = root.querySelectorAll("[data-reveal]");
+    const card = root.querySelector<HTMLElement>("[data-chapter-intro]");
+    const visual = [...root.querySelectorAll<HTMLElement>("[data-visual]")].filter((v) => v.childElementCount > 0);
+    const counters = root.querySelectorAll<HTMLElement>("[data-countup]");
+    let cardSeconds = 0;
     if (!reduced) {
+      if (card) cardSeconds = chapterCard(intro, card);
       if (words.length) intro.from(words, { yPercent: 110, opacity: 0, stagger: 0.07, duration: 0.7, ease: "power3.out" });
-      if (reveal.length) intro.from(reveal, { y: 24, opacity: 0, stagger: 0.1, duration: 0.7, ease: "power2.out" }, words.length ? "-=0.35" : 0);
+      if (reveal.length) intro.from(reveal, { y: 24, opacity: 0, stagger: 0.1, duration: 0.7, ease: "power2.out" }, words.length ? "-=0.35" : cardSeconds);
+      if (visual.length) intro.from(visual, { x: 48, opacity: 0, duration: 0.9, ease: "power3.out" }, cardSeconds + 0.15);
+      counters.forEach((el) => countUp(intro, el, cardSeconds + 0.3));
     }
     const tl = gsap.timeline({
       paused: true,
@@ -97,7 +141,8 @@ export function useSceneTimeline<T extends HTMLElement = HTMLElement>(
         else useStage.getState().leave(id);
       },
     });
-    tl.delay(0.25);
+    // the scene's own animation starts once the chapter card (if any) has cleared
+    tl.delay(0.25 + cardSeconds / PACE);
     queueRefresh();
   }, { scope: ref, dependencies: deps, revertOnUpdate: true });
   return ref;

@@ -2,6 +2,7 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { FACTS, SAMPLE } from "../../../content/facts";
 import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { useSceneAudio } from "../useSceneAudio";
 import { WindowSlider } from "./charts/WindowSlider";
 
@@ -20,7 +21,7 @@ export function S04Slicing() {
   const minutes = Math.round(SAMPLE.duration_s);
   return (
     <SceneFrame ref={ref} id="s04" label="Slicing time" summary="The recording is resampled to 22,050 Hz and cut into overlapping 200-frame windows.">
-        <SceneColumns eyebrow="Step 4 · Windows" title="Slicing time" visual={analysis && <WindowSlider analysis={analysis} />}>
+        <SceneColumns eyebrow={sceneEyebrow("s04", "Windows")} title="Slicing time" visual={analysis && <WindowSlider analysis={analysis} />}>
           <p>
             The sound is resampled to <span className="tabular">{FACTS.sampleRate.display}</span> Hz and cut into windows of
             <strong> 200 frames</strong> (about 4.6 seconds), each starting {FACTS.windowHop.display} frames after the

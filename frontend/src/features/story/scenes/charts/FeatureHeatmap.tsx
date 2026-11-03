@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 /** Sequential single-hue ramp (paper → accent → deep accent) for a value in [0, 1]. */
 const STOPS = [[247, 250, 240], [190, 230, 127], [25, 128, 118], [17, 85, 78]] as const;
-function ramp(t: number): [number, number, number] {
+export function ramp(t: number): [number, number, number] {
   const x = Math.max(0, Math.min(1, t)) * (STOPS.length - 1);
   const i = Math.min(STOPS.length - 2, Math.floor(x));
   const f = x - i;

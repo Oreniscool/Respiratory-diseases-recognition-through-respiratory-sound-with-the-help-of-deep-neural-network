@@ -2,6 +2,7 @@ import { SceneFrame } from "../../../components/SceneFrame";
 import { FACTS, WHY } from "../../../content/facts";
 import { SceneColumns, Why } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { useSceneAudio } from "../useSceneAudio";
 import { FilterBands } from "./charts/FilterBands";
 
@@ -18,7 +19,7 @@ export function S03Cleaning() {
   }, { deps: [analysis] });
   return (
     <SceneFrame ref={ref} id="s03" label="Cleaning the signal" summary="A band-pass filter keeps 100 to 2,000 Hz, removing heartbeat rumble and high-frequency noise.">
-        <SceneColumns eyebrow="Step 3 · Cleaning" title="Cleaning the signal"
+        <SceneColumns eyebrow={sceneEyebrow("s03", "Cleaning")} title="Cleaning the signal"
           visual={analysis && <FilterBands analysis={analysis} />}>
           <p>
             A {FACTS.filterOrder.display}th-order Butterworth band-pass keeps <strong>100–2,000 Hz</strong>, where

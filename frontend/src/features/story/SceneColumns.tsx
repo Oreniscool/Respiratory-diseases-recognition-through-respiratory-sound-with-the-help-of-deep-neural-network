@@ -11,7 +11,8 @@ export function SceneColumns({ eyebrow, title, children, visual }: {
         <h2 data-reveal className="mt-3 mb-6">{title}</h2>
         <div data-reveal className="space-y-4 text-ink-muted [&_strong]:font-semibold [&_strong]:text-ink">{children}</div>
       </div>
-      <div className="relative z-10 min-w-0">{visual}</div>
+      {/* the visual slides in as the scene opens (timeline.ts); 3D scenes leave it empty for the shared stage */}
+      <div data-visual className="relative z-10 min-w-0">{visual}</div>
     </div>
   );
 }

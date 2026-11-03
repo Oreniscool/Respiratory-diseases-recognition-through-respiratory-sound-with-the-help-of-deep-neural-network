@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, vi } from "vitest";
-import { SCENES } from "../scenes";
+import { CHAPTERS, SCENES, sceneEyebrow } from "../scenes";
 import { handlePresenterKey, setScroller, usePresenter } from "./presenterStore";
 
 const key = (k: string, target: Partial<HTMLElement> = document.body, repeat = false, mods: Partial<KeyboardEvent> = {}) =>
@@ -13,13 +13,31 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-it("has 14 scenes, s00 to s13", () => {
-  expect(SCENES.map((s) => s.id)).toEqual(Array.from({ length: 14 }, (_, i) => `s${String(i).padStart(2, "0")}`));
+const ORDER = [
+  "s00", "s01", "origin", "leaks", "patients",
+  "classes", "match", "gap", "provenance", "oneRecording", "checks", "consequence", "paper",
+  "s02", "s03", "s04", "s05",
+  "s06", "training", "learning", "s07", "selection", "s08", "s09", "s10",
+  "s11", "s12", "server", "s13", "takeaways",
+];
+const LAST = ORDER.length - 1;
+
+it("has 30 scenes in five chapters, keeping the original ids s00–s13 in their old relative order", () => {
+  expect(SCENES.map((s) => s.id)).toEqual(ORDER);
+  expect(new Set(SCENES.map((s) => s.chapter)).size).toBe(CHAPTERS.length);
+  const originals = SCENES.map((s) => s.id).filter((id) => /^s\d\d$/.test(id));
+  expect(originals).toEqual(Array.from({ length: 14 }, (_, i) => `s${String(i).padStart(2, "0")}`));
+});
+
+it("numbers the eyebrows by chapter", () => {
+  expect(sceneEyebrow("s00")).toBe("Chapter 1 · Where it began");
+  expect(sceneEyebrow("gap", "The result")).toBe("Chapter 2 · The result");
+  expect(sceneEyebrow("takeaways")).toBe("Chapter 5 · Results and the system");
 });
 
 it("next and prev clamp at the ends", () => {
-  for (let i = 0; i < 20; i++) state().next();
-  expect(state().index).toBe(13);
+  for (let i = 0; i < 40; i++) state().next();
+  expect(state().index).toBe(LAST);
   state().goTo(0);
   state().prev();
   expect(state().index).toBe(0);
@@ -34,7 +52,7 @@ it("p toggles presenter mode; other keys do nothing while it is off", () => {
   handlePresenterKey(key(" "), state());
   expect(state().index).toBe(2);
   handlePresenterKey(key("End"), state());
-  expect(state().index).toBe(13);
+  expect(state().index).toBe(LAST);
   handlePresenterKey(key("Escape"), state());
   expect(state().active).toBe(false);
 });

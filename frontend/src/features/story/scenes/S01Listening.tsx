@@ -6,6 +6,7 @@ import { FACTS } from "../../../content/facts";
 import { SCENE_CLIPS } from "../../../content/sceneClips";
 import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { useSceneAudio } from "../useSceneAudio";
 import { Waveform } from "./charts/Waveform";
 
@@ -31,7 +32,7 @@ export function S01Listening() {
   });
   return (
     <SceneFrame ref={ref} id="s01" label="Listening to lungs" summary="What a stethoscope hears: a normal breath, crackles and wheezes, shown as waveforms.">
-        <SceneColumns eyebrow="Step 1 · The input" title="Listening to lungs"
+        <SceneColumns eyebrow={sceneEyebrow("s01", "The input")} title="Listening to lungs"
           visual={
             <div className="grid gap-4">
               {SCENE_CLIPS.map((c) => <ClipCard key={c.id} {...c} />)}

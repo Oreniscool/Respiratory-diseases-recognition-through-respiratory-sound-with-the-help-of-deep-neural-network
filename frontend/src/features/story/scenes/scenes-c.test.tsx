@@ -5,16 +5,17 @@ import { StoryPage } from "../../../pages/StoryPage";
 
 const scene = (id: string) => document.querySelector(`[data-scene="${id}"]`)!;
 
-it("scene 11 shows six problems, each with its fix and real numbers", () => {
+it("scene 11 shows the four problems not told elsewhere, each with its fix and real numbers", () => {
   render(<MemoryRouter><StoryPage /></MemoryRouter>);
   const cards = scene("s11").querySelectorAll("[data-challenge]");
-  expect(cards).toHaveLength(6);
+  expect(cards).toHaveLength(4);
   cards.forEach((card) => {
     expect(card.querySelector("[data-problem]")?.textContent?.length).toBeGreaterThan(10);
     expect(card.querySelector("[data-fix]")?.textContent?.length).toBeGreaterThan(10);
   });
   const text = scene("s11").textContent!;
-  for (const needle of ["631", "1,211", "401", "316", "27–29%", "41% → 59%"]) expect(text, needle).toContain(needle);
+  for (const needle of ["27–29%", "12 files", "41% → 59%", "2.2 × 10⁻³"]) expect(text, needle).toContain(needle);
+  expect(text, "the copies are told in chapter 2, not again here").not.toContain("631");
   expect(text).not.toMatch(/hospital|children|SPRSound/i);
 });
 

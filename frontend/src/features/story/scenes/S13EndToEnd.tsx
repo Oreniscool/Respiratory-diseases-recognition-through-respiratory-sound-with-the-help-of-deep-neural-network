@@ -5,6 +5,7 @@ import { ArrowRight } from "../../../components/icons";
 import { FACTS, SAMPLE } from "../../../content/facts";
 import { memberLabel, memberTop } from "../../../content/members";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 
 export function S13EndToEnd() {
   const u = SAMPLE.uncertainty;
@@ -31,7 +32,7 @@ export function S13EndToEnd() {
     <SceneFrame ref={ref} id="s13" label="From your recording to an answer" summary={`The sample recording passes every step and ends as strongest match ${top}, ${fused.toFixed(1)}%.`}>
       <div className="mx-auto grid min-h-screen max-w-7xl items-center gap-12 px-6 py-24 lg:grid-cols-[1fr_minmax(0,40%)] lg:px-12">
         <div>
-          <p data-reveal className="eyebrow m-0">Step 13 · All together</p>
+          <p data-reveal className="eyebrow m-0">{sceneEyebrow("s13", "All together")}</p>
           <h2 data-reveal className="mt-3 mb-8">From your recording to an answer</h2>
           <ol className="relative m-0 list-none space-y-4 p-0 pl-8">
             <span data-flow-line className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-accent" aria-hidden="true" />

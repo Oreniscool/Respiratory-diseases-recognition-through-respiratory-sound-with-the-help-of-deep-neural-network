@@ -21,8 +21,8 @@ export function S00Opening() {
             ))}
           </h1>
           <p data-reveal className="max-w-lg text-lg text-ink-muted">
-            Follow one stethoscope recording through every step of RespiNet: how the sound is cleaned, measured and
-            scored, why each step is there, and what the model finally says.
+            How we built RespiNet: the model we started from, a problem we found in a popular dataset, and how a stethoscope
+            recording becomes a model score today.
           </p>
           <p data-reveal className="mt-5 inline-block rounded-full border border-line bg-paper-raised px-3 py-1 text-sm text-ink">
             A research prototype, not a diagnostic device

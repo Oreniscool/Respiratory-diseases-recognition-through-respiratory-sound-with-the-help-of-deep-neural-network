@@ -7,6 +7,7 @@ import type { PredictResult } from "../../../lib/api/types";
 import { LAYER_COLORS } from "../../three/layerColors";
 import { SceneColumns, Why } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 import { useClipAudio } from "../useSceneAudio";
 import { NetworkJourney } from "./charts/NetworkJourney";
 
@@ -80,7 +81,7 @@ export function S06Network() {
   return (
     <SceneFrame ref={ref} id="s06" label="Inside RespiNet" illustration
       summary="One 4.6-second window of a COPD example followed through RespiNet: its 200 by 120 fingerprint, multi-scale convolutions, two bidirectional GRUs, dual pooling that removes time, and dense layers giving RespiNet's five scores for that window.">
-        <SceneColumns eyebrow="Step 6 · The network" title="Inside RespiNet"
+        <SceneColumns eyebrow={sceneEyebrow("s06", "The network")} title="Inside RespiNet"
           visual={analysis && scores && (
             <NetworkJourney analysis={analysis} windowIndex={windowIndex} windowCount={result?.window_scores?.length ?? 1} scores={scores} />
           )}>

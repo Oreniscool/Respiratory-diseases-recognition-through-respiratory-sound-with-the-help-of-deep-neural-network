@@ -4,11 +4,18 @@ import { Lungs } from "./Lungs";
 import { FUSION_LABELS, FusionVote } from "./FusionVote";
 import { LabelLayer } from "./labels";
 import { Frame } from "./Frame";
+import { LeakGrid } from "./LeakGrid";
+import { leakLabels } from "./leakLayout";
+import { FINGERPRINT_LABELS, FingerprintTerrain } from "./FingerprintTerrain";
+import { useLeakSelection } from "../story/scenes/charts/leakStore";
 import type { StageGroup } from "./stage";
 
 /** One WebGL context for all 3D scenes; it renders only while a 3D scene is active. */
 export default function StageCanvas({ group }: { group: StageGroup | null }) {
-  const labels = group === "fusion" ? FUSION_LABELS : [];
+  const { unit, testPick } = useLeakSelection();
+  const labels = group === "fusion" ? FUSION_LABELS
+    : group === "leaks" ? leakLabels(unit, testPick)
+    : group === "fingerprint" ? FINGERPRINT_LABELS : [];
   return (
     <>
     <Canvas frameloop={group ? "always" : "never"} dpr={[1, 1.75]} gl={{ antialias: true, alpha: true }}
@@ -24,6 +31,8 @@ export default function StageCanvas({ group }: { group: StageGroup | null }) {
       </Environment>
       {group === "lungs" && <Frame width={5.2} height={5.6}><Lungs /></Frame>}
       {group === "fusion" && <Frame width={11} height={6.5}><FusionVote /></Frame>}
+      {group === "leaks" && <Frame width={9.6} height={6.8}><LeakGrid /></Frame>}
+      {group === "fingerprint" && <Frame width={9.6} height={6}><FingerprintTerrain /></Frame>}
     </Canvas>
     <LabelLayer specs={labels} />
     </>

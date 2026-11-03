@@ -5,8 +5,12 @@ Loaded when working inside `frontend/`. Read the root [`../CLAUDE.md`](../CLAUDE
 and its plan. The previous app is archived, unbuilt, in [`../frontend-legacy/`](../frontend-legacy/).
 
 ## 1. What it is
-A light-editorial presentation of the served model (14 full-screen scenes, 2 of them 3D: lungs and the vote, each animating in real time when it opens) with a keyboard
-presenter mode, ending in an analyzer that turns an uploaded/recorded/demo recording into a "story report".
+A light-editorial presentation of the whole project (30 full-screen scenes in five chapters, about 20 minutes: where it
+began, the discovery (the Kaggle–ICBHI audit paper), from sound to features, the model, results and the system; 4 scenes
+are 3D: lungs, the leak bar grid, the fingerprint landscape and the vote, each animating in real time when it opens;
+chapter cards wipe in at chapters 2–5) with a keyboard presenter mode, ending in an
+analyzer that turns an uploaded/recorded/demo recording into a "story report". Expanded 2026-11-03
+([`../docs/superpowers/specs/2026-11-03-story-expansion-design.md`](../docs/superpowers/specs/2026-11-03-story-expansion-design.md)).
 Routes: `/` story (the analyzer closes it), `/analyze` the analyzer alone. Dev only: `/__stage?group=lungs|fusion&progress=0.6`.
 
 ## 2. Stack and commands
@@ -18,33 +22,49 @@ fft.js, self-hosted Fraunces/Inter (`@fontsource-variable`). Node ≥ 22.12. Ver
 npm ci
 npm run dev          # :5173, proxies /health, /predict and exactly ^/explain$ to :5001
 npm test             # Vitest (jsdom); includes the fact check and, if present locally, the librosa parity check
-npm run check:facts  # src/content/facts.ts vs the evidence files and backend/artifacts/latest (skips when absent)
+npm run check:facts  # facts.ts + story-data.json vs the evidence files and backend/artifacts/latest (artifact checks skip when absent)
 npm run lint && npm run typecheck && npm run build   # dist/ is COMMITTED: rebuild and commit after src changes
 CHROMIUM_PATH=~/.cache/ms-playwright/chromium-1248/chrome-linux64/chrome npm run e2e      # mock-mode build in dist-e2e/
 E2E_GPU=1 CHROMIUM_PATH=… npm run e2e -- -g fps        # real GPU, asserts ≥ 50 fps (run on the presentation laptop)
 E2E_REAL_BACKEND=1 E2E_BASE_URL=http://127.0.0.1:5173 npm run e2e -- analyzer.real   # dev server + live backend
 backend/venv/bin/python -I frontend/scripts/prepare_clips.py   # from the repo root, backend up: re-pick clips (--scene-only: scene excerpts only)
 backend/venv/bin/python -I frontend/scripts/seed_windows.py    # from the repo root: per-seed window scores for scene 7
+backend/venv/bin/python -I frontend/scripts/story_data.py      # from the repo root: NCC histogram, most-copied recording, training curve
 ```
 
 ## 3. Layout (one job per folder)
 | Path | Job |
 |---|---|
-| `src/content/` | `facts.ts` (every on-screen number with its source), `why.ts` (sourced reasons), `challenges.ts`, `members.ts`, `clips.json` + `clips.provenance.json` (generated), `sample-predict.json` (copy of `documentation/frontend_sample_predict.json`) |
+| `src/content/` | `facts.ts` (every on-screen number with its source), `why.ts` (sourced reasons), `challenges.ts`, `members.ts`, `clips.json` + `clips.provenance.json` (generated), `sample-predict.json` (copy of `documentation/frontend_sample_predict.json`), `story-data.json` + `storyData.ts` (generated arrays for the audit and training scenes) |
 | `src/lib/api/` | the only backend client: `getHealth`, `predict(file, name, demoClipId?)`, `explain`; `OfflineError` for network failures, 502/503/504 and any failed `/health`; mock mode (`VITE_MOCK_API=1` or `setMockMode`) |
 | `src/lib/audio/` | DSP mirroring the server (band-pass, STFT, 128 Slaney mel, DCT-II MFCC, Savitzky-Golay deltas, CMVN, windows) and `analyzeInWorker` |
-| `src/features/story/` | `scenes.ts` (ids s00–s13), `timeline.ts` (`useSceneTimeline`: plays the scene's timeline and text reveal in real time each time the scene opens), presenter store/keys/strip, `scenes/S00…S13` |
+| `src/features/story/` | `scenes.ts` (`CHAPTERS`, `SCENES` in presenter order, `sceneEyebrow`), `timeline.ts` (`useSceneTimeline`: plays the scene's timeline and text reveal in real time each time the scene opens), presenter store/keys/strip (dots grouped by chapter), `scenes/S00…S13` plus the added scenes `scenes/S<Name>` and their `scenes/charts/` |
 | `src/features/three/` | one shared canvas (`Stage`), `Lungs` (+ `lungAnatomy.ts`, shared with the 2D fallback), `FusionVote`, `glyphTexture`, `layerColors`, projected DOM labels (`labels.tsx`), `Fallback2D` |
 | `src/features/analyzer/` | `analyzerStore`, `Analyzer`, `Recorder`, `PipelineReplay`, `ResultView` (Verdict, MemberVotes, WindowStrip, AllScores), `ExplainPanel` |
 | `public/audio`, `public/demo` | test-split clips and their recorded real `/predict` responses; `CREDITS.md` |
 
 ## 4. Rules that are easy to break
-- **No number without a `FACTS` entry**, and `facts.sources.test.ts` must pass; never type a metric into a scene.
+- **No number without a `FACTS` entry**, and `facts.sources.test.ts` and `story.sources.test.ts` must pass; never type a
+  metric into a scene. Research numbers come from tracked evidence (`research/EXPERIMENT_LEDGER.csv`,
+  `research/CLAIM_EVIDENCE_MATRIX.csv`, `backend/data/*`) and are re-derived from it by the tests.
+- **Scene order lives in one place:** `SCENES` in `scenes.ts` is the presenter order, and `pages/StoryPage.tsx` must render
+  the scenes in that order (a test checks it). The original ids s00–s13 stay stable (`three/stage.ts`, clips and tests
+  key on them); later scenes use descriptive ids. Eyebrows come from `sceneEyebrow(id, short)`, never "Step N".
 - **Research wording**: "strongest match", "model score", "research prototype, not a diagnostic device"; the 75.5%
-  always says "on 49 unseen patients from the same datasets". No limitations scene (user decision); no claims about
-  other hospitals or children.
+  always says "on 49 unseen patients from the same datasets". No limitations scene (user decision, kept for the 30-scene
+  story); no claims about other hospitals, children or SPRSound (`scenes-d.test.tsx` checks every scene, and also fails
+  if a paragraph of 60+ characters appears twice). The audit is
+  an "association", the 2020 figure "not reproducible from the published materials", and the adopted fusion "chosen by
+  a rule fixed in advance" (never "significantly better").
 - **Colour**: bright fills (`#93d52a`, `#2ad585`, `#2ad5c4`) never carry text; class colours come from
   `components/classColors.ts` with a legend; text stays ink.
+- **Transitions** live in `timeline.ts` (the intro timeline), not in scenes: the chapter card (`SceneFrame` renders it
+  for the first scene of chapters 2–5, `invisible` until animated), `data-countup` (counts every number in a plain-text
+  element up; `="first"` for "x of y"), and the `data-visual` slide-in from `SceneColumns`. Sections clip horizontal
+  overflow so the slide-in never adds a scrollbar.
+- **3D scenes** map in `three/stage.ts` (`s00` lungs, `leaks`, `s05` fingerprint, `s08` vote); each needs a `Fallback2D`
+  branch. Scene state the 3D group reads (the leak selection) goes in a small store (`charts/leakStore.ts`); keep layout
+  and label code that tests import free of `three` (`three/leakLayout.ts`), since `stage.test.tsx` forbids importing it.
 - **Scenes**: pass the `useSceneTimeline` ref to `SceneFrame`; a scene "opens" while the line at 40% of the viewport
   is inside it, and its timeline then plays from the start in seconds (scaled by `PACE`). Never tie animation to scroll
   position again (presenter steps squeezed it into the scroll tween). Text that should reveal gets `data-reveal`;

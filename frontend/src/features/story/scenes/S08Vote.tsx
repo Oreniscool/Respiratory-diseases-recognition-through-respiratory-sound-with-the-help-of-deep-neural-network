@@ -1,9 +1,10 @@
 import { SceneFrame } from "../../../components/SceneFrame";
-import { SAMPLE, WHY } from "../../../content/facts";
+import { SAMPLE } from "../../../content/facts";
 import { MEMBER_INFO, memberTop } from "../../../content/members";
 import { Glyph, type GlyphName } from "../../../components/glyphs";
-import { SceneColumns, Why } from "../SceneColumns";
+import { SceneColumns } from "../SceneColumns";
 import { useSceneTimeline } from "../timeline";
+import { sceneEyebrow } from "../scenes";
 
 export function S08Vote() {
   const members = SAMPLE.members ?? [];
@@ -17,7 +18,7 @@ export function S08Vote() {
   return (
     <SceneFrame ref={ref} id="s08" label="Four models vote" illustration
       summary={`Four models score the sample recording; ${agree} of 4 agree, and the fusion gives ${SAMPLE.model_prediction} ${fused.toFixed(1)}%.`}>
-        <SceneColumns eyebrow="Step 8 · Fusion" title="Four models vote">
+        <SceneColumns eyebrow={sceneEyebrow("s08", "Fusion")} title="Four models vote">
           <p>Three more models listen to the same recording, each with its own pretrained ear, and the four scores are averaged with equal weight.</p>
           <ul className="m-0 list-none space-y-2 p-0">
             {tops.map(({ m, top }) => (
@@ -37,7 +38,7 @@ export function S08Vote() {
           <p data-fused className="text-ink">
             On the sample, <strong>{agree} of 4 agree</strong>. Together: <strong className="tabular">{SAMPLE.model_prediction} {fused.toFixed(1)}%</strong>.
           </p>
-          <Why>{WHY.fusion.text}</Why>
+          <p className="text-sm text-ink-muted">This four-model team is the candidate that won the fair comparison in the previous step.</p>
         </SceneColumns>
     </SceneFrame>
   );
